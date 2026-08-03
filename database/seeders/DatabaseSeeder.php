@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        if (User::where('role', User::ROLE_SUPER_ADMIN)->exists()) {
+            return;
+        }
+
         $admin = User::create([
             'name' => 'مالك المنصة',
             'email' => 'admin@bakery.test',
