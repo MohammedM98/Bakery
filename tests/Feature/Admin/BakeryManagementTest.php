@@ -2,9 +2,12 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Livewire\AdminBakeriesIndex;
+use App\Livewire\AdminBakeryCreate;
 use App\Models\Bakery;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class BakeryManagementTest extends TestCase
@@ -20,13 +23,15 @@ class BakeryManagementTest extends TestCase
     {
         $admin = $this->makeSuperAdmin();
 
-        $this->actingAs($admin)->post(route('admin.bakeries.store'), [
-            'name' => 'مخبز جديد',
-            'owner_name' => 'مالك جديد',
-            'owner_email' => 'newowner@example.com',
-            'owner_password' => 'password123',
-            'subscription_months' => 1,
-        ])->assertRedirect(route('admin.bakeries.index'));
+        Livewire::actingAs($admin)
+            ->test(AdminBakeryCreate::class)
+            ->set('name', 'مخبز جديد')
+            ->set('owner_name', 'مالك جديد')
+            ->set('owner_email', 'newowner@example.com')
+            ->set('owner_password', 'password123')
+            ->set('subscription_months', '1')
+            ->call('save')
+            ->assertRedirect(route('admin.bakeries.index'));
 
         $bakery = Bakery::where('name', 'مخبز جديد')->first();
         $this->assertNotNull($bakery);
@@ -47,9 +52,10 @@ class BakeryManagementTest extends TestCase
             'subscription_expires_at' => now()->subDays(5),
         ]);
 
-        $this->actingAs($admin)->post(route('admin.bakeries.renew', $bakery), [
-            'subscription_months' => 2,
-        ])->assertRedirect();
+        Livewire::actingAs($admin)
+            ->test(AdminBakeriesIndex::class)
+            ->set("renewMonths.{$bakery->id}", 2)
+            ->call('renew', $bakery->id);
 
         $bakery->refresh();
         $this->assertTrue($bakery->isSubscriptionActive());
@@ -71,9 +77,9 @@ class BakeryManagementTest extends TestCase
             'bakery_id' => $bakery->id,
         ]);
 
-        $this->actingAs($admin)
-            ->delete(route('admin.bakeries.destroy', $bakery))
-            ->assertRedirect(route('admin.bakeries.index'));
+        Livewire::actingAs($admin)
+            ->test(AdminBakeriesIndex::class)
+            ->call('delete', $bakery->id);
 
         $this->assertDatabaseMissing('bakeries', ['id' => $bakery->id]);
         $this->assertDatabaseMissing('users', ['id' => $owner->id]);

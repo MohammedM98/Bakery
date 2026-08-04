@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Owner;
 
+use App\Livewire\CustomerCreate;
+use App\Livewire\CustomerEdit;
 use App\Models\Bakery;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class CustomerManagementTest extends TestCase
@@ -30,14 +33,15 @@ class CustomerManagementTest extends TestCase
     {
         $owner = $this->makeOwner();
 
-        $response = $this->actingAs($owner)->post(route('panel.customers.store'), [
-            'name' => 'عميل تجريبي',
-            'mobile_number' => '0500000000',
-            'flour_balance_kg' => 10,
-        ]);
+        Livewire::actingAs($owner)
+            ->test(CustomerCreate::class)
+            ->set('name', 'عميل تجريبي')
+            ->set('mobile_number', '0500000000')
+            ->set('flour_balance_kg', '10')
+            ->call('save');
 
         $customer = Customer::first();
-        $response->assertRedirect(route('panel.customers.show', $customer));
+        $this->assertNotNull($customer);
         $this->assertSame($owner->bakery_id, $customer->bakery_id);
         $this->assertSame('10.00', $customer->flour_balance_kg);
     }
@@ -68,8 +72,9 @@ class CustomerManagementTest extends TestCase
             'mobile_number' => '0522222222',
         ]);
 
-        $this->actingAs($owner)
-            ->delete(route('panel.customers.destroy', $customer))
+        Livewire::actingAs($owner)
+            ->test(CustomerEdit::class, ['customer' => $customer])
+            ->call('delete')
             ->assertRedirect(route('panel.customers.index'));
 
         $this->assertDatabaseMissing('customers', ['id' => $customer->id]);

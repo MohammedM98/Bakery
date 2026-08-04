@@ -2,11 +2,13 @@
 
 namespace Tests\Feature\Owner;
 
+use App\Livewire\SaleCreate;
 use App\Models\Bakery;
 use App\Models\Customer;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SaleManagementTest extends TestCase
@@ -42,31 +44,34 @@ class SaleManagementTest extends TestCase
             'flour_balance_kg' => 20,
         ]);
 
-        $this->actingAs($owner)->post(route('panel.sales.store'), [
-            'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
-            'customer_id' => $customer->id,
-            'kg_amount' => 6,
-            'payment_status' => Sale::STATUS_PAID,
-            'sale_date' => now()->toDateString(),
-        ])->assertRedirect(route('panel.sales.index'));
+        Livewire::actingAs($owner)
+            ->test(SaleCreate::class)
+            ->set('sale_type', Sale::TYPE_FLOUR_EXCHANGE)
+            ->set('customer_id', $customer->id)
+            ->set('kg_amount', '6')
+            ->set('payment_status', Sale::STATUS_PAID)
+            ->set('sale_date', now()->toDateString())
+            ->call('save')
+            ->assertRedirect(route('panel.sales.index'));
 
         $this->assertEquals(14, $customer->fresh()->flour_balance_kg);
         $this->assertDatabaseHas('sales', ['customer_id' => $customer->id, 'total_amount' => 12]);
     }
 
-    public function test_sale_price_always_comes_from_bakery_settings_not_the_request(): void
+    public function test_sale_price_always_comes_from_bakery_settings(): void
     {
         [$owner, $bakery] = $this->makeOwnerWithBakery();
 
-        // Even if a malicious or stale request tries to submit its own price,
-        // the server must ignore it and use the bakery's configured price.
-        $this->actingAs($owner)->post(route('panel.sales.store'), [
-            'sale_type' => Sale::TYPE_CASH,
-            'kg_amount' => 4,
-            'price_per_kg' => 999,
-            'payment_status' => Sale::STATUS_PAID,
-            'sale_date' => now()->toDateString(),
-        ])->assertRedirect(route('panel.sales.index'));
+        // The sale form has no price field at all — price_per_kg is always
+        // derived server-side from the bakery's settings, never user input.
+        Livewire::actingAs($owner)
+            ->test(SaleCreate::class)
+            ->set('sale_type', Sale::TYPE_CASH)
+            ->set('kg_amount', '4')
+            ->set('payment_status', Sale::STATUS_PAID)
+            ->set('sale_date', now()->toDateString())
+            ->call('save')
+            ->assertRedirect(route('panel.sales.index'));
 
         $this->assertDatabaseHas('sales', [
             'price_per_kg' => $bakery->regular_price_per_kg,
@@ -85,13 +90,15 @@ class SaleManagementTest extends TestCase
             'flour_balance_kg' => 3,
         ]);
 
-        $this->actingAs($owner)->post(route('panel.sales.store'), [
-            'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
-            'customer_id' => $customer->id,
-            'kg_amount' => 10,
-            'payment_status' => Sale::STATUS_PAID,
-            'sale_date' => now()->toDateString(),
-        ])->assertSessionHasErrors('kg_amount');
+        Livewire::actingAs($owner)
+            ->test(SaleCreate::class)
+            ->set('sale_type', Sale::TYPE_FLOUR_EXCHANGE)
+            ->set('customer_id', $customer->id)
+            ->set('kg_amount', '10')
+            ->set('payment_status', Sale::STATUS_PAID)
+            ->set('sale_date', now()->toDateString())
+            ->call('save')
+            ->assertHasErrors('kg_amount');
 
         $this->assertEquals(3, $customer->fresh()->flour_balance_kg);
         $this->assertDatabaseCount('sales', 0);

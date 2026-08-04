@@ -2,10 +2,12 @@
 
 namespace Tests\Feature\Owner;
 
+use App\Livewire\DashboardPage;
 use App\Models\Bakery;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class DashboardTest extends TestCase
@@ -25,7 +27,7 @@ class DashboardTest extends TestCase
             'bakery_id' => $bakery->id,
         ]);
 
-        // A sale dated today, stored the same way the seeder/controller do
+        // A sale dated today, stored the same way the seeder/component do
         // (via ->toDateString()), must still be picked up by the dashboard's
         // "today" aggregation regardless of how the date cast round-trips it.
         Sale::create([
@@ -49,11 +51,10 @@ class DashboardTest extends TestCase
             'sale_date' => now()->subDay()->toDateString(),
         ]);
 
-        $response = $this->actingAs($owner)->get(route('panel.dashboard'));
-
-        $response->assertOk();
-        $response->assertViewHas('todayKg', fn ($kg) => (float) $kg === 5.0);
-        $response->assertViewHas('todayUnpaid', fn ($amount) => (float) $amount === 30.0);
-        $response->assertViewHas('todaySalesCount', 1);
+        Livewire::actingAs($owner)
+            ->test(DashboardPage::class)
+            ->assertViewHas('todayKg', fn ($kg) => (float) $kg === 5.0)
+            ->assertViewHas('todayUnpaid', fn ($amount) => (float) $amount === 30.0)
+            ->assertViewHas('todaySalesCount', 1);
     }
 }

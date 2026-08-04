@@ -18,6 +18,8 @@ class DashboardUnpaidSales extends Component
         $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
 
         $this->message = "تم تأكيد استلام الدفع لهذه العملية بمبلغ {$sale->total_amount}.";
+
+        $this->dispatch('sale-marked-paid');
     }
 
     public function render()
