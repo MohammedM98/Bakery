@@ -4,9 +4,9 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-2xl mx-auto space-y-6">
 
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
                 <form method="POST" action="{{ route('admin.bakeries.update', $bakery) }}" class="space-y-5">
                     @csrf
                     @method('PUT')
@@ -31,13 +31,13 @@
                     </div>
 
                     <div class="flex justify-end gap-3">
-                        <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
-                        <button type="submit" class="px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">حفظ التعديلات</button>
+                        <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">حفظ التعديلات</button>
                     </div>
                 </form>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
                 <h3 class="font-semibold text-gray-700 mb-4">الاشتراك</h3>
                 <div class="flex items-center gap-3 mb-4 text-sm">
                     <span>الحالة:</span>
@@ -55,31 +55,31 @@
                         <x-input-label for="subscription_months" value="تجديد لعدد أشهر" />
                         <x-text-input id="subscription_months" name="subscription_months" type="number" min="1" max="24" class="block mt-1 w-32" value="1" />
                     </div>
-                    <button class="px-4 py-2 rounded-md bg-green-600 text-white text-sm font-medium hover:bg-green-700">تجديد الاشتراك</button>
+                    <button class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700">تجديد الاشتراك</button>
                 </form>
 
                 <form method="POST" action="{{ route('admin.bakeries.toggle-status', $bakery) }}" class="mt-3">
                     @csrf
-                    <button class="px-4 py-2 rounded-md border border-gray-300 text-sm hover:bg-gray-50">
+                    <button class="px-4 py-2 rounded-xl border border-gray-300 text-sm hover:bg-gray-50">
                         {{ $bakery->subscription_status === 'active' ? 'تعطيل الاشتراك يدويًا' : 'تفعيل الاشتراك' }}
                     </button>
                 </form>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
                 <h3 class="font-semibold text-gray-700 mb-2">حساب المالك</h3>
                 @foreach ($bakery->owners as $owner)
                     <div class="text-sm text-gray-700">{{ $owner->name }} — {{ $owner->email }}</div>
                 @endforeach
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-red-100">
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-red-100">
                 <h3 class="font-semibold text-red-700 mb-2">حذف المخبز</h3>
                 <p class="text-sm text-gray-600 mb-4">سيتم حذف المخبز وحساب المالك وجميع العملاء والعمليات المرتبطة به نهائيًا.</p>
                 <form method="POST" action="{{ route('admin.bakeries.destroy', $bakery) }}" onsubmit="return confirm('هل أنت متأكد من حذف هذا المخبز وجميع بياناته؟');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="px-4 py-2 rounded-md bg-red-600 text-white text-sm font-medium hover:bg-red-700">حذف المخبز نهائيًا</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700">حذف المخبز نهائيًا</button>
                 </form>
             </div>
         </div>

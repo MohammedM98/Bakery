@@ -2,22 +2,22 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">العملاء</h2>
-            <a href="{{ route('panel.customers.create') }}" class="px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">
+            <a href="{{ route('panel.customers.create') }}" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
                 + إضافة عميل
             </a>
         </div>
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-7xl mx-auto space-y-6">
 
             <form method="GET" class="flex gap-3">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="ابحث بالاسم أو رقم الجوال"
-                       class="w-full sm:w-96 rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500">
-                <button class="px-4 py-2 rounded-md bg-gray-800 text-white text-sm font-medium hover:bg-gray-900">بحث</button>
+                       class="w-full sm:w-96 rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500">
+                <button class="px-4 py-2 rounded-xl bg-gray-800 text-white text-sm font-medium hover:bg-gray-900">بحث</button>
             </form>
 
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 text-gray-500">
@@ -32,7 +32,7 @@
                             @forelse ($customers as $customer)
                                 <tr>
                                     <td class="px-6 py-3">
-                                        <a href="{{ route('panel.customers.show', $customer) }}" class="font-medium text-amber-700 hover:underline">
+                                        <a href="{{ route('panel.customers.show', $customer) }}" class="font-medium text-violet-600 hover:underline">
                                             {{ $customer->name }}
                                         </a>
                                     </td>

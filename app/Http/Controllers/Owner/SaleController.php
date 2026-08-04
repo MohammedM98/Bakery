@@ -21,7 +21,7 @@ class SaleController extends Controller
         $sales = Sale::where('bakery_id', $bakery->id)
             ->with('customer')
             ->when($request->string('status')->toString(), fn ($query, $status) => $query->where('payment_status', $status))
-            ->when($request->string('date')->toString(), fn ($query, $date) => $query->where('sale_date', $date))
+            ->when($request->string('date')->toString(), fn ($query, $date) => $query->whereDate('sale_date', $date))
             ->latest('sale_date')
             ->latest('id')
             ->paginate(20)

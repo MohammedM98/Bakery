@@ -7,22 +7,18 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700&display=swap" rel="stylesheet" />
-
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="text-gray-900 antialiased" style="font-family: 'Cairo', sans-serif;">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
+    <body class="text-gray-900 antialiased">
+        <div class="min-h-screen flex flex-col sm:justify-center items-center px-4 py-10 bg-gradient-to-br from-violet-50 via-slate-50 to-pink-50">
             <div>
-                <a href="/" class="flex items-center gap-2 text-2xl font-bold text-amber-700">
+                <a href="/" class="flex items-center gap-2 text-2xl font-bold text-violet-700">
                     🥖 <span>{{ config('app.name') }}</span>
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
+            <div class="w-full sm:max-w-md mt-6 px-6 py-6 bg-white shadow-xl shadow-violet-100 overflow-hidden rounded-2xl border border-violet-50">
                 {{ $slot }}
             </div>
         </div>

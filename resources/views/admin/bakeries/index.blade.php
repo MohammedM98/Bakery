@@ -2,16 +2,16 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">المخابز والاشتراكات</h2>
-            <a href="{{ route('admin.bakeries.create') }}" class="px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">
+            <a href="{{ route('admin.bakeries.create') }}" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
                 + إضافة مخبز جديد
             </a>
         </div>
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-7xl mx-auto space-y-6">
 
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 text-gray-500">
@@ -27,7 +27,7 @@
                             @forelse ($bakeries as $bakery)
                                 <tr>
                                     <td class="px-6 py-3">
-                                        <a href="{{ route('admin.bakeries.edit', $bakery) }}" class="font-medium text-amber-700 hover:underline">
+                                        <a href="{{ route('admin.bakeries.edit', $bakery) }}" class="font-medium text-violet-600 hover:underline">
                                             {{ $bakery->name }}
                                         </a>
                                         <div class="text-xs text-gray-500">{{ $bakery->phone }}</div>
@@ -53,18 +53,18 @@
                                             <form method="POST" action="{{ route('admin.bakeries.renew', $bakery) }}" class="flex items-center gap-1">
                                                 @csrf
                                                 <input type="number" name="subscription_months" value="1" min="1" max="24" class="w-16 rounded-md border-gray-300 text-xs">
-                                                <button class="text-xs px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700">تجديد</button>
+                                                <button class="text-xs px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700">تجديد</button>
                                             </form>
                                             <form method="POST" action="{{ route('admin.bakeries.toggle-status', $bakery) }}">
                                                 @csrf
-                                                <button class="text-xs px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50">
+                                                <button class="text-xs px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">
                                                     {{ $bakery->subscription_status === 'active' ? 'تعطيل' : 'تفعيل' }}
                                                 </button>
                                             </form>
                                             <form method="POST" action="{{ route('admin.bakeries.destroy', $bakery) }}" onsubmit="return confirm('سيتم حذف المخبز وكل بياناته نهائيًا. متابعة؟');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button class="text-xs px-3 py-1 rounded-md text-red-600 hover:bg-red-50">حذف</button>
+                                                <button class="text-xs px-3 py-1 rounded-lg text-red-600 hover:bg-red-50">حذف</button>
                                             </form>
                                         </div>
                                     </td>

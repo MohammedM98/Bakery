@@ -7,50 +7,48 @@
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=cairo:400,500,600,700&display=swap" rel="stylesheet" />
-
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-['Cairo',sans-serif] antialiased" style="font-family: 'Cairo', sans-serif;">
-        <div class="min-h-screen bg-gray-100">
+    <body class="antialiased">
+        <div class="min-h-screen flex flex-col lg:flex-row bg-slate-50">
             @include('layouts.navigation')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+            <div class="flex-1 min-w-0">
+                <!-- Page Heading -->
+                @isset($header)
+                    <header class="bg-white border-b border-gray-100">
+                        <div class="px-4 sm:px-6 lg:px-10 py-6">
+                            {{ $header }}
+                        </div>
+                    </header>
+                @endisset
 
-            @if (session('status'))
-                <div class="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-                    <div class="bg-green-100 border border-green-300 text-green-800 rounded-md px-4 py-3">
-                        {{ session('status') }}
+                @if (session('status'))
+                    <div class="px-4 sm:px-6 lg:px-10 mt-4">
+                        <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3">
+                            {{ session('status') }}
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
 
-            @if ($errors->any())
-                <div class="max-w-7xl mx-auto mt-4 px-4 sm:px-6 lg:px-8">
-                    <div class="bg-red-100 border border-red-300 text-red-800 rounded-md px-4 py-3">
-                        <ul class="list-disc list-inside space-y-1">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                @if ($errors->any())
+                    <div class="px-4 sm:px-6 lg:px-10 mt-4">
+                        <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3">
+                            <ul class="list-disc list-inside space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
-                </div>
-            @endif
+                @endif
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
+                <!-- Page Content -->
+                <main class="px-4 sm:px-6 lg:px-10">
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
     </body>
 </html>

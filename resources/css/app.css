@@ -1,3 +1,9 @@
+@import '@fontsource-variable/cairo/wght.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+    font-family: 'Cairo Variable', 'Cairo', ui-sans-serif, system-ui, sans-serif;
+}

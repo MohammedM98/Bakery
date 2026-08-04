@@ -3,10 +3,10 @@
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $customer->name }}</h2>
             <div class="flex gap-2">
-                <a href="{{ route('panel.sales.create', ['customer_id' => $customer->id]) }}" class="px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">
+                <a href="{{ route('panel.sales.create', ['customer_id' => $customer->id]) }}" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
                     + عملية بيع
                 </a>
-                <a href="{{ route('panel.customers.edit', $customer) }}" class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">
+                <a href="{{ route('panel.customers.edit', $customer) }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">
                     تعديل
                 </a>
             </div>
@@ -14,24 +14,24 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-5xl mx-auto space-y-6">
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="text-sm text-gray-500 mb-1">رقم الجوال</div>
                     <div class="text-lg font-semibold">{{ $customer->mobile_number }}</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="text-sm text-gray-500 mb-1">رصيد القمح الحالي</div>
-                    <div class="text-2xl font-bold text-amber-700">{{ number_format($customer->flour_balance_kg, 2) }} كجم</div>
+                    <div class="text-2xl font-bold text-violet-600">{{ number_format($customer->flour_balance_kg, 2) }} كجم</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="text-sm text-gray-500 mb-1">ملاحظات</div>
                     <div class="text-sm">{{ $customer->notes ?: '—' }}</div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
                 <h3 class="font-semibold mb-4">تسجيل استلام قمح جديد</h3>
                 <form method="POST" action="{{ route('panel.flour-deposits.store', $customer) }}" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                     @csrf
@@ -48,12 +48,12 @@
                         <x-text-input id="notes" name="notes" type="text" class="block mt-1 w-full" />
                     </div>
                     <div class="sm:col-span-1">
-                        <button type="submit" class="w-full px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">إضافة للرصيد</button>
+                        <button type="submit" class="w-full px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">إضافة للرصيد</button>
                     </div>
                 </form>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 font-semibold">سجل استلام القمح</div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -87,7 +87,7 @@
                 </div>
             </div>
 
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-100 font-semibold">سجل عمليات البيع</div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">

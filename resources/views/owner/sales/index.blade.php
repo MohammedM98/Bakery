@@ -2,19 +2,19 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">عمليات البيع</h2>
-            <a href="{{ route('panel.sales.create') }}" class="px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">
+            <a href="{{ route('panel.sales.create') }}" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
                 + تسجيل عملية بيع
             </a>
         </div>
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="max-w-7xl mx-auto space-y-6">
 
             <form method="GET" class="flex flex-wrap gap-3 items-end">
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">الحالة</label>
-                    <select name="status" class="rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500">
+                    <select name="status" class="rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500">
                         <option value="">الكل</option>
                         <option value="paid" {{ request('status') === 'paid' ? 'selected' : '' }}>مدفوع</option>
                         <option value="unpaid" {{ request('status') === 'unpaid' ? 'selected' : '' }}>غير مدفوع</option>
@@ -22,13 +22,13 @@
                 </div>
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">التاريخ</label>
-                    <input type="date" name="date" value="{{ request('date') }}" class="rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500">
+                    <input type="date" name="date" value="{{ request('date') }}" class="rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500">
                 </div>
-                <button class="px-4 py-2 rounded-md bg-gray-800 text-white text-sm font-medium hover:bg-gray-900">تصفية</button>
+                <button class="px-4 py-2 rounded-xl bg-gray-800 text-white text-sm font-medium hover:bg-gray-900">تصفية</button>
                 <a href="{{ route('panel.sales.index') }}" class="text-sm text-gray-500 hover:underline">مسح التصفية</a>
             </form>
 
-            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
                         <thead class="bg-gray-50 text-gray-500">
@@ -59,18 +59,18 @@
                                         @if ($sale->isPaid())
                                             <form method="POST" action="{{ route('panel.sales.mark-unpaid', $sale) }}" class="inline">
                                                 @csrf
-                                                <button class="text-xs px-3 py-1 rounded-md border border-gray-300 hover:bg-gray-50">تحويل لغير مدفوع</button>
+                                                <button class="text-xs px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">تحويل لغير مدفوع</button>
                                             </form>
                                         @else
                                             <form method="POST" action="{{ route('panel.sales.mark-paid', $sale) }}" class="inline">
                                                 @csrf
-                                                <button class="text-xs px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700">تأكيد الدفع</button>
+                                                <button class="text-xs px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700">تأكيد الدفع</button>
                                             </form>
                                         @endif
                                         <form method="POST" action="{{ route('panel.sales.destroy', $sale) }}" class="inline" onsubmit="return confirm('حذف هذه العملية؟');">
                                             @csrf
                                             @method('DELETE')
-                                            <button class="text-xs px-3 py-1 rounded-md text-red-600 hover:bg-red-50">حذف</button>
+                                            <button class="text-xs px-3 py-1 rounded-lg text-red-600 hover:bg-red-50">حذف</button>
                                         </form>
                                     </td>
                                 </tr>

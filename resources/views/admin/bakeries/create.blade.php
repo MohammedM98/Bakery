@@ -4,8 +4,8 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
                 <form method="POST" action="{{ route('admin.bakeries.store') }}" class="space-y-5">
                     @csrf
 
@@ -59,8 +59,8 @@
                     </div>
 
                     <div class="flex justify-end gap-3">
-                        <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-md border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
-                        <button type="submit" class="px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">إنشاء المخبز</button>
+                        <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">إنشاء المخبز</button>
                     </div>
                 </form>
             </div>

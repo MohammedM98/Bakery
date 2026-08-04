@@ -4,8 +4,8 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm p-6">
                 <form method="POST" action="{{ route('panel.settings.update') }}" class="space-y-5">
                     @csrf
                     @method('PUT')
@@ -27,7 +27,7 @@
                     </div>
 
                     <div class="flex justify-end">
-                        <button type="submit" class="px-4 py-2 rounded-md bg-amber-700 text-white text-sm font-medium hover:bg-amber-800">حفظ الأسعار</button>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">حفظ الأسعار</button>
                     </div>
                 </form>
             </div>
