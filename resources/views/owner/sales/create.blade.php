@@ -11,8 +11,9 @@
                           saleType: '{{ old('sale_type', 'cash') }}',
                           cashPrice: {{ $bakery->regular_price_per_kg ?? 0 }},
                           exchangePrice: {{ $bakery->flour_exchange_fee_per_kg ?? 0 }},
-                          pricePerKg: {{ old('price_per_kg', $bakery->regular_price_per_kg ?? 0) }},
-                          updatePrice() { this.pricePerKg = this.saleType === 'cash' ? this.cashPrice : this.exchangePrice; }
+                          kgAmount: {{ old('kg_amount', 0) }},
+                          get pricePerKg() { return this.saleType === 'cash' ? this.cashPrice : this.exchangePrice; },
+                          get total() { return (this.kgAmount * this.pricePerKg).toFixed(2); }
                       }">
                     @csrf
 
@@ -20,11 +21,11 @@
                         <x-input-label value="نوع العملية" />
                         <div class="mt-2 flex gap-4">
                             <label class="flex items-center gap-2">
-                                <input type="radio" class="text-violet-600 focus:ring-violet-500" name="sale_type" value="cash" x-model="saleType" @change="updatePrice()" {{ old('sale_type', 'cash') === 'cash' ? 'checked' : '' }}>
+                                <input type="radio" class="text-violet-600 focus:ring-violet-500" name="sale_type" value="cash" x-model="saleType" {{ old('sale_type', 'cash') === 'cash' ? 'checked' : '' }}>
                                 <span>بيع نقدي</span>
                             </label>
                             <label class="flex items-center gap-2">
-                                <input type="radio" class="text-violet-600 focus:ring-violet-500" name="sale_type" value="flour_exchange" x-model="saleType" @change="updatePrice()" {{ old('sale_type') === 'flour_exchange' ? 'checked' : '' }}>
+                                <input type="radio" class="text-violet-600 focus:ring-violet-500" name="sale_type" value="flour_exchange" x-model="saleType" {{ old('sale_type') === 'flour_exchange' ? 'checked' : '' }}>
                                 <span>مقابل رصيد قمح</span>
                             </label>
                         </div>
@@ -48,15 +49,25 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <x-input-label for="kg_amount" value="الكمية (كجم)" />
-                            <x-text-input id="kg_amount" name="kg_amount" type="number" step="0.01" min="0.01" class="block mt-1 w-full" :value="old('kg_amount')" required />
+                            <x-text-input id="kg_amount" name="kg_amount" type="number" step="0.01" min="0.01" class="block mt-1 w-full"
+                                          x-model.number="kgAmount" :value="old('kg_amount')" required />
                             <x-input-error :messages="$errors->get('kg_amount')" class="mt-2" />
                         </div>
                         <div>
-                            <x-input-label for="price_per_kg" value="سعر الكيلو" />
-                            <input id="price_per_kg" name="price_per_kg" type="number" step="0.01" min="0" x-model="pricePerKg"
-                                   class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500" required>
-                            <x-input-error :messages="$errors->get('price_per_kg')" class="mt-2" />
+                            <x-input-label value="سعر الكيلو" />
+                            <div class="mt-1 flex items-center h-[42px] px-3 rounded-md border border-gray-200 bg-gray-50 text-gray-700">
+                                <span x-text="pricePerKg"></span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                يُحدَّد تلقائيًا من
+                                <a href="{{ route('panel.settings.edit') }}" class="text-violet-600 hover:underline">إعدادات الأسعار</a>.
+                            </p>
                         </div>
+                    </div>
+
+                    <div class="rounded-xl bg-violet-50 text-violet-800 px-4 py-3 text-sm flex items-center justify-between">
+                        <span>الإجمالي المتوقع</span>
+                        <span class="font-bold text-lg" x-text="total"></span>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">

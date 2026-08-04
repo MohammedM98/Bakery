@@ -46,13 +46,32 @@ class SaleManagementTest extends TestCase
             'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
             'customer_id' => $customer->id,
             'kg_amount' => 6,
-            'price_per_kg' => 2,
             'payment_status' => Sale::STATUS_PAID,
             'sale_date' => now()->toDateString(),
         ])->assertRedirect(route('panel.sales.index'));
 
         $this->assertEquals(14, $customer->fresh()->flour_balance_kg);
         $this->assertDatabaseHas('sales', ['customer_id' => $customer->id, 'total_amount' => 12]);
+    }
+
+    public function test_sale_price_always_comes_from_bakery_settings_not_the_request(): void
+    {
+        [$owner, $bakery] = $this->makeOwnerWithBakery();
+
+        // Even if a malicious or stale request tries to submit its own price,
+        // the server must ignore it and use the bakery's configured price.
+        $this->actingAs($owner)->post(route('panel.sales.store'), [
+            'sale_type' => Sale::TYPE_CASH,
+            'kg_amount' => 4,
+            'price_per_kg' => 999,
+            'payment_status' => Sale::STATUS_PAID,
+            'sale_date' => now()->toDateString(),
+        ])->assertRedirect(route('panel.sales.index'));
+
+        $this->assertDatabaseHas('sales', [
+            'price_per_kg' => $bakery->regular_price_per_kg,
+            'total_amount' => 4 * $bakery->regular_price_per_kg,
+        ]);
     }
 
     public function test_flour_exchange_sale_rejects_insufficient_balance(): void
@@ -70,7 +89,6 @@ class SaleManagementTest extends TestCase
             'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
             'customer_id' => $customer->id,
             'kg_amount' => 10,
-            'price_per_kg' => 2,
             'payment_status' => Sale::STATUS_PAID,
             'sale_date' => now()->toDateString(),
         ])->assertSessionHasErrors('kg_amount');
