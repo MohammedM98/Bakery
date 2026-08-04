@@ -10,20 +10,9 @@ use Illuminate\View\View;
 
 class CustomerController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $customers = Customer::where('bakery_id', $request->user()->bakery_id)
-            ->when($request->string('search')->trim()->toString(), function ($query, $search) {
-                $query->where(function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('mobile_number', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('name')
-            ->paginate(15)
-            ->withQueryString();
-
-        return view('owner.customers.index', compact('customers'));
+        return view('owner.customers.index');
     }
 
     public function create(): View

@@ -35,13 +35,6 @@ class DashboardController extends Controller
             ->orderBy('sale_date')
             ->get();
 
-        $unpaidSales = Sale::where('bakery_id', $bakery->id)
-            ->where('payment_status', Sale::STATUS_UNPAID)
-            ->with('customer')
-            ->latest('sale_date')
-            ->take(10)
-            ->get();
-
         $recentSales = Sale::where('bakery_id', $bakery->id)
             ->with('customer')
             ->latest('sale_date')
@@ -51,7 +44,7 @@ class DashboardController extends Controller
 
         return view('owner.dashboard', compact(
             'bakery', 'todayKg', 'todayTakings', 'todayUnpaid', 'todaySalesCount', 'todayUnpaidCount',
-            'last7Days', 'unpaidSales', 'recentSales'
+            'last7Days', 'recentSales'
         ));
     }
 }

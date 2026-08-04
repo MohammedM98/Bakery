@@ -103,31 +103,7 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 border-b border-gray-100 font-semibold flex items-center justify-between">
-                        <span>عمليات غير مدفوعة</span>
-                        <a href="{{ route('panel.sales.index', ['status' => 'unpaid']) }}" class="text-sm text-violet-600 hover:underline">عرض الكل</a>
-                    </div>
-                    <ul class="divide-y divide-gray-100">
-                        @forelse ($unpaidSales as $sale)
-                            <li class="px-6 py-3 flex items-center justify-between text-sm">
-                                <div>
-                                    <div class="font-medium">{{ $sale->customer->name ?? 'عميل نقدي' }}</div>
-                                    <div class="text-gray-500">{{ $sale->sale_date->translatedFormat('d M Y') }} — {{ number_format($sale->kg_amount, 2) }} كجم</div>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <span class="font-semibold text-red-600">{{ number_format($sale->total_amount, 2) }}</span>
-                                    <form method="POST" action="{{ route('panel.sales.mark-paid', $sale) }}">
-                                        @csrf
-                                        <button class="text-xs px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700">تأكيد الدفع</button>
-                                    </form>
-                                </div>
-                            </li>
-                        @empty
-                            <li class="px-6 py-4 text-center text-gray-400 text-sm">لا توجد عمليات غير مدفوعة.</li>
-                        @endforelse
-                    </ul>
-                </div>
+                <livewire:dashboard-unpaid-sales />
 
                 <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 font-semibold flex items-center justify-between">

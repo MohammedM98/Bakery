@@ -14,20 +14,9 @@ use Illuminate\View\View;
 
 class SaleController extends Controller
 {
-    public function index(Request $request): View
+    public function index(): View
     {
-        $bakery = $request->user()->bakery;
-
-        $sales = Sale::where('bakery_id', $bakery->id)
-            ->with('customer')
-            ->when($request->string('status')->toString(), fn ($query, $status) => $query->where('payment_status', $status))
-            ->when($request->string('date')->toString(), fn ($query, $date) => $query->whereDate('sale_date', $date))
-            ->latest('sale_date')
-            ->latest('id')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('owner.sales.index', compact('sales'));
+        return view('owner.sales.index');
     }
 
     public function create(Request $request): View
@@ -96,38 +85,5 @@ class SaleController extends Controller
         });
 
         return redirect()->route('panel.sales.index')->with('status', 'تم تسجيل عملية البيع بنجاح.');
-    }
-
-    public function markPaid(Request $request, Sale $sale): RedirectResponse
-    {
-        abort_unless($sale->bakery_id === $request->user()->bakery_id, 403);
-
-        $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
-
-        return back()->with('status', "تم تأكيد استلام الدفع لهذه العملية بمبلغ {$sale->total_amount}.");
-    }
-
-    public function markUnpaid(Request $request, Sale $sale): RedirectResponse
-    {
-        abort_unless($sale->bakery_id === $request->user()->bakery_id, 403);
-
-        $sale->update(['payment_status' => Sale::STATUS_UNPAID, 'paid_at' => null]);
-
-        return back()->with('status', 'تم تحويل حالة العملية إلى غير مدفوعة.');
-    }
-
-    public function destroy(Request $request, Sale $sale): RedirectResponse
-    {
-        abort_unless($sale->bakery_id === $request->user()->bakery_id, 403);
-
-        DB::transaction(function () use ($sale) {
-            if ($sale->isFlourExchange() && $sale->customer) {
-                $sale->customer->increment('flour_balance_kg', $sale->kg_amount);
-            }
-
-            $sale->delete();
-        });
-
-        return back()->with('status', 'تم حذف عملية البيع.');
     }
 }

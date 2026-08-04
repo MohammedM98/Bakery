@@ -96,25 +96,4 @@ class SaleManagementTest extends TestCase
         $this->assertEquals(3, $customer->fresh()->flour_balance_kg);
         $this->assertDatabaseCount('sales', 0);
     }
-
-    public function test_owner_can_mark_a_sale_as_paid(): void
-    {
-        [$owner, $bakery] = $this->makeOwnerWithBakery();
-
-        $sale = Sale::create([
-            'bakery_id' => $bakery->id,
-            'sale_type' => Sale::TYPE_CASH,
-            'kg_amount' => 5,
-            'price_per_kg' => 5,
-            'total_amount' => 25,
-            'payment_status' => Sale::STATUS_UNPAID,
-            'sale_date' => now()->toDateString(),
-        ]);
-
-        $this->actingAs($owner)
-            ->post(route('panel.sales.mark-paid', $sale))
-            ->assertSessionHas('status');
-
-        $this->assertTrue($sale->fresh()->isPaid());
-    }
 }

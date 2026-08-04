@@ -58,9 +58,6 @@ Route::middleware(['auth', 'role:bakery_owner'])
             Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
             Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');
             Route::post('sales', [SaleController::class, 'store'])->name('sales.store');
-            Route::post('sales/{sale}/mark-paid', [SaleController::class, 'markPaid'])->name('sales.mark-paid');
-            Route::post('sales/{sale}/mark-unpaid', [SaleController::class, 'markUnpaid'])->name('sales.mark-unpaid');
-            Route::delete('sales/{sale}', [SaleController::class, 'destroy'])->name('sales.destroy');
 
             Route::get('settings', [BakerySettingsController::class, 'edit'])->name('settings.edit');
             Route::put('settings', [BakerySettingsController::class, 'update'])->name('settings.update');
