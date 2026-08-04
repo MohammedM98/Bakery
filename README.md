@@ -39,6 +39,30 @@ npm run build
 php artisan serve
 ```
 
+### Windows (PowerShell)
+
+`cp` and `touch` above are Unix commands. On Windows PowerShell, use:
+
+```powershell
+composer install
+npm install
+
+Copy-Item .env.example .env
+php artisan key:generate
+
+# Simplest local setup: SQLite, no database server needed.
+# Edit .env and set:
+#   DB_CONNECTION=sqlite
+New-Item -ItemType File -Path database\database.sqlite -Force
+
+php artisan migrate --seed
+npm run build
+
+php artisan serve
+```
+
+Then open **http://127.0.0.1:8000** in your browser.
+
 ### بيانات دخول تجريبية (من الـ Seeder)
 
 | الدور | البريد الإلكتروني | كلمة المرور |
