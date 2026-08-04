@@ -1,5 +1,11 @@
 <div class="space-y-6">
-    <div class="flex items-center gap-3">
+    @if ($flashMessage)
+        <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="customers-flash">
+            {{ $flashMessage }}
+        </div>
+    @endif
+
+    <div class="flex items-center justify-between gap-3">
         <div class="relative w-full sm:w-96">
             <input type="text" wire:model.live.debounce.400ms="search" placeholder="ابحث بالاسم أو رقم الجوال"
                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500">
@@ -10,6 +16,11 @@
                 </svg>
             </div>
         </div>
+
+        <button type="button" x-data @click="$dispatch('open-modal', 'customer-create')"
+                class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 shrink-0">
+            + إضافة عميل
+        </button>
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -34,7 +45,7 @@
                             <td class="px-6 py-3">{{ $customer->mobile_number }}</td>
                             <td class="px-6 py-3">{{ number_format($customer->flour_balance_kg, 2) }}</td>
                             <td class="px-6 py-3 text-left">
-                                <a href="{{ route('panel.customers.edit', $customer) }}" class="text-gray-600 hover:underline">تعديل</a>
+                                <button type="button" wire:click="editCustomer({{ $customer->id }})" class="text-gray-600 hover:underline">تعديل</button>
                             </td>
                         </tr>
                     @empty
@@ -54,4 +65,14 @@
     </div>
 
     {{ $customers->links() }}
+
+    <x-modal name="customer-create" maxWidth="lg">
+        <livewire:customer-create :is-modal="true" wire:key="customer-create-modal" />
+    </x-modal>
+
+    <x-modal name="customer-edit" maxWidth="lg">
+        @if ($editingCustomer)
+            <livewire:customer-edit :customer="$editingCustomer" :is-modal="true" wire:key="customer-edit-{{ $editingCustomer->id }}" />
+        @endif
+    </x-modal>
 </div>

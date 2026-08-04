@@ -1,4 +1,11 @@
 <div class="space-y-6">
+    <div class="flex items-center justify-end">
+        <button type="button" x-data @click="$dispatch('open-modal', 'sale-create')"
+                class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
+            + تسجيل عملية بيع
+        </button>
+    </div>
+
     @if ($message)
         <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="flash-message">
             {{ $message }}
@@ -44,24 +51,23 @@
                             <td class="px-6 py-3">{{ $sale->customer->name ?? 'عميل نقدي' }}</td>
                             <td class="px-6 py-3">{{ $sale->isFlourExchange() ? 'مقابل قمح' : 'بيع نقدي' }}</td>
                             <td class="px-6 py-3">{{ number_format($sale->kg_amount, 2) }}</td>
-                            <td class="px-6 py-3">{{ number_format($sale->total_amount, 2) }}</td>
+                            <td class="px-6 py-3">{{ money($sale->total_amount) }}</td>
                             <td class="px-6 py-3">
-                                <span class="{{ $sale->isPaid() ? 'text-green-600' : 'text-red-600' }} font-medium">
+                                <span class="{{ $sale->isPaid() ? 'text-green-600' : 'text-red-600' }} font-medium inline-flex items-center gap-1">
                                     {{ $sale->isPaid() ? 'مدفوع' : 'غير مدفوع' }}
+                                    @if ($sale->isPaid())
+                                        <span title="عملية مؤكدة، لا يمكن التراجع عنها">🔒</span>
+                                    @endif
                                 </span>
                             </td>
                             <td class="px-6 py-3 text-left whitespace-nowrap">
-                                @if ($sale->isPaid())
-                                    <button type="button" wire:click="markUnpaid({{ $sale->id }})"
-                                            class="text-xs px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">
-                                        تحويل لغير مدفوع
-                                    </button>
-                                @else
+                                @unless ($sale->isPaid())
                                     <button type="button" wire:click="markPaid({{ $sale->id }})"
+                                            wire:confirm="سيتم تأكيد دفع هذه العملية نهائيًا ولا يمكن التراجع عنها بعد ذلك. متابعة؟"
                                             class="text-xs px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700">
                                         تأكيد الدفع
                                     </button>
-                                @endif
+                                @endunless
                                 <button type="button" wire:click="delete({{ $sale->id }})" wire:confirm="هل أنت متأكد من حذف هذه العملية؟"
                                         class="text-xs px-3 py-1 rounded-lg text-red-600 hover:bg-red-50">
                                     حذف
@@ -77,4 +83,8 @@
     </div>
 
     {{ $sales->links() }}
+
+    <x-modal name="sale-create" maxWidth="lg">
+        <livewire:sale-create :is-modal="true" wire:key="sale-create-modal" />
+    </x-modal>
 </div>

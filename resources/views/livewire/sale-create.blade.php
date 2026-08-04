@@ -1,5 +1,9 @@
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="{{ $isModal ? 'p-6 max-h-[80vh] overflow-y-auto' : 'max-w-2xl mx-auto' }}">
+    @if ($isModal)
+        <h2 class="text-lg font-semibold text-gray-800 mb-5">تسجيل عملية بيع</h2>
+    @else
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+    @endif
         <form wire:submit="save" class="space-y-5">
             <div>
                 <x-input-label value="نوع العملية" />
@@ -39,7 +43,7 @@
                 <div>
                     <x-input-label value="سعر الكيلو" />
                     <div class="mt-1 flex items-center h-[42px] px-3 rounded-md border border-gray-200 bg-gray-50 text-gray-700">
-                        {{ number_format($this->pricePerKg, 2) }}
+                        {{ money($this->pricePerKg) }}
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
                         يُحدَّد تلقائيًا من
@@ -50,7 +54,7 @@
 
             <div class="rounded-xl bg-violet-50 text-violet-800 px-4 py-3 text-sm flex items-center justify-between">
                 <span>الإجمالي المتوقع</span>
-                <span class="font-bold text-lg">{{ number_format($this->total, 2) }}</span>
+                <span class="font-bold text-lg">{{ money($this->total) }}</span>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
@@ -82,11 +86,17 @@
             </div>
 
             <div class="flex justify-end gap-3">
-                <a href="{{ route('panel.sales.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @if ($isModal)
+                    <button type="button" @click="$dispatch('close-modal', 'sale-create')" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</button>
+                @else
+                    <a href="{{ route('panel.sales.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @endif
                 <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-60">
                     حفظ العملية
                 </button>
             </div>
         </form>
-    </div>
+    @if (! $isModal)
+        </div>
+    @endif
 </div>

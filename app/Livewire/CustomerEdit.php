@@ -10,6 +10,8 @@ class CustomerEdit extends Component
 {
     public Customer $customer;
 
+    public bool $isModal = false;
+
     #[Validate('required|string|max:255')]
     public string $name = '';
 
@@ -39,6 +41,13 @@ class CustomerEdit extends Component
             'notes' => $this->notes ?: null,
         ]);
 
+        if ($this->isModal) {
+            $this->dispatch('customer-saved', name: $this->customer->name);
+            $this->dispatch('close-modal', 'customer-edit');
+
+            return;
+        }
+
         session()->flash('status', 'تم تحديث بيانات العميل.');
 
         return redirect()->route('panel.customers.show', $this->customer);
@@ -49,6 +58,13 @@ class CustomerEdit extends Component
         abort_unless($this->customer->bakery_id === auth()->user()->bakery_id, 403);
 
         $this->customer->delete();
+
+        if ($this->isModal) {
+            $this->dispatch('customer-deleted');
+            $this->dispatch('close-modal', 'customer-edit');
+
+            return;
+        }
 
         session()->flash('status', 'تم حذف العميل وجميع سجلاته.');
 

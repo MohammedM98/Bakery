@@ -11,6 +11,8 @@ use Livewire\Component;
 
 class SaleCreate extends Component
 {
+    public bool $isModal = false;
+
     #[Validate('required|in:cash,flour_exchange')]
     public string $sale_type = 'cash';
 
@@ -29,10 +31,10 @@ class SaleCreate extends Component
     #[Validate('nullable|string|max:1000')]
     public ?string $notes = '';
 
-    public function mount(): void
+    public function mount(?int $customerId = null): void
     {
         $this->sale_date = now()->toDateString();
-        $this->customer_id = request()->integer('customer_id') ?: null;
+        $this->customer_id = $customerId ?? (request()->integer('customer_id') ?: null);
     }
 
     #[Computed]
@@ -104,6 +106,15 @@ class SaleCreate extends Component
                 $customer->decrement('flour_balance_kg', $this->kg_amount);
             }
         });
+
+        if ($this->isModal) {
+            $this->reset('sale_type', 'customer_id', 'kg_amount', 'payment_status', 'notes');
+            $this->sale_date = now()->toDateString();
+            $this->dispatch('sale-saved');
+            $this->dispatch('close-modal', 'sale-create');
+
+            return;
+        }
 
         session()->flash('status', 'تم تسجيل عملية البيع بنجاح.');
 

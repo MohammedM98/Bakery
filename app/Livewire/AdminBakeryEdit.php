@@ -10,6 +10,8 @@ class AdminBakeryEdit extends Component
 {
     public Bakery $bakery;
 
+    public bool $isModal = false;
+
     #[Validate('required|string|max:255')]
     public string $name = '';
 
@@ -49,6 +51,8 @@ class AdminBakeryEdit extends Component
         ]);
 
         $this->message = 'تم تحديث بيانات المخبز.';
+
+        $this->dispatch('bakery-updated');
     }
 
     public function renew(): void
@@ -67,6 +71,8 @@ class AdminBakeryEdit extends Component
         $this->bakery->refresh();
 
         $this->message = 'تم تجديد الاشتراك بنجاح.';
+
+        $this->dispatch('bakery-updated');
     }
 
     public function toggleStatus(): void
@@ -80,12 +86,21 @@ class AdminBakeryEdit extends Component
         $this->bakery->refresh();
 
         $this->message = 'تم تحديث حالة الاشتراك.';
+
+        $this->dispatch('bakery-updated');
     }
 
     public function delete()
     {
         $this->bakery->owners()->delete();
         $this->bakery->delete();
+
+        if ($this->isModal) {
+            $this->dispatch('bakery-updated');
+            $this->dispatch('close-modal', 'bakery-edit');
+
+            return;
+        }
 
         session()->flash('status', 'تم حذف المخبز وجميع بياناته.');
 

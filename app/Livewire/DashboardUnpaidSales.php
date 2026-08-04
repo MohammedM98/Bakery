@@ -15,9 +15,11 @@ class DashboardUnpaidSales extends Component
             ->where('id', $saleId)
             ->firstOrFail();
 
+        abort_if($sale->isPaid(), 409);
+
         $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
 
-        $this->message = "تم تأكيد استلام الدفع لهذه العملية بمبلغ {$sale->total_amount}.";
+        $this->message = 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.';
 
         $this->dispatch('sale-marked-paid');
     }

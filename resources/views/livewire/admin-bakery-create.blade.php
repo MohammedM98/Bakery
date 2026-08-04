@@ -1,5 +1,7 @@
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="{{ $isModal ? 'p-6 max-h-[80vh] overflow-y-auto' : 'max-w-2xl mx-auto' }}">
+    @unless ($isModal)
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+    @endunless
         <form wire:submit="save" class="space-y-5">
             <h3 class="font-semibold text-gray-700">بيانات المخبز</h3>
 
@@ -51,11 +53,17 @@
             </div>
 
             <div class="flex justify-end gap-3">
-                <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @if ($isModal)
+                    <button type="button" @click="$dispatch('close-modal', 'bakery-create')" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</button>
+                @else
+                    <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @endif
                 <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-60">
                     إنشاء المخبز
                 </button>
             </div>
         </form>
-    </div>
+    @unless ($isModal)
+        </div>
+    @endunless
 </div>

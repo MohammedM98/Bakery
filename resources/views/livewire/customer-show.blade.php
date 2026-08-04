@@ -98,7 +98,7 @@
                             <td class="px-6 py-2">{{ $sale->sale_date->translatedFormat('d M Y') }}</td>
                             <td class="px-6 py-2">{{ $sale->isFlourExchange() ? 'مقابل قمح' : 'بيع نقدي' }}</td>
                             <td class="px-6 py-2">{{ number_format($sale->kg_amount, 2) }}</td>
-                            <td class="px-6 py-2">{{ number_format($sale->total_amount, 2) }}</td>
+                            <td class="px-6 py-2">{{ money($sale->total_amount) }}</td>
                             <td class="px-6 py-2">
                                 <span class="{{ $sale->isPaid() ? 'text-green-600' : 'text-red-600' }}">
                                     {{ $sale->isPaid() ? 'مدفوع' : 'غير مدفوع' }}
@@ -112,4 +112,8 @@
             </table>
         </div>
     </div>
+
+    <x-modal name="sale-create" maxWidth="lg">
+        <livewire:sale-create :is-modal="true" :customer-id="$customer->id" wire:key="customer-sale-create-modal" />
+    </x-modal>
 </div>

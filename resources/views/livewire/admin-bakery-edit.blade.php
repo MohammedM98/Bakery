@@ -1,11 +1,15 @@
-<div class="max-w-2xl mx-auto space-y-6">
+<div class="{{ $isModal ? 'p-6 max-h-[80vh] overflow-y-auto space-y-6' : 'max-w-2xl mx-auto space-y-6' }}">
+    @if ($isModal)
+        <h2 class="text-lg font-semibold text-gray-800">تعديل بيانات المخبز</h2>
+    @endif
+
     @if ($message)
         <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="bakery-edit-flash">
             {{ $message }}
         </div>
     @endif
 
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6 {{ $isModal ? 'border border-gray-100' : '' }}">
         <form wire:submit="save" class="space-y-5">
             <div>
                 <x-input-label for="name" value="اسم المخبز" />
@@ -27,7 +31,11 @@
             </div>
 
             <div class="flex justify-end gap-3">
-                <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @if ($isModal)
+                    <button type="button" @click="$dispatch('close-modal', 'bakery-edit')" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إغلاق</button>
+                @else
+                    <a href="{{ route('admin.bakeries.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @endif
                 <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-60">
                     حفظ التعديلات
                 </button>
@@ -35,7 +43,7 @@
         </form>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6 {{ $isModal ? 'border border-gray-100' : '' }}">
         <h3 class="font-semibold text-gray-700 mb-4">الاشتراك</h3>
         <div class="flex items-center gap-3 mb-4 text-sm">
             <span>الحالة:</span>
@@ -60,7 +68,7 @@
         </button>
     </div>
 
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+    <div class="bg-white rounded-2xl shadow-sm p-6 {{ $isModal ? 'border border-gray-100' : '' }}">
         <h3 class="font-semibold text-gray-700 mb-2">حساب المالك</h3>
         @foreach ($bakery->owners as $owner)
             <div class="text-sm text-gray-700">{{ $owner->name }} — {{ $owner->email }}</div>

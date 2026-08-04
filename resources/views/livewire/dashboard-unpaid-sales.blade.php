@@ -18,8 +18,9 @@
                     <div class="text-gray-500">{{ $sale->sale_date->translatedFormat('d M Y') }} — {{ number_format($sale->kg_amount, 2) }} كجم</div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="font-semibold text-red-600">{{ number_format($sale->total_amount, 2) }}</span>
+                    <span class="font-semibold text-red-600">{{ money($sale->total_amount) }}</span>
                     <button type="button" wire:click="markPaid({{ $sale->id }})"
+                            wire:confirm="سيتم تأكيد دفع هذه العملية نهائيًا ولا يمكن التراجع عنها بعد ذلك. متابعة؟"
                             wire:loading.attr="disabled" wire:target="markPaid({{ $sale->id }})"
                             class="text-xs px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50">
                         تأكيد الدفع

@@ -11,6 +11,8 @@ use Livewire\Component;
 
 class AdminBakeryCreate extends Component
 {
+    public bool $isModal = false;
+
     #[Validate('required|string|max:255')]
     public string $name = '';
 
@@ -56,6 +58,14 @@ class AdminBakeryCreate extends Component
                 'role' => User::ROLE_BAKERY_OWNER,
             ]);
         });
+
+        if ($this->isModal) {
+            $this->reset('name', 'phone', 'address', 'subscription_months', 'owner_name', 'owner_email', 'owner_password');
+            $this->dispatch('bakery-saved');
+            $this->dispatch('close-modal', 'bakery-create');
+
+            return;
+        }
 
         session()->flash('status', 'تم إنشاء المخبز وحساب المالك بنجاح.');
 

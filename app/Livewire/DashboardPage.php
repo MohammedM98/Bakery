@@ -9,11 +9,13 @@ use Livewire\Component;
 class DashboardPage extends Component
 {
     #[On('sale-marked-paid')]
+    #[On('sale-saved')]
     public function refresh(): void
     {
         // No-op: handling the event alone triggers a fresh render(), which
         // is enough to pull the updated "today" totals after the child
-        // dashboard-unpaid-sales widget marks a sale as paid in place.
+        // dashboard-unpaid-sales widget marks a sale as paid in place, or
+        // after a new sale is recorded via the create modal.
     }
 
     public function render()

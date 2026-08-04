@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Customer;
 use App\Models\FlourDeposit;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
 
@@ -67,6 +68,13 @@ class CustomerShow extends Component
         $this->customer->refresh();
 
         $this->depositMessage = 'تم حذف عملية استلام القمح.';
+    }
+
+    #[On('sale-saved')]
+    public function refreshAfterModal(): void
+    {
+        // No-op: handling the event triggers a fresh render(), enough to
+        // show a sale created via the modal.
     }
 
     public function render()

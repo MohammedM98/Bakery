@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -39,18 +40,11 @@ class SalesIndex extends Component
     {
         $sale = $this->findOwnedSale($saleId);
 
+        abort_if($sale->isPaid(), 409);
+
         $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
 
-        $this->message = "تم تأكيد استلام الدفع لهذه العملية بمبلغ {$sale->total_amount}.";
-    }
-
-    public function markUnpaid(int $saleId): void
-    {
-        $sale = $this->findOwnedSale($saleId);
-
-        $sale->update(['payment_status' => Sale::STATUS_UNPAID, 'paid_at' => null]);
-
-        $this->message = 'تم تحويل حالة العملية إلى غير مدفوعة.';
+        $this->message = 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.';
     }
 
     public function delete(int $saleId): void
@@ -66,6 +60,13 @@ class SalesIndex extends Component
         });
 
         $this->message = 'تم حذف عملية البيع.';
+    }
+
+    #[On('sale-saved')]
+    public function refreshAfterModal(): void
+    {
+        // No-op: handling the event triggers a fresh render(), enough to
+        // show a sale created via the modal.
     }
 
     protected function findOwnedSale(int $saleId): Sale

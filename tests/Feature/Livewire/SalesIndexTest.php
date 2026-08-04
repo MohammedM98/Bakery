@@ -49,12 +49,12 @@ class SalesIndexTest extends TestCase
         Livewire::actingAs($owner)
             ->test(SalesIndex::class)
             ->call('markPaid', $sale->id)
-            ->assertSet('message', "تم تأكيد استلام الدفع لهذه العملية بمبلغ {$sale->total_amount}.");
+            ->assertSet('message', 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
 
         $this->assertTrue($sale->fresh()->isPaid());
     }
 
-    public function test_owner_can_mark_a_sale_as_unpaid(): void
+    public function test_a_paid_sale_cannot_be_marked_paid_again(): void
     {
         [$owner, $bakery] = $this->makeOwnerWithBakery();
 
@@ -71,9 +71,12 @@ class SalesIndexTest extends TestCase
 
         Livewire::actingAs($owner)
             ->test(SalesIndex::class)
-            ->call('markUnpaid', $sale->id);
+            ->call('markPaid', $sale->id)
+            ->assertStatus(409);
 
-        $this->assertFalse($sale->fresh()->isPaid());
+        // There is deliberately no "mark unpaid" action anywhere in this
+        // component: once a sale is confirmed paid, it cannot be reverted.
+        $this->assertFalse(method_exists(SalesIndex::class, 'markUnpaid'));
     }
 
     public function test_deleting_a_flour_exchange_sale_restores_the_customer_balance(): void

@@ -1,5 +1,10 @@
-<div class="max-w-2xl mx-auto space-y-6">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="{{ $isModal ? 'p-6 space-y-6' : 'max-w-2xl mx-auto space-y-6' }}">
+    @if ($isModal)
+        <h2 class="text-lg font-semibold text-gray-800">تعديل بيانات العميل</h2>
+    @else
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+    @endif
+
         <form wire:submit="save" class="space-y-5">
             <div>
                 <x-input-label for="name" value="اسم العميل" />
@@ -20,13 +25,20 @@
             </div>
 
             <div class="flex justify-end gap-3">
-                <a href="{{ route('panel.customers.show', $customer) }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @if ($isModal)
+                    <button type="button" @click="$dispatch('close-modal', 'customer-edit')" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</button>
+                @else
+                    <a href="{{ route('panel.customers.show', $customer) }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @endif
                 <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-60">
                     حفظ التعديلات
                 </button>
             </div>
         </form>
-    </div>
+
+    @if (! $isModal)
+        </div>
+    @endif
 
     <div class="bg-white rounded-2xl shadow-sm p-6 border border-red-100">
         <h3 class="font-semibold text-red-700 mb-2">حذف العميل</h3>

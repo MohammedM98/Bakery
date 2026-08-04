@@ -45,4 +45,34 @@ class DashboardUnpaidSalesTest extends TestCase
 
         $this->assertTrue($sale->fresh()->isPaid());
     }
+
+    public function test_an_already_paid_sale_cannot_be_marked_paid_again(): void
+    {
+        $bakery = Bakery::create([
+            'name' => 'مخبز الاختبار',
+            'subscription_status' => Bakery::STATUS_ACTIVE,
+            'subscription_expires_at' => now()->addMonth(),
+        ]);
+
+        $owner = User::factory()->create([
+            'role' => User::ROLE_BAKERY_OWNER,
+            'bakery_id' => $bakery->id,
+        ]);
+
+        $sale = Sale::create([
+            'bakery_id' => $bakery->id,
+            'sale_type' => Sale::TYPE_CASH,
+            'kg_amount' => 3,
+            'price_per_kg' => 6,
+            'total_amount' => 18,
+            'payment_status' => Sale::STATUS_PAID,
+            'paid_at' => now(),
+            'sale_date' => now()->toDateString(),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(DashboardUnpaidSales::class)
+            ->call('markPaid', $sale->id)
+            ->assertStatus(409);
+    }
 }

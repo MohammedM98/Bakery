@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Bakery;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -13,6 +14,8 @@ class AdminBakeriesIndex extends Component
     public array $renewMonths = [];
 
     public ?string $message = null;
+
+    public ?int $editingBakeryId = null;
 
     public function renew(int $bakeryId): void
     {
@@ -56,10 +59,36 @@ class AdminBakeriesIndex extends Component
         $this->message = "تم حذف مخبز \"{$name}\" وجميع بياناته.";
     }
 
+    public function editBakery(int $bakeryId): void
+    {
+        $this->editingBakeryId = Bakery::findOrFail($bakeryId)->id;
+        $this->dispatch('open-modal', 'bakery-edit');
+    }
+
+    #[On('bakery-saved')]
+    #[On('bakery-updated')]
+    public function refreshAfterModal(): void
+    {
+        // No-op: handling either event triggers a fresh render(), which is
+        // enough to reflect changes made inside the create/edit modals.
+    }
+
+    protected function findEditingBakery(): ?Bakery
+    {
+        if (! $this->editingBakeryId) {
+            return null;
+        }
+
+        return Bakery::with('owners')->find($this->editingBakeryId);
+    }
+
     public function render()
     {
         $bakeries = Bakery::with('owners')->latest()->paginate(15);
 
-        return view('livewire.admin-bakeries-index', compact('bakeries'));
+        return view('livewire.admin-bakeries-index', [
+            'bakeries' => $bakeries,
+            'editingBakery' => $this->findEditingBakery(),
+        ]);
     }
 }

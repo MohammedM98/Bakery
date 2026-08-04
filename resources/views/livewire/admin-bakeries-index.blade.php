@@ -1,4 +1,11 @@
 <div class="space-y-6">
+    <div class="flex items-center justify-end">
+        <button type="button" x-data @click="$dispatch('open-modal', 'bakery-create')"
+                class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
+            + إضافة مخبز جديد
+        </button>
+    </div>
+
     @if ($message)
         <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="admin-flash">
             {{ $message }}
@@ -21,9 +28,9 @@
                     @forelse ($bakeries as $bakery)
                         <tr wire:key="bakery-{{ $bakery->id }}">
                             <td class="px-6 py-3">
-                                <a href="{{ route('admin.bakeries.edit', $bakery) }}" class="font-medium text-violet-600 hover:underline">
+                                <button type="button" wire:click="editBakery({{ $bakery->id }})" class="font-medium text-violet-600 hover:underline">
                                     {{ $bakery->name }}
-                                </a>
+                                </button>
                                 <div class="text-xs text-gray-500">{{ $bakery->phone }}</div>
                             </td>
                             <td class="px-6 py-3">
@@ -65,4 +72,14 @@
     </div>
 
     {{ $bakeries->links() }}
+
+    <x-modal name="bakery-create" maxWidth="lg">
+        <livewire:admin-bakery-create :is-modal="true" wire:key="bakery-create-modal" />
+    </x-modal>
+
+    <x-modal name="bakery-edit" maxWidth="lg">
+        @if ($editingBakery)
+            <livewire:admin-bakery-edit :bakery="$editingBakery" :is-modal="true" wire:key="bakery-edit-{{ $editingBakery->id }}" />
+        @endif
+    </x-modal>
 </div>

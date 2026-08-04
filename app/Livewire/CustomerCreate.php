@@ -8,6 +8,8 @@ use Livewire\Component;
 
 class CustomerCreate extends Component
 {
+    public bool $isModal = false;
+
     #[Validate('required|string|max:255')]
     public string $name = '';
 
@@ -31,6 +33,14 @@ class CustomerCreate extends Component
             'flour_balance_kg' => $this->flour_balance_kg ?: 0,
             'notes' => $this->notes ?: null,
         ]);
+
+        if ($this->isModal) {
+            $this->reset('name', 'mobile_number', 'flour_balance_kg', 'notes');
+            $this->dispatch('customer-saved', name: $customer->name);
+            $this->dispatch('close-modal', 'customer-create');
+
+            return;
+        }
 
         session()->flash('status', 'تم إضافة العميل بنجاح.');
 

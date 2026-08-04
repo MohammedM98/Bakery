@@ -1,5 +1,10 @@
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-sm p-6">
+<div class="{{ $isModal ? 'p-6' : 'max-w-2xl mx-auto' }}">
+    @if ($isModal)
+        <h2 class="text-lg font-semibold text-gray-800 mb-5">إضافة عميل جديد</h2>
+    @else
+        <div class="bg-white rounded-2xl shadow-sm p-6">
+    @endif
+
         <form wire:submit="save" class="space-y-5">
             <div>
                 <x-input-label for="name" value="اسم العميل" />
@@ -26,12 +31,19 @@
             </div>
 
             <div class="flex justify-end gap-3">
-                <a href="{{ route('panel.customers.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @if ($isModal)
+                    <button type="button" @click="$dispatch('close-modal', 'customer-create')" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</button>
+                @else
+                    <a href="{{ route('panel.customers.index') }}" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</a>
+                @endif
                 <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-60">
                     <span wire:loading.remove wire:target="save">حفظ العميل</span>
                     <span wire:loading wire:target="save">جارٍ الحفظ...</span>
                 </button>
             </div>
         </form>
-    </div>
+
+    @if (! $isModal)
+        </div>
+    @endif
 </div>

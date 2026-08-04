@@ -2,6 +2,13 @@
 
 <div class="max-w-7xl mx-auto space-y-6">
 
+    <div class="flex items-center justify-end">
+        <button type="button" x-data @click="$dispatch('open-modal', 'sale-create')"
+                class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium shadow-sm shadow-violet-200 hover:bg-violet-700">
+            + تسجيل عملية بيع
+        </button>
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div class="lg:col-span-2 rounded-3xl bg-gradient-to-br from-violet-600 to-indigo-700 text-white p-6 shadow-xl shadow-violet-200">
             <div class="flex items-start justify-between">
@@ -29,7 +36,7 @@
             <div class="flex items-start justify-between">
                 <div>
                     <div class="text-pink-50 text-sm mb-1">غير مدفوع اليوم</div>
-                    <div class="text-3xl font-extrabold">{{ number_format($todayUnpaid, 2) }}</div>
+                    <div class="text-3xl font-extrabold">{{ money($todayUnpaid) }}</div>
                 </div>
                 <div class="text-3xl">⚠️</div>
             </div>
@@ -44,7 +51,7 @@
             <div class="h-11 w-11 rounded-xl bg-green-100 text-green-700 flex items-center justify-center text-xl">💰</div>
             <div>
                 <div class="text-xs text-gray-500">مقبوضات اليوم</div>
-                <div class="text-xl font-bold text-gray-800">{{ number_format($todayTakings, 2) }}</div>
+                <div class="text-xl font-bold text-gray-800">{{ money($todayTakings) }}</div>
             </div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-4">
@@ -79,7 +86,7 @@
                         <tr>
                             <td class="px-6 py-2">{{ \Illuminate\Support\Carbon::parse($day->sale_date)->translatedFormat('d M Y') }}</td>
                             <td class="px-6 py-2">{{ number_format($day->kg_total, 2) }}</td>
-                            <td class="px-6 py-2">{{ number_format($day->takings, 2) }}</td>
+                            <td class="px-6 py-2">{{ money($day->takings) }}</td>
                         </tr>
                     @empty
                         <tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">لا توجد بيانات بعد.</td></tr>
@@ -108,7 +115,7 @@
                             </div>
                         </div>
                         <div class="text-left">
-                            <div class="font-semibold">{{ number_format($sale->total_amount, 2) }}</div>
+                            <div class="font-semibold">{{ money($sale->total_amount) }}</div>
                             <span class="text-xs {{ $sale->isPaid() ? 'text-green-600' : 'text-red-600' }}">
                                 {{ $sale->isPaid() ? 'مدفوع' : 'غير مدفوع' }}
                             </span>
@@ -120,4 +127,8 @@
             </ul>
         </div>
     </div>
+
+    <x-modal name="sale-create" maxWidth="lg">
+        <livewire:sale-create :is-modal="true" wire:key="dashboard-sale-create-modal" />
+    </x-modal>
 </div>
