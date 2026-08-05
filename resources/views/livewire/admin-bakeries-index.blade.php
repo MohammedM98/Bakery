@@ -6,12 +6,6 @@
         </button>
     </div>
 
-    @if ($message)
-        <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="admin-flash">
-            {{ $message }}
-        </div>
-    @endif
-
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
@@ -57,7 +51,7 @@
                                         {{ $bakery->subscription_status === 'active' ? 'تعطيل' : 'تفعيل' }}
                                     </button>
                                     <button type="button" wire:click="delete({{ $bakery->id }})" wire:confirm="سيتم حذف المخبز وكل بياناته نهائيًا. متابعة؟"
-                                            class="text-xs px-3 py-1 rounded-lg text-red-600 hover:bg-red-50">
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition">
                                         حذف
                                     </button>
                                 </div>

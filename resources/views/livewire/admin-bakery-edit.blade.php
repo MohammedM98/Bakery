@@ -3,12 +3,6 @@
         <h2 class="text-lg font-semibold text-gray-800">تعديل بيانات المخبز</h2>
     @endif
 
-    @if ($message)
-        <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="bakery-edit-flash">
-            {{ $message }}
-        </div>
-    @endif
-
     <div class="bg-white rounded-2xl shadow-sm p-6 {{ $isModal ? 'border border-gray-100' : '' }}">
         <form wire:submit="save" class="space-y-5">
             <div>

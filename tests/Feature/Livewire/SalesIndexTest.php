@@ -4,7 +4,6 @@ namespace Tests\Feature\Livewire;
 
 use App\Livewire\SalesIndex;
 use App\Models\Bakery;
-use App\Models\Customer;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -49,7 +48,7 @@ class SalesIndexTest extends TestCase
         Livewire::actingAs($owner)
             ->test(SalesIndex::class)
             ->call('markPaid', $sale->id)
-            ->assertSet('message', 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
+            ->assertDispatched('toast', message: 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
 
         $this->assertTrue($sale->fresh()->isPaid());
     }
@@ -79,34 +78,11 @@ class SalesIndexTest extends TestCase
         $this->assertFalse(method_exists(SalesIndex::class, 'markUnpaid'));
     }
 
-    public function test_deleting_a_flour_exchange_sale_restores_the_customer_balance(): void
+    public function test_there_is_no_way_to_delete_a_sale(): void
     {
-        [$owner, $bakery] = $this->makeOwnerWithBakery();
-
-        $customer = Customer::create([
-            'bakery_id' => $bakery->id,
-            'name' => 'عميل القمح',
-            'mobile_number' => '0533333333',
-            'flour_balance_kg' => 10,
-        ]);
-
-        $sale = Sale::create([
-            'bakery_id' => $bakery->id,
-            'customer_id' => $customer->id,
-            'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
-            'kg_amount' => 4,
-            'price_per_kg' => 2,
-            'total_amount' => 8,
-            'payment_status' => Sale::STATUS_PAID,
-            'sale_date' => now()->toDateString(),
-        ]);
-
-        Livewire::actingAs($owner)
-            ->test(SalesIndex::class)
-            ->call('delete', $sale->id);
-
-        $this->assertDatabaseMissing('sales', ['id' => $sale->id]);
-        $this->assertEquals(14, $customer->fresh()->flour_balance_kg);
+        // Sales are permanent records: once created, they can only be
+        // marked paid, never deleted or reverted.
+        $this->assertFalse(method_exists(SalesIndex::class, 'delete'));
     }
 
     public function test_owner_cannot_act_on_a_sale_from_another_bakery(): void

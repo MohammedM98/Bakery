@@ -4,12 +4,6 @@
         <a href="{{ route('panel.sales.index', ['status' => 'unpaid']) }}" class="text-sm text-violet-600 hover:underline">عرض الكل</a>
     </div>
 
-    @if ($message)
-        <div class="px-6 py-2 bg-green-50 text-green-800 text-sm border-b border-green-100" wire:key="dashboard-flash">
-            {{ $message }}
-        </div>
-    @endif
-
     <ul class="divide-y divide-gray-100">
         @forelse ($unpaidSales as $sale)
             <li class="px-6 py-3 flex items-center justify-between text-sm" wire:key="unpaid-{{ $sale->id }}">

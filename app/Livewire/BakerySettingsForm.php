@@ -13,8 +13,6 @@ class BakerySettingsForm extends Component
     #[Validate('required|numeric|min:0')]
     public string $flour_exchange_fee_per_kg = '0';
 
-    public ?string $message = null;
-
     public function mount(): void
     {
         $bakery = auth()->user()->bakery;
@@ -32,7 +30,7 @@ class BakerySettingsForm extends Component
             'flour_exchange_fee_per_kg' => $this->flour_exchange_fee_per_kg,
         ]);
 
-        $this->message = 'تم تحديث أسعار الخبز.';
+        $this->dispatch('toast', message: 'تم تحديث أسعار الخبز.');
     }
 
     public function render()

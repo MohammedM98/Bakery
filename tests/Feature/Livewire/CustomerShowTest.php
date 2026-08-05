@@ -50,7 +50,9 @@ class CustomerShowTest extends TestCase
             ->set('bread_sale_date', now()->toDateString())
             ->set('bread_payment_status', Sale::STATUS_PAID)
             ->call('takeBreadForFlour')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('toast')
+            ->assertDispatched('close-modal');
 
         $this->assertEquals(14, $customer->fresh()->flour_balance_kg);
         $this->assertDatabaseHas('sales', [
@@ -128,7 +130,9 @@ class CustomerShowTest extends TestCase
             ->set('kg_amount', '5')
             ->set('deposit_date', now()->toDateString())
             ->call('addDeposit')
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('toast')
+            ->assertDispatched('close-modal');
 
         $this->assertEquals(5, $customer->fresh()->flour_balance_kg);
     }

@@ -7,8 +7,6 @@ use Livewire\Component;
 
 class DashboardUnpaidSales extends Component
 {
-    public ?string $message = null;
-
     public function markPaid(int $saleId): void
     {
         $sale = Sale::where('bakery_id', auth()->user()->bakery_id)
@@ -19,7 +17,7 @@ class DashboardUnpaidSales extends Component
 
         $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
 
-        $this->message = 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.';
+        $this->dispatch('toast', message: 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
 
         $this->dispatch('sale-marked-paid');
     }

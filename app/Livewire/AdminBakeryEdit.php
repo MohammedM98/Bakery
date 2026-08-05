@@ -24,8 +24,6 @@ class AdminBakeryEdit extends Component
     #[Validate('required|integer|min:1|max:24')]
     public string $subscription_months = '1';
 
-    public ?string $message = null;
-
     public function mount(Bakery $bakery): void
     {
         $bakery->load('owners');
@@ -50,7 +48,7 @@ class AdminBakeryEdit extends Component
             'address' => $this->address ?: null,
         ]);
 
-        $this->message = 'تم تحديث بيانات المخبز.';
+        $this->dispatch('toast', message: 'تم تحديث بيانات المخبز.');
 
         $this->dispatch('bakery-updated');
     }
@@ -70,7 +68,7 @@ class AdminBakeryEdit extends Component
 
         $this->bakery->refresh();
 
-        $this->message = 'تم تجديد الاشتراك بنجاح.';
+        $this->dispatch('toast', message: 'تم تجديد الاشتراك بنجاح.');
 
         $this->dispatch('bakery-updated');
     }
@@ -85,17 +83,20 @@ class AdminBakeryEdit extends Component
 
         $this->bakery->refresh();
 
-        $this->message = 'تم تحديث حالة الاشتراك.';
+        $this->dispatch('toast', message: 'تم تحديث حالة الاشتراك.');
 
         $this->dispatch('bakery-updated');
     }
 
     public function delete()
     {
+        $name = $this->bakery->name;
+
         $this->bakery->owners()->delete();
         $this->bakery->delete();
 
         if ($this->isModal) {
+            $this->dispatch('toast', message: "تم حذف مخبز \"{$name}\" وجميع بياناته.");
             $this->dispatch('bakery-updated');
             $this->dispatch('close-modal', 'bakery-edit');
 

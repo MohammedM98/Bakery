@@ -18,8 +18,6 @@ class CustomerShow extends Component
 
     public ?string $deposit_notes = '';
 
-    public ?string $depositMessage = null;
-
     public string $bread_kg_amount = '';
 
     public string $bread_sale_date = '';
@@ -27,8 +25,6 @@ class CustomerShow extends Component
     public string $bread_payment_status = 'paid';
 
     public ?string $bread_notes = '';
-
-    public ?string $saleMessage = null;
 
     public function mount(Customer $customer): void
     {
@@ -64,7 +60,8 @@ class CustomerShow extends Component
         $this->deposit_date = now()->toDateString();
         $this->customer->refresh();
 
-        $this->depositMessage = 'تم تسجيل استلام القمح وإضافته لرصيد العميل.';
+        $this->dispatch('toast', message: 'تم تسجيل استلام القمح وإضافته لرصيد العميل.');
+        $this->dispatch('close-modal', 'flour-deposit');
     }
 
     public function deleteDeposit(int $depositId): void
@@ -78,7 +75,7 @@ class CustomerShow extends Component
 
         $this->customer->refresh();
 
-        $this->depositMessage = 'تم حذف عملية استلام القمح.';
+        $this->dispatch('toast', message: 'تم حذف عملية استلام القمح.');
     }
 
     public function takeBreadForFlour(): void
@@ -121,7 +118,8 @@ class CustomerShow extends Component
         $this->bread_payment_status = 'paid';
         $this->customer->refresh();
 
-        $this->saleMessage = 'تم تسجيل تسليم الخبز مقابل رصيد القمح بنجاح.';
+        $this->dispatch('toast', message: 'تم تسجيل تسليم الخبز مقابل رصيد القمح بنجاح.');
+        $this->dispatch('close-modal', 'bread-delivery');
     }
 
     public function render()

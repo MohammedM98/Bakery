@@ -17,8 +17,6 @@ class CustomersIndex extends Component
 
     public ?int $editingCustomerId = null;
 
-    public ?string $flashMessage = null;
-
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -36,14 +34,14 @@ class CustomersIndex extends Component
     public function handleCustomerSaved(?string $name = null): void
     {
         $this->editingCustomerId = null;
-        $this->flashMessage = $name ? "تم حفظ بيانات \"{$name}\" بنجاح." : 'تم الحفظ بنجاح.';
+        $this->dispatch('toast', message: $name ? "تم حفظ بيانات \"{$name}\" بنجاح." : 'تم الحفظ بنجاح.');
     }
 
     #[On('customer-deleted')]
     public function handleCustomerDeleted(): void
     {
         $this->editingCustomerId = null;
-        $this->flashMessage = 'تم حذف العميل وجميع سجلاته.';
+        $this->dispatch('toast', message: 'تم حذف العميل وجميع سجلاته.');
     }
 
     protected function findEditingCustomer(): ?Customer

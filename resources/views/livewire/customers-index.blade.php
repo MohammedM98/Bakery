@@ -1,10 +1,4 @@
 <div class="space-y-6">
-    @if ($flashMessage)
-        <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="customers-flash">
-            {{ $flashMessage }}
-        </div>
-    @endif
-
     <div class="flex items-center justify-between gap-3">
         <div class="relative w-full sm:w-96">
             <input type="text" wire:model.live.debounce.400ms="search" placeholder="ابحث بالاسم أو رقم الجوال"
@@ -45,7 +39,10 @@
                             <td class="px-6 py-3">{{ $customer->mobile_number }}</td>
                             <td class="px-6 py-3">{{ number_format($customer->flour_balance_kg, 2) }}</td>
                             <td class="px-6 py-3 text-left">
-                                <button type="button" wire:click="editCustomer({{ $customer->id }})" class="text-gray-600 hover:underline">تعديل</button>
+                                <button type="button" wire:click="editCustomer({{ $customer->id }})"
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-violet-700 bg-violet-50 hover:bg-violet-100 transition">
+                                    تعديل
+                                </button>
                             </td>
                         </tr>
                     @empty

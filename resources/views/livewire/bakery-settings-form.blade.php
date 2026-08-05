@@ -1,11 +1,5 @@
 <div class="max-w-2xl mx-auto">
     <div class="bg-white rounded-2xl shadow-sm p-6">
-        @if ($message)
-            <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 mb-5" wire:key="settings-flash">
-                {{ $message }}
-            </div>
-        @endif
-
         <form wire:submit="save" class="space-y-5">
             <div>
                 <x-input-label for="regular_price_per_kg" value="سعر الكيلو للبيع النقدي" />

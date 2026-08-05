@@ -13,8 +13,6 @@ class AdminBakeriesIndex extends Component
 
     public array $renewMonths = [];
 
-    public ?string $message = null;
-
     public ?int $editingBakeryId = null;
 
     public function renew(int $bakeryId): void
@@ -32,7 +30,7 @@ class AdminBakeriesIndex extends Component
             'subscription_expires_at' => $base->copy()->addMonths($months)->toDateString(),
         ]);
 
-        $this->message = "تم تجديد اشتراك \"{$bakery->name}\" بنجاح.";
+        $this->dispatch('toast', message: "تم تجديد اشتراك \"{$bakery->name}\" بنجاح.");
     }
 
     public function toggleStatus(int $bakeryId): void
@@ -45,7 +43,7 @@ class AdminBakeriesIndex extends Component
                 : Bakery::STATUS_ACTIVE,
         ]);
 
-        $this->message = 'تم تحديث حالة الاشتراك.';
+        $this->dispatch('toast', message: 'تم تحديث حالة الاشتراك.');
     }
 
     public function delete(int $bakeryId): void
@@ -56,7 +54,7 @@ class AdminBakeriesIndex extends Component
         $bakery->owners()->delete();
         $bakery->delete();
 
-        $this->message = "تم حذف مخبز \"{$name}\" وجميع بياناته.";
+        $this->dispatch('toast', message: "تم حذف مخبز \"{$name}\" وجميع بياناته.");
     }
 
     public function editBakery(int $bakeryId): void

@@ -6,12 +6,6 @@
         </button>
     </div>
 
-    @if ($message)
-        <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3" wire:key="flash-message">
-            {{ $message }}
-        </div>
-    @endif
-
     <div class="flex flex-wrap gap-3 items-end">
         <div>
             <label class="block text-sm text-gray-600 mb-1">الحالة</label>
@@ -68,10 +62,6 @@
                                         تأكيد الدفع
                                     </button>
                                 @endunless
-                                <button type="button" wire:click="delete({{ $sale->id }})" wire:confirm="هل أنت متأكد من حذف هذه العملية؟"
-                                        class="text-xs px-3 py-1 rounded-lg text-red-600 hover:bg-red-50">
-                                    حذف
-                                </button>
                             </td>
                         </tr>
                     @empty

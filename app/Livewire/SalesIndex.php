@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Models\Sale;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -18,8 +17,6 @@ class SalesIndex extends Component
 
     #[Url(history: true)]
     public string $date = '';
-
-    public ?string $message = null;
 
     public function updatingStatus(): void
     {
@@ -44,22 +41,7 @@ class SalesIndex extends Component
 
         $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
 
-        $this->message = 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.';
-    }
-
-    public function delete(int $saleId): void
-    {
-        $sale = $this->findOwnedSale($saleId);
-
-        DB::transaction(function () use ($sale) {
-            if ($sale->isFlourExchange() && $sale->customer) {
-                $sale->customer->increment('flour_balance_kg', $sale->kg_amount);
-            }
-
-            $sale->delete();
-        });
-
-        $this->message = 'تم حذف عملية البيع.';
+        $this->dispatch('toast', message: 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
     }
 
     #[On('sale-saved')]
