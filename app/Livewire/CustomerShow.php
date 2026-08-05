@@ -4,25 +4,31 @@ namespace App\Livewire;
 
 use App\Models\Customer;
 use App\Models\FlourDeposit;
+use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\On;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 class CustomerShow extends Component
 {
     public Customer $customer;
 
-    #[Validate('required|numeric|min:0.01')]
     public string $kg_amount = '';
 
-    #[Validate('required|date')]
     public string $deposit_date = '';
 
-    #[Validate('nullable|string|max:1000')]
     public ?string $deposit_notes = '';
 
     public ?string $depositMessage = null;
+
+    public string $bread_kg_amount = '';
+
+    public string $bread_sale_date = '';
+
+    public string $bread_payment_status = 'paid';
+
+    public ?string $bread_notes = '';
+
+    public ?string $saleMessage = null;
 
     public function mount(Customer $customer): void
     {
@@ -30,11 +36,16 @@ class CustomerShow extends Component
 
         $this->customer = $customer;
         $this->deposit_date = now()->toDateString();
+        $this->bread_sale_date = now()->toDateString();
     }
 
     public function addDeposit(): void
     {
-        $this->validate();
+        $this->validate([
+            'kg_amount' => 'required|numeric|min:0.01',
+            'deposit_date' => 'required|date',
+            'deposit_notes' => 'nullable|string|max:1000',
+        ]);
 
         DB::transaction(function () {
             FlourDeposit::create([
@@ -70,11 +81,47 @@ class CustomerShow extends Component
         $this->depositMessage = 'تم حذف عملية استلام القمح.';
     }
 
-    #[On('sale-saved')]
-    public function refreshAfterModal(): void
+    public function takeBreadForFlour(): void
     {
-        // No-op: handling the event triggers a fresh render(), enough to
-        // show a sale created via the modal.
+        $this->validate([
+            'bread_kg_amount' => 'required|numeric|min:0.01',
+            'bread_sale_date' => 'required|date',
+            'bread_payment_status' => 'required|in:paid,unpaid',
+            'bread_notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($this->customer->flour_balance_kg < $this->bread_kg_amount) {
+            $this->addError('bread_kg_amount', 'رصيد القمح لدى العميل غير كافٍ لهذه الكمية.');
+
+            return;
+        }
+
+        $pricePerKg = $this->customer->bakery->flour_exchange_fee_per_kg;
+
+        DB::transaction(function () use ($pricePerKg) {
+            Sale::create([
+                'bakery_id' => $this->customer->bakery_id,
+                'customer_id' => $this->customer->id,
+                'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
+                'kg_amount' => $this->bread_kg_amount,
+                'price_per_kg' => $pricePerKg,
+                'total_amount' => round($this->bread_kg_amount * $pricePerKg, 2),
+                'payment_status' => $this->bread_payment_status,
+                'paid_at' => $this->bread_payment_status === Sale::STATUS_PAID ? now() : null,
+                'sale_date' => $this->bread_sale_date,
+                'notes' => $this->bread_notes ?: null,
+                'created_by' => auth()->id(),
+            ]);
+
+            $this->customer->decrement('flour_balance_kg', $this->bread_kg_amount);
+        });
+
+        $this->reset('bread_kg_amount', 'bread_notes');
+        $this->bread_sale_date = now()->toDateString();
+        $this->bread_payment_status = 'paid';
+        $this->customer->refresh();
+
+        $this->saleMessage = 'تم تسجيل تسليم الخبز مقابل رصيد القمح بنجاح.';
     }
 
     public function render()

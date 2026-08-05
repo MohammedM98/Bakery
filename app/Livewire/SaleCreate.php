@@ -31,10 +31,10 @@ class SaleCreate extends Component
     #[Validate('nullable|string|max:1000')]
     public ?string $notes = '';
 
-    public function mount(?int $customerId = null): void
+    public function mount(): void
     {
         $this->sale_date = now()->toDateString();
-        $this->customer_id = $customerId ?? (request()->integer('customer_id') ?: null);
+        $this->customer_id = request()->integer('customer_id') ?: null;
     }
 
     #[Computed]
