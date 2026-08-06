@@ -23,7 +23,9 @@ class CustomerController extends Controller
     {
         abort_unless($customer->bakery_id === $request->user()->bakery_id, 403);
 
-        return view('owner.customers.show', compact('customer'));
+        $outstandingBalance = $customer->outstandingBalance();
+
+        return view('owner.customers.show', compact('customer', 'outstandingBalance'));
     }
 
     public function edit(Request $request, Customer $customer): View

@@ -19,23 +19,6 @@
         </div>
     </div>
 
-    <div class="flex flex-wrap gap-3">
-        <button type="button" x-data @click="$dispatch('open-modal', 'flour-deposit')"
-                class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
-            + تسجيل استلام قمح
-        </button>
-        <button type="button" x-data @click="$dispatch('open-modal', 'bread-delivery')"
-                class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
-            + تسليم خبز مقابل القمح
-        </button>
-        @if ($outstandingBalance > 0)
-            <button type="button" x-data @click="$dispatch('open-modal', 'record-payment')"
-                    class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700">
-                + تسجيل دفعة
-            </button>
-        @endif
-    </div>
-
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 font-semibold">سجل استلام القمح</div>
         <div class="overflow-x-auto">
