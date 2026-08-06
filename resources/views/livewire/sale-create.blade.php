@@ -5,33 +5,17 @@
         <div class="bg-white rounded-2xl shadow-sm p-6">
     @endif
         <form wire:submit="save" class="space-y-5">
-            <div>
-                <x-input-label value="نوع العملية" />
-                <div class="mt-2 flex gap-4">
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="sale_type" class="text-violet-600 focus:ring-violet-500" wire:model.live="sale_type" value="cash">
-                        <span>بيع نقدي</span>
-                    </label>
-                    <label class="flex items-center gap-2">
-                        <input type="radio" name="sale_type" class="text-violet-600 focus:ring-violet-500" wire:model.live="sale_type" value="flour_exchange">
-                        <span>مقابل رصيد قمح</span>
-                    </label>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <x-input-label for="buyer_name" value="اسم المشتري (اختياري)" />
+                    <x-text-input id="buyer_name" type="text" class="block mt-1 w-full" wire:model="buyer_name" />
+                    <x-input-error :messages="$errors->get('buyer_name')" class="mt-2" />
                 </div>
-                <x-input-error :messages="$errors->get('sale_type')" class="mt-2" />
-            </div>
-
-            <div>
-                <x-input-label for="customer_id" value="العميل" />
-                <select id="customer_id" wire:model="customer_id" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-violet-500 focus:ring-violet-500">
-                    <option value="">— عميل نقدي بدون تسجيل —</option>
-                    @foreach ($this->customers as $customer)
-                        <option value="{{ $customer->id }}">
-                            {{ $customer->name }} ({{ $customer->mobile_number }}) — رصيد {{ number_format($customer->flour_balance_kg, 2) }} كجم
-                        </option>
-                    @endforeach
-                </select>
-                <p class="text-xs text-gray-500 mt-1">يجب اختيار عميل عند التسليم مقابل رصيد القمح.</p>
-                <x-input-error :messages="$errors->get('customer_id')" class="mt-2" />
+                <div>
+                    <x-input-label for="buyer_mobile" value="رقم جوال المشتري (اختياري)" />
+                    <x-text-input id="buyer_mobile" type="text" class="block mt-1 w-full" wire:model="buyer_mobile" />
+                    <x-input-error :messages="$errors->get('buyer_mobile')" class="mt-2" />
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">

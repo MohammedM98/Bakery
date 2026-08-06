@@ -2,9 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Models\Customer;
 use App\Models\Sale;
-use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
@@ -13,11 +11,11 @@ class SaleCreate extends Component
 {
     public bool $isModal = false;
 
-    #[Validate('required|in:cash,flour_exchange')]
-    public string $sale_type = 'cash';
+    #[Validate('nullable|string|max:255')]
+    public ?string $buyer_name = '';
 
-    #[Validate('nullable|exists:customers,id')]
-    public ?int $customer_id = null;
+    #[Validate('nullable|string|max:50')]
+    public ?string $buyer_mobile = '';
 
     #[Validate('required|numeric|min:0.01')]
     public string $kg_amount = '';
@@ -34,7 +32,6 @@ class SaleCreate extends Component
     public function mount(): void
     {
         $this->sale_date = now()->toDateString();
-        $this->customer_id = request()->integer('customer_id') ?: null;
     }
 
     #[Computed]
@@ -44,17 +41,9 @@ class SaleCreate extends Component
     }
 
     #[Computed]
-    public function customers()
-    {
-        return Customer::where('bakery_id', $this->bakery->id)->orderBy('name')->get();
-    }
-
-    #[Computed]
     public function pricePerKg()
     {
-        return $this->sale_type === Sale::TYPE_FLOUR_EXCHANGE
-            ? $this->bakery->flour_exchange_fee_per_kg
-            : $this->bakery->regular_price_per_kg;
+        return $this->bakery->regular_price_per_kg;
     }
 
     #[Computed]
@@ -67,48 +56,26 @@ class SaleCreate extends Component
     {
         $this->validate();
 
-        if ($this->sale_type === Sale::TYPE_FLOUR_EXCHANGE && empty($this->customer_id)) {
-            $this->addError('customer_id', 'يجب اختيار العميل عند التسليم مقابل رصيد القمح.');
-
-            return;
-        }
-
-        $customer = null;
-        if (! empty($this->customer_id)) {
-            $customer = Customer::where('bakery_id', $this->bakery->id)->findOrFail($this->customer_id);
-        }
-
-        if ($this->sale_type === Sale::TYPE_FLOUR_EXCHANGE && $customer->flour_balance_kg < $this->kg_amount) {
-            $this->addError('kg_amount', 'رصيد القمح لدى العميل غير كافٍ لهذه الكمية.');
-
-            return;
-        }
-
         $pricePerKg = $this->pricePerKg;
         $bakery = $this->bakery;
 
-        DB::transaction(function () use ($customer, $pricePerKg, $bakery) {
-            Sale::create([
-                'bakery_id' => $bakery->id,
-                'customer_id' => $customer?->id,
-                'sale_type' => $this->sale_type,
-                'kg_amount' => $this->kg_amount,
-                'price_per_kg' => $pricePerKg,
-                'total_amount' => round($this->kg_amount * $pricePerKg, 2),
-                'payment_status' => $this->payment_status,
-                'paid_at' => $this->payment_status === Sale::STATUS_PAID ? now() : null,
-                'sale_date' => $this->sale_date,
-                'notes' => $this->notes ?: null,
-                'created_by' => auth()->id(),
-            ]);
-
-            if ($this->sale_type === Sale::TYPE_FLOUR_EXCHANGE) {
-                $customer->decrement('flour_balance_kg', $this->kg_amount);
-            }
-        });
+        Sale::create([
+            'bakery_id' => $bakery->id,
+            'buyer_name' => $this->buyer_name ?: null,
+            'buyer_mobile' => $this->buyer_mobile ?: null,
+            'sale_type' => Sale::TYPE_CASH,
+            'kg_amount' => $this->kg_amount,
+            'price_per_kg' => $pricePerKg,
+            'total_amount' => round($this->kg_amount * $pricePerKg, 2),
+            'payment_status' => $this->payment_status,
+            'paid_at' => $this->payment_status === Sale::STATUS_PAID ? now() : null,
+            'sale_date' => $this->sale_date,
+            'notes' => $this->notes ?: null,
+            'created_by' => auth()->id(),
+        ]);
 
         if ($this->isModal) {
-            $this->reset('sale_type', 'customer_id', 'kg_amount', 'payment_status', 'notes');
+            $this->reset('buyer_name', 'buyer_mobile', 'kg_amount', 'payment_status', 'notes');
             $this->sale_date = now()->toDateString();
             $this->dispatch('sale-saved');
             $this->dispatch('close-modal', 'sale-create');

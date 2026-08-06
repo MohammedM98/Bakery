@@ -18,6 +18,8 @@ class SalesIndex extends Component
     #[Url(history: true)]
     public string $date = '';
 
+    public ?int $confirmingPaymentSaleId = null;
+
     public function updatingStatus(): void
     {
         $this->resetPage();
@@ -33,6 +35,12 @@ class SalesIndex extends Component
         $this->reset('status', 'date');
     }
 
+    public function confirmMarkPaid(int $saleId): void
+    {
+        $this->confirmingPaymentSaleId = $saleId;
+        $this->dispatch('open-modal', 'confirm-payment');
+    }
+
     public function markPaid(int $saleId): void
     {
         $sale = $this->findOwnedSale($saleId);
@@ -41,7 +49,18 @@ class SalesIndex extends Component
 
         $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
 
+        $this->confirmingPaymentSaleId = null;
         $this->dispatch('toast', message: 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
+        $this->dispatch('close-modal', 'confirm-payment');
+    }
+
+    protected function findConfirmingSale(): ?Sale
+    {
+        if (! $this->confirmingPaymentSaleId) {
+            return null;
+        }
+
+        return Sale::where('bakery_id', auth()->user()->bakery_id)->find($this->confirmingPaymentSaleId);
     }
 
     #[On('sale-saved')]
@@ -66,6 +85,9 @@ class SalesIndex extends Component
             ->latest('id')
             ->paginate(20);
 
-        return view('livewire.sales-index', compact('sales'));
+        return view('livewire.sales-index', [
+            'sales' => $sales,
+            'confirmingSale' => $this->findConfirmingSale(),
+        ]);
     }
 }

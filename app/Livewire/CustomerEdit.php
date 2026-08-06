@@ -53,6 +53,11 @@ class CustomerEdit extends Component
         return redirect()->route('panel.customers.show', $this->customer);
     }
 
+    public function confirmDelete(): void
+    {
+        $this->dispatch('open-modal', 'confirm-delete-customer');
+    }
+
     public function delete()
     {
         abort_unless($this->customer->bakery_id === auth()->user()->bakery_id, 403);

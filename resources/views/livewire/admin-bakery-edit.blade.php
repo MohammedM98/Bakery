@@ -72,9 +72,17 @@
     <div class="bg-white rounded-2xl shadow-sm p-6 border border-red-100">
         <h3 class="font-semibold text-red-700 mb-2">حذف المخبز</h3>
         <p class="text-sm text-gray-600 mb-4">سيتم حذف المخبز وحساب المالك وجميع العملاء والعمليات المرتبطة به نهائيًا.</p>
-        <button type="button" wire:click="delete" wire:confirm="هل أنت متأكد من حذف هذا المخبز وجميع بياناته؟"
+        <button type="button" wire:click="confirmDelete"
                 class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-medium hover:bg-red-700">
             حذف المخبز نهائيًا
         </button>
     </div>
+
+    <x-confirm-modal
+        name="confirm-delete-bakery-edit"
+        title="حذف المخبز نهائيًا"
+        message="سيتم حذف المخبز وحساب المالك وجميع العملاء والعمليات المرتبطة به نهائيًا. لا يمكن التراجع عن هذا الإجراء."
+        confirmLabel="حذف نهائيًا"
+        confirmAction="delete"
+    />
 </div>

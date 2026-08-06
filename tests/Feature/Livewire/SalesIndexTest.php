@@ -53,6 +53,29 @@ class SalesIndexTest extends TestCase
         $this->assertTrue($sale->fresh()->isPaid());
     }
 
+    public function test_confirm_mark_paid_opens_the_confirmation_modal_without_changing_anything(): void
+    {
+        [$owner, $bakery] = $this->makeOwnerWithBakery();
+
+        $sale = Sale::create([
+            'bakery_id' => $bakery->id,
+            'sale_type' => Sale::TYPE_CASH,
+            'kg_amount' => 5,
+            'price_per_kg' => 5,
+            'total_amount' => 25,
+            'payment_status' => Sale::STATUS_UNPAID,
+            'sale_date' => now()->toDateString(),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(SalesIndex::class)
+            ->call('confirmMarkPaid', $sale->id)
+            ->assertSet('confirmingPaymentSaleId', $sale->id)
+            ->assertDispatched('open-modal');
+
+        $this->assertFalse($sale->fresh()->isPaid());
+    }
+
     public function test_a_paid_sale_cannot_be_marked_paid_again(): void
     {
         [$owner, $bakery] = $this->makeOwnerWithBakery();

@@ -35,7 +35,6 @@
                         <th class="px-6 py-2 text-right">التاريخ</th>
                         <th class="px-6 py-2 text-right">الكمية (كجم)</th>
                         <th class="px-6 py-2 text-right">ملاحظات</th>
-                        <th class="px-6 py-2 text-right"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -44,15 +43,9 @@
                             <td class="px-6 py-2">{{ $deposit->deposit_date->translatedFormat('d M Y') }}</td>
                             <td class="px-6 py-2">{{ number_format($deposit->kg_amount, 2) }}</td>
                             <td class="px-6 py-2">{{ $deposit->notes ?: '—' }}</td>
-                            <td class="px-6 py-2 text-left">
-                                <button type="button" wire:click="deleteDeposit({{ $deposit->id }})" wire:confirm="حذف هذه العملية؟"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition">
-                                    حذف
-                                </button>
-                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="px-6 py-4 text-center text-gray-400">لا يوجد سجل استلام قمح.</td></tr>
+                        <tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">لا يوجد سجل استلام قمح.</td></tr>
                     @endforelse
                 </tbody>
             </table>

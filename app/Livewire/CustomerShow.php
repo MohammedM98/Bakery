@@ -64,20 +64,6 @@ class CustomerShow extends Component
         $this->dispatch('close-modal', 'flour-deposit');
     }
 
-    public function deleteDeposit(int $depositId): void
-    {
-        $deposit = FlourDeposit::where('bakery_id', $this->customer->bakery_id)->findOrFail($depositId);
-
-        DB::transaction(function () use ($deposit) {
-            $this->customer->decrement('flour_balance_kg', $deposit->kg_amount);
-            $deposit->delete();
-        });
-
-        $this->customer->refresh();
-
-        $this->dispatch('toast', message: 'تم حذف عملية استلام القمح.');
-    }
-
     public function takeBreadForFlour(): void
     {
         $this->validate([

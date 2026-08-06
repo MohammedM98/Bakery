@@ -108,7 +108,7 @@
                 @forelse ($recentSales as $sale)
                     <li class="px-6 py-3 flex items-center justify-between text-sm">
                         <div>
-                            <div class="font-medium">{{ $sale->customer->name ?? 'عميل نقدي' }}</div>
+                            <div class="font-medium">{{ $sale->buyerDisplayName() }}</div>
                             <div class="text-gray-500">
                                 {{ $sale->sale_date->translatedFormat('d M Y') }} —
                                 {{ $sale->isFlourExchange() ? 'مقابل قمح' : 'بيع نقدي' }}

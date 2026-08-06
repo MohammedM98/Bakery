@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'bakery_id', 'customer_id', 'sale_type', 'kg_amount', 'price_per_kg',
+    'bakery_id', 'customer_id', 'buyer_name', 'buyer_mobile', 'sale_type', 'kg_amount', 'price_per_kg',
     'total_amount', 'payment_status', 'paid_at', 'sale_date', 'notes', 'created_by',
 ])]
 class Sale extends Model
@@ -54,5 +54,10 @@ class Sale extends Model
     public function isPaid(): bool
     {
         return $this->payment_status === self::STATUS_PAID;
+    }
+
+    public function buyerDisplayName(): string
+    {
+        return $this->customer->name ?? $this->buyer_name ?? 'عميل نقدي';
     }
 }

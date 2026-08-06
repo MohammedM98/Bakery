@@ -15,6 +15,8 @@ class AdminBakeriesIndex extends Component
 
     public ?int $editingBakeryId = null;
 
+    public ?int $confirmingDeleteBakeryId = null;
+
     public function renew(int $bakeryId): void
     {
         $months = max(1, min(24, (int) ($this->renewMonths[$bakeryId] ?? 1)));
@@ -46,6 +48,12 @@ class AdminBakeriesIndex extends Component
         $this->dispatch('toast', message: 'تم تحديث حالة الاشتراك.');
     }
 
+    public function confirmDelete(int $bakeryId): void
+    {
+        $this->confirmingDeleteBakeryId = $bakeryId;
+        $this->dispatch('open-modal', 'confirm-delete-bakery');
+    }
+
     public function delete(int $bakeryId): void
     {
         $bakery = Bakery::findOrFail($bakeryId);
@@ -54,7 +62,18 @@ class AdminBakeriesIndex extends Component
         $bakery->owners()->delete();
         $bakery->delete();
 
+        $this->confirmingDeleteBakeryId = null;
         $this->dispatch('toast', message: "تم حذف مخبز \"{$name}\" وجميع بياناته.");
+        $this->dispatch('close-modal', 'confirm-delete-bakery');
+    }
+
+    protected function findConfirmingDeleteBakery(): ?Bakery
+    {
+        if (! $this->confirmingDeleteBakeryId) {
+            return null;
+        }
+
+        return Bakery::find($this->confirmingDeleteBakeryId);
     }
 
     public function editBakery(int $bakeryId): void
@@ -87,6 +106,7 @@ class AdminBakeriesIndex extends Component
         return view('livewire.admin-bakeries-index', [
             'bakeries' => $bakeries,
             'editingBakery' => $this->findEditingBakery(),
+            'confirmingDeleteBakery' => $this->findConfirmingDeleteBakery(),
         ]);
     }
 }

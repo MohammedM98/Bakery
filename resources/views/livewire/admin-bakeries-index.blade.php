@@ -50,7 +50,7 @@
                                     <button type="button" wire:click="toggleStatus({{ $bakery->id }})" class="text-xs px-3 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">
                                         {{ $bakery->subscription_status === 'active' ? 'تعطيل' : 'تفعيل' }}
                                     </button>
-                                    <button type="button" wire:click="delete({{ $bakery->id }})" wire:confirm="سيتم حذف المخبز وكل بياناته نهائيًا. متابعة؟"
+                                    <button type="button" wire:click="confirmDelete({{ $bakery->id }})"
                                             class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 transition">
                                         حذف
                                     </button>
@@ -76,4 +76,12 @@
             <livewire:admin-bakery-edit :bakery="$editingBakery" :is-modal="true" wire:key="bakery-edit-{{ $editingBakery->id }}" />
         @endif
     </x-modal>
+
+    <x-confirm-modal
+        name="confirm-delete-bakery"
+        title="حذف المخبز نهائيًا"
+        :message="'سيتم حذف مخبز \''.($confirmingDeleteBakery->name ?? '').'\' وكل بياناته نهائيًا. لا يمكن التراجع عن هذا الإجراء.'"
+        confirmLabel="حذف نهائيًا"
+        :confirmAction="'delete('.$confirmingDeleteBakeryId.')'"
+    />
 </div>

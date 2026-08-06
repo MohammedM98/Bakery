@@ -88,6 +88,11 @@ class AdminBakeryEdit extends Component
         $this->dispatch('bakery-updated');
     }
 
+    public function confirmDelete(): void
+    {
+        $this->dispatch('open-modal', 'confirm-delete-bakery-edit');
+    }
+
     public function delete()
     {
         $name = $this->bakery->name;

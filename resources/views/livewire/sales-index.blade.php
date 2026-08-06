@@ -42,7 +42,12 @@
                     @forelse ($sales as $sale)
                         <tr wire:key="sale-{{ $sale->id }}">
                             <td class="px-6 py-3">{{ $sale->sale_date->translatedFormat('d M Y') }}</td>
-                            <td class="px-6 py-3">{{ $sale->customer->name ?? 'عميل نقدي' }}</td>
+                            <td class="px-6 py-3">
+                                {{ $sale->buyerDisplayName() }}
+                                @if (! $sale->customer && $sale->buyer_mobile)
+                                    <div class="text-xs text-gray-400">{{ $sale->buyer_mobile }}</div>
+                                @endif
+                            </td>
                             <td class="px-6 py-3">{{ $sale->isFlourExchange() ? 'مقابل قمح' : 'بيع نقدي' }}</td>
                             <td class="px-6 py-3">{{ number_format($sale->kg_amount, 2) }}</td>
                             <td class="px-6 py-3">{{ money($sale->total_amount) }}</td>
@@ -56,8 +61,7 @@
                             </td>
                             <td class="px-6 py-3 text-left whitespace-nowrap">
                                 @unless ($sale->isPaid())
-                                    <button type="button" wire:click="markPaid({{ $sale->id }})"
-                                            wire:confirm="سيتم تأكيد دفع هذه العملية نهائيًا ولا يمكن التراجع عنها بعد ذلك. متابعة؟"
+                                    <button type="button" wire:click="confirmMarkPaid({{ $sale->id }})"
                                             class="text-xs px-3 py-1 rounded-lg bg-green-600 text-white hover:bg-green-700">
                                         تأكيد الدفع
                                     </button>
@@ -77,4 +81,13 @@
     <x-modal name="sale-create" maxWidth="lg">
         <livewire:sale-create :is-modal="true" wire:key="sale-create-modal" />
     </x-modal>
+
+    <x-confirm-modal
+        name="confirm-payment"
+        title="تأكيد استلام الدفع"
+        :message="'سيتم تأكيد دفع هذه العملية نهائيًا بمبلغ '.($confirmingSale ? money($confirmingSale->total_amount) : '').'. لا يمكن التراجع عن هذا الإجراء بعد ذلك.'"
+        confirmLabel="تأكيد الدفع"
+        :confirmAction="'markPaid('.$confirmingPaymentSaleId.')'"
+        tone="success"
+    />
 </div>
