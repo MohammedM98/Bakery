@@ -31,4 +31,17 @@ class Customer extends Model
     {
         return $this->hasMany(Sale::class);
     }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function outstandingBalance(): float
+    {
+        return round((float) $this->sales()
+            ->where('payment_status', Sale::STATUS_UNPAID)
+            ->selectRaw('COALESCE(SUM(total_amount - paid_amount), 0) as total')
+            ->value('total'), 2);
+    }
 }

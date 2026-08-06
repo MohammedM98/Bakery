@@ -52,12 +52,16 @@
                             <td class="px-6 py-3">{{ number_format($sale->kg_amount, 2) }}</td>
                             <td class="px-6 py-3">{{ money($sale->total_amount) }}</td>
                             <td class="px-6 py-3">
-                                <span class="{{ $sale->isPaid() ? 'text-green-600' : 'text-red-600' }} font-medium inline-flex items-center gap-1">
-                                    {{ $sale->isPaid() ? 'مدفوع' : 'غير مدفوع' }}
-                                    @if ($sale->isPaid())
+                                @if ($sale->isPaid())
+                                    <span class="text-green-600 font-medium inline-flex items-center gap-1">
+                                        مدفوع
                                         <span title="عملية مؤكدة، لا يمكن التراجع عنها">🔒</span>
-                                    @endif
-                                </span>
+                                    </span>
+                                @elseif ($sale->isPartiallyPaid())
+                                    <span class="text-amber-600 font-medium">مدفوع جزئيًا — متبقي {{ money($sale->remainingAmount()) }}</span>
+                                @else
+                                    <span class="text-red-600 font-medium">غير مدفوع</span>
+                                @endif
                             </td>
                             <td class="px-6 py-3 text-left whitespace-nowrap">
                                 @unless ($sale->isPaid())
@@ -85,7 +89,7 @@
     <x-confirm-modal
         name="confirm-payment"
         title="تأكيد استلام الدفع"
-        :message="'سيتم تأكيد دفع هذه العملية نهائيًا بمبلغ '.($confirmingSale ? money($confirmingSale->total_amount) : '').'. لا يمكن التراجع عن هذا الإجراء بعد ذلك.'"
+        :message="'سيتم تأكيد استلام المتبقي وقدره '.($confirmingSale ? money($confirmingSale->remainingAmount()) : '').' نهائيًا لهذه العملية. لا يمكن التراجع عن هذا الإجراء بعد ذلك.'"
         confirmLabel="تأكيد الدفع"
         :confirmAction="'markPaid('.$confirmingPaymentSaleId.')'"
         tone="success"

@@ -48,9 +48,10 @@ class SalesIndexTest extends TestCase
         Livewire::actingAs($owner)
             ->test(SalesIndex::class)
             ->call('markPaid', $sale->id)
-            ->assertDispatched('toast', message: 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
+            ->assertDispatched('toast', message: 'تم تأكيد استلام المتبقي وقدره '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
 
         $this->assertTrue($sale->fresh()->isPaid());
+        $this->assertEquals(25, $sale->fresh()->paid_amount);
     }
 
     public function test_confirm_mark_paid_opens_the_confirmation_modal_without_changing_anything(): void

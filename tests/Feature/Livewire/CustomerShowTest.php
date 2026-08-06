@@ -136,4 +136,79 @@ class CustomerShowTest extends TestCase
 
         $this->assertEquals(5, $customer->fresh()->flour_balance_kg);
     }
+
+    public function test_a_partial_payment_is_applied_to_the_oldest_unpaid_sale_first(): void
+    {
+        [$owner, $bakery] = $this->makeOwnerWithBakery();
+
+        $customer = Customer::create([
+            'bakery_id' => $bakery->id,
+            'name' => 'محمد',
+            'mobile_number' => '0533333337',
+        ]);
+
+        $older = Sale::create([
+            'bakery_id' => $bakery->id, 'customer_id' => $customer->id, 'sale_type' => Sale::TYPE_CASH,
+            'kg_amount' => 10, 'price_per_kg' => 10, 'total_amount' => 100, 'paid_amount' => 0,
+            'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->subDays(2)->toDateString(),
+        ]);
+
+        $newer = Sale::create([
+            'bakery_id' => $bakery->id, 'customer_id' => $customer->id, 'sale_type' => Sale::TYPE_CASH,
+            'kg_amount' => 20, 'price_per_kg' => 10, 'total_amount' => 200, 'paid_amount' => 0,
+            'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->toDateString(),
+        ]);
+
+        $this->assertEquals(300, $customer->outstandingBalance());
+
+        Livewire::actingAs($owner)
+            ->test(CustomerShow::class, ['customer' => $customer])
+            ->set('payment_amount', '120')
+            ->set('payment_date', now()->toDateString())
+            ->call('recordPayment')
+            ->assertHasNoErrors()
+            ->assertDispatched('toast')
+            ->assertDispatched('close-modal');
+
+        $older->refresh();
+        $newer->refresh();
+
+        $this->assertTrue($older->isPaid());
+        $this->assertEquals(100, $older->paid_amount);
+
+        $this->assertFalse($newer->isPaid());
+        $this->assertTrue($newer->isPartiallyPaid());
+        $this->assertEquals(20, $newer->paid_amount);
+        $this->assertEquals(180, $newer->remainingAmount());
+
+        $this->assertEquals(180, $customer->outstandingBalance());
+        $this->assertDatabaseHas('payments', ['customer_id' => $customer->id, 'amount' => 120]);
+    }
+
+    public function test_a_payment_cannot_exceed_the_outstanding_balance(): void
+    {
+        [$owner, $bakery] = $this->makeOwnerWithBakery();
+
+        $customer = Customer::create([
+            'bakery_id' => $bakery->id,
+            'name' => 'محمد',
+            'mobile_number' => '0533333338',
+        ]);
+
+        Sale::create([
+            'bakery_id' => $bakery->id, 'customer_id' => $customer->id, 'sale_type' => Sale::TYPE_CASH,
+            'kg_amount' => 10, 'price_per_kg' => 10, 'total_amount' => 100, 'paid_amount' => 0,
+            'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->toDateString(),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(CustomerShow::class, ['customer' => $customer])
+            ->set('payment_amount', '150')
+            ->set('payment_date', now()->toDateString())
+            ->call('recordPayment')
+            ->assertHasErrors('payment_amount');
+
+        $this->assertEquals(100, $customer->outstandingBalance());
+        $this->assertDatabaseCount('payments', 0);
+    }
 }

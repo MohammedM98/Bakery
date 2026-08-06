@@ -58,6 +58,7 @@ class SaleCreate extends Component
 
         $pricePerKg = $this->pricePerKg;
         $bakery = $this->bakery;
+        $totalAmount = round($this->kg_amount * $pricePerKg, 2);
 
         Sale::create([
             'bakery_id' => $bakery->id,
@@ -66,7 +67,8 @@ class SaleCreate extends Component
             'sale_type' => Sale::TYPE_CASH,
             'kg_amount' => $this->kg_amount,
             'price_per_kg' => $pricePerKg,
-            'total_amount' => round($this->kg_amount * $pricePerKg, 2),
+            'total_amount' => $totalAmount,
+            'paid_amount' => $this->payment_status === Sale::STATUS_PAID ? $totalAmount : 0,
             'payment_status' => $this->payment_status,
             'paid_at' => $this->payment_status === Sale::STATUS_PAID ? now() : null,
             'sale_date' => $this->sale_date,

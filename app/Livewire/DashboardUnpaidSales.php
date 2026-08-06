@@ -23,10 +23,12 @@ class DashboardUnpaidSales extends Component
 
         abort_if($sale->isPaid(), 409);
 
-        $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_at' => now()]);
+        $remaining = $sale->remainingAmount();
+
+        $sale->update(['payment_status' => Sale::STATUS_PAID, 'paid_amount' => $sale->total_amount, 'paid_at' => now()]);
 
         $this->confirmingPaymentSaleId = null;
-        $this->dispatch('toast', message: 'تم تأكيد استلام الدفع لهذه العملية بمبلغ '.money($sale->total_amount).'. لا يمكن التراجع عن هذا الإجراء.');
+        $this->dispatch('toast', message: 'تم تأكيد استلام المتبقي وقدره '.money($remaining).'. لا يمكن التراجع عن هذا الإجراء.');
         $this->dispatch('close-modal', 'dashboard-confirm-payment');
 
         $this->dispatch('sale-marked-paid');

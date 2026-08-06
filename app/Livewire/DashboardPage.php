@@ -29,7 +29,7 @@ class DashboardPage extends Component
 
         $todayKg = $todaySales->sum('kg_amount');
         $todayTakings = $todaySales->where('payment_status', Sale::STATUS_PAID)->sum('total_amount');
-        $todayUnpaid = $todaySales->where('payment_status', Sale::STATUS_UNPAID)->sum('total_amount');
+        $todayUnpaid = $todaySales->where('payment_status', Sale::STATUS_UNPAID)->sum(fn ($sale) => $sale->remainingAmount());
         $todaySalesCount = $todaySales->count();
         $todayUnpaidCount = $todaySales->where('payment_status', Sale::STATUS_UNPAID)->count();
 

@@ -1,6 +1,6 @@
 <div class="max-w-5xl mx-auto space-y-6">
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl shadow-sm p-6">
             <div class="text-sm text-gray-500 mb-1">رقم الجوال</div>
             <div class="text-lg font-semibold">{{ $customer->mobile_number }}</div>
@@ -8,6 +8,10 @@
         <div class="bg-white rounded-2xl shadow-sm p-6">
             <div class="text-sm text-gray-500 mb-1">رصيد القمح الحالي</div>
             <div class="text-2xl font-bold text-violet-600">{{ number_format($customer->flour_balance_kg, 2) }} كجم</div>
+        </div>
+        <div class="rounded-2xl shadow-sm p-6 {{ $outstandingBalance > 0 ? 'bg-red-50' : 'bg-white' }}">
+            <div class="text-sm text-gray-500 mb-1">المبلغ المستحق</div>
+            <div class="text-2xl font-bold {{ $outstandingBalance > 0 ? 'text-red-600' : 'text-gray-400' }}">{{ money($outstandingBalance) }}</div>
         </div>
         <div class="bg-white rounded-2xl shadow-sm p-6">
             <div class="text-sm text-gray-500 mb-1">ملاحظات</div>
@@ -24,6 +28,12 @@
                 class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
             + تسليم خبز مقابل القمح
         </button>
+        @if ($outstandingBalance > 0)
+            <button type="button" x-data @click="$dispatch('open-modal', 'record-payment')"
+                    class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700">
+                + تسجيل دفعة
+            </button>
+        @endif
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -73,13 +83,43 @@
                             <td class="px-6 py-2">{{ number_format($sale->kg_amount, 2) }}</td>
                             <td class="px-6 py-2">{{ money($sale->total_amount) }}</td>
                             <td class="px-6 py-2">
-                                <span class="{{ $sale->isPaid() ? 'text-green-600' : 'text-red-600' }}">
-                                    {{ $sale->isPaid() ? 'مدفوع' : 'غير مدفوع' }}
-                                </span>
+                                @if ($sale->isPaid())
+                                    <span class="text-green-600">مدفوع</span>
+                                @elseif ($sale->isPartiallyPaid())
+                                    <span class="text-amber-600">مدفوع جزئيًا — متبقي {{ money($sale->remainingAmount()) }}</span>
+                                @else
+                                    <span class="text-red-600">غير مدفوع</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
                         <tr><td colspan="5" class="px-6 py-4 text-center text-gray-400">لا يوجد سجل مبيعات.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 font-semibold">سجل الدفعات</div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-gray-500">
+                    <tr>
+                        <th class="px-6 py-2 text-right">التاريخ</th>
+                        <th class="px-6 py-2 text-right">المبلغ</th>
+                        <th class="px-6 py-2 text-right">ملاحظات</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse ($payments as $payment)
+                        <tr wire:key="payment-{{ $payment->id }}">
+                            <td class="px-6 py-2">{{ $payment->payment_date->translatedFormat('d M Y') }}</td>
+                            <td class="px-6 py-2 text-green-600 font-medium">{{ money($payment->amount) }}</td>
+                            <td class="px-6 py-2">{{ $payment->notes ?: '—' }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">لا يوجد سجل دفعات.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -151,6 +191,35 @@
                     <button type="button" @click="$dispatch('close-modal', 'bread-delivery')" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</button>
                     <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 disabled:opacity-60">
                         تسجيل التسليم
+                    </button>
+                </div>
+            </form>
+        </div>
+    </x-modal>
+
+    <x-modal name="record-payment" maxWidth="lg">
+        <div class="p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-5">تسجيل دفعة</h2>
+            <form wire:submit="recordPayment" class="space-y-4">
+                <div>
+                    <x-input-label for="payment_amount" value="المبلغ" />
+                    <x-text-input id="payment_amount" type="number" step="0.01" min="0.01" class="block mt-1 w-full" wire:model="payment_amount" required />
+                    <p class="text-xs text-gray-500 mt-1">المبلغ المستحق: {{ money($outstandingBalance) }}</p>
+                    <x-input-error :messages="$errors->get('payment_amount')" class="mt-1" />
+                </div>
+                <div>
+                    <x-input-label for="payment_date" value="التاريخ" />
+                    <x-text-input id="payment_date" type="date" class="block mt-1 w-full" wire:model="payment_date" required />
+                    <x-input-error :messages="$errors->get('payment_date')" class="mt-1" />
+                </div>
+                <div>
+                    <x-input-label for="payment_notes" value="ملاحظات" />
+                    <x-text-input id="payment_notes" type="text" class="block mt-1 w-full" wire:model="payment_notes" />
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" @click="$dispatch('close-modal', 'record-payment')" class="px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-50">إلغاء</button>
+                    <button type="submit" wire:loading.attr="disabled" class="px-4 py-2 rounded-xl bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-60">
+                        تسجيل الدفعة
                     </button>
                 </div>
             </form>

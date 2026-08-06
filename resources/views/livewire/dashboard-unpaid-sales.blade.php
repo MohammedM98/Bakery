@@ -12,7 +12,7 @@
                     <div class="text-gray-500">{{ $sale->sale_date->translatedFormat('d M Y') }} — {{ number_format($sale->kg_amount, 2) }} كجم</div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span class="font-semibold text-red-600">{{ money($sale->total_amount) }}</span>
+                    <span class="font-semibold text-red-600">{{ money($sale->remainingAmount()) }}</span>
                     <button type="button" wire:click="confirmMarkPaid({{ $sale->id }})"
                             class="text-xs px-3 py-1 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50">
                         تأكيد الدفع
@@ -27,7 +27,7 @@
     <x-confirm-modal
         name="dashboard-confirm-payment"
         title="تأكيد استلام الدفع"
-        :message="'سيتم تأكيد دفع هذه العملية نهائيًا بمبلغ '.($confirmingSale ? money($confirmingSale->total_amount) : '').'. لا يمكن التراجع عن هذا الإجراء بعد ذلك.'"
+        :message="'سيتم تأكيد استلام المتبقي وقدره '.($confirmingSale ? money($confirmingSale->remainingAmount()) : '').' نهائيًا لهذه العملية. لا يمكن التراجع عن هذا الإجراء بعد ذلك.'"
         confirmLabel="تأكيد الدفع"
         :confirmAction="'markPaid('.$confirmingPaymentSaleId.')'"
         tone="success"

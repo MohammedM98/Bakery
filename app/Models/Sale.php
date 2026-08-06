@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'bakery_id', 'customer_id', 'buyer_name', 'buyer_mobile', 'sale_type', 'kg_amount', 'price_per_kg',
-    'total_amount', 'payment_status', 'paid_at', 'sale_date', 'notes', 'created_by',
+    'total_amount', 'paid_amount', 'payment_status', 'paid_at', 'sale_date', 'notes', 'created_by',
 ])]
 class Sale extends Model
 {
@@ -26,6 +26,7 @@ class Sale extends Model
             'kg_amount' => 'decimal:2',
             'price_per_kg' => 'decimal:2',
             'total_amount' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
             'paid_at' => 'datetime',
             'sale_date' => 'date',
         ];
@@ -54,6 +55,16 @@ class Sale extends Model
     public function isPaid(): bool
     {
         return $this->payment_status === self::STATUS_PAID;
+    }
+
+    public function remainingAmount(): float
+    {
+        return max(0, round((float) $this->total_amount - (float) $this->paid_amount, 2));
+    }
+
+    public function isPartiallyPaid(): bool
+    {
+        return ! $this->isPaid() && (float) $this->paid_amount > 0;
     }
 
     public function buyerDisplayName(): string

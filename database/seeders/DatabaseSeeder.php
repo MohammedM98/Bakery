@@ -73,9 +73,23 @@ class DatabaseSeeder extends Seeder
             'kg_amount' => 10,
             'price_per_kg' => $bakery->flour_exchange_fee_per_kg,
             'total_amount' => 10 * $bakery->flour_exchange_fee_per_kg,
+            'paid_amount' => 10 * $bakery->flour_exchange_fee_per_kg,
             'payment_status' => Sale::STATUS_PAID,
             'paid_at' => now()->subDays(2),
             'sale_date' => now()->subDays(2)->toDateString(),
+            'created_by' => $owner->id,
+        ]);
+
+        Sale::create([
+            'bakery_id' => $bakery->id,
+            'customer_id' => $customer->id,
+            'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
+            'kg_amount' => 8,
+            'price_per_kg' => $bakery->flour_exchange_fee_per_kg,
+            'total_amount' => 8 * $bakery->flour_exchange_fee_per_kg,
+            'paid_amount' => 0,
+            'payment_status' => Sale::STATUS_UNPAID,
+            'sale_date' => now()->subDay()->toDateString(),
             'created_by' => $owner->id,
         ]);
 
@@ -86,6 +100,7 @@ class DatabaseSeeder extends Seeder
             'kg_amount' => 5,
             'price_per_kg' => $bakery->regular_price_per_kg,
             'total_amount' => 5 * $bakery->regular_price_per_kg,
+            'paid_amount' => 0,
             'payment_status' => Sale::STATUS_UNPAID,
             'sale_date' => now()->toDateString(),
             'created_by' => $owner->id,
