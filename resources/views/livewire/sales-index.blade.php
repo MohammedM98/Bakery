@@ -1,9 +1,22 @@
 <div class="space-y-6">
-    <div class="flex items-center justify-end">
-        <button type="button" x-data @click="$dispatch('open-modal', 'sale-create')"
-                class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
-            + تسجيل عملية بيع
-        </button>
+    <div class="flex items-center justify-between flex-wrap gap-3">
+        <div class="flex gap-2 border-b border-gray-200">
+            <button type="button" wire:click="$set('type', 'cash')"
+                    class="px-4 py-2 text-sm font-medium border-b-2 -mb-px {{ $type === 'cash' ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                عمليات البيع النقدي
+            </button>
+            <button type="button" wire:click="$set('type', 'flour_exchange')"
+                    class="px-4 py-2 text-sm font-medium border-b-2 -mb-px {{ $type === 'flour_exchange' ? 'border-violet-600 text-violet-600' : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                عمليات البيع مقابل القمح
+            </button>
+        </div>
+
+        @if ($type === 'cash')
+            <button type="button" x-data @click="$dispatch('open-modal', 'sale-create')"
+                    class="px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium hover:bg-violet-700">
+                + تسجيل عملية بيع
+            </button>
+        @endif
     </div>
 
     <div class="flex flex-wrap gap-3 items-end">
@@ -31,7 +44,6 @@
                     <tr>
                         <th class="px-6 py-3 text-right">التاريخ</th>
                         <th class="px-6 py-3 text-right">العميل</th>
-                        <th class="px-6 py-3 text-right">النوع</th>
                         <th class="px-6 py-3 text-right">الكمية (كجم)</th>
                         <th class="px-6 py-3 text-right">المبلغ</th>
                         <th class="px-6 py-3 text-right">الحالة</th>
@@ -48,7 +60,6 @@
                                     <div class="text-xs text-gray-400">{{ $sale->buyer_mobile }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-3">{{ $sale->isFlourExchange() ? 'مقابل قمح' : 'بيع نقدي' }}</td>
                             <td class="px-6 py-3">{{ number_format($sale->kg_amount, 2) }}</td>
                             <td class="px-6 py-3">{{ money($sale->total_amount) }}</td>
                             <td class="px-6 py-3">
@@ -73,7 +84,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="px-6 py-6 text-center text-gray-400">لا توجد عمليات بيع.</td></tr>
+                        <tr><td colspan="6" class="px-6 py-6 text-center text-gray-400">لا توجد عمليات بيع.</td></tr>
                     @endforelse
                 </tbody>
             </table>

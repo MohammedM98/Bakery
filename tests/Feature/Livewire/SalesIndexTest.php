@@ -153,4 +153,30 @@ class SalesIndexTest extends TestCase
             ->assertSee('10.00')
             ->assertDontSee('7.00');
     }
+
+    public function test_cash_and_flour_exchange_sales_are_shown_on_separate_tabs(): void
+    {
+        [$owner, $bakery] = $this->makeOwnerWithBakery();
+
+        Sale::create([
+            'bakery_id' => $bakery->id, 'sale_type' => Sale::TYPE_CASH, 'kg_amount' => 1,
+            'price_per_kg' => 7, 'total_amount' => 7, 'payment_status' => Sale::STATUS_UNPAID,
+            'sale_date' => now()->toDateString(),
+        ]);
+
+        Sale::create([
+            'bakery_id' => $bakery->id, 'sale_type' => Sale::TYPE_FLOUR_EXCHANGE, 'kg_amount' => 2,
+            'price_per_kg' => 5, 'total_amount' => 10, 'payment_status' => Sale::STATUS_UNPAID,
+            'sale_date' => now()->toDateString(),
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(SalesIndex::class)
+            ->assertSet('type', Sale::TYPE_CASH)
+            ->assertSee('7.00')
+            ->assertDontSee('10.00')
+            ->set('type', Sale::TYPE_FLOUR_EXCHANGE)
+            ->assertSee('10.00')
+            ->assertDontSee('7.00');
+    }
 }

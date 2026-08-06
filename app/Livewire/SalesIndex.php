@@ -13,12 +13,20 @@ class SalesIndex extends Component
     use WithPagination;
 
     #[Url(history: true)]
+    public string $type = Sale::TYPE_CASH;
+
+    #[Url(history: true)]
     public string $status = '';
 
     #[Url(history: true)]
     public string $date = '';
 
     public ?int $confirmingPaymentSaleId = null;
+
+    public function updatingType(): void
+    {
+        $this->resetPage();
+    }
 
     public function updatingStatus(): void
     {
@@ -81,6 +89,7 @@ class SalesIndex extends Component
     {
         $sales = Sale::where('bakery_id', auth()->user()->bakery_id)
             ->with('customer')
+            ->where('sale_type', $this->type)
             ->when($this->status, fn ($query) => $query->where('payment_status', $this->status))
             ->when($this->date, fn ($query) => $query->whereDate('sale_date', $this->date))
             ->latest('sale_date')
