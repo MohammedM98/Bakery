@@ -151,7 +151,7 @@ function BreadDialog({ customer, open, onOpenChange, fee }: DialogProps & { fee:
             </Field>
             <div className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3 text-secondary-foreground">
                 <span className="text-sm">
-                    رسم التبديل <span className="text-muted-foreground">({formatMoney(fee)} للكيلو)</span>
+                    رسم التبديل <span className="text-muted-foreground">(<MoneyText amount={fee} /> للكيلو)</span>
                 </span>
                 <MoneyText amount={total} className="text-lg font-semibold" />
             </div>
@@ -225,7 +225,7 @@ function PaymentDialog({ customer, open, onOpenChange, outstanding }: DialogProp
 function Stat({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
     return (
         <Card className={cn('gap-1 p-5', className)}>
-            <span className="text-sm text-muted-foreground">{label}</span>
+            <span className="text-sm opacity-75">{label}</span>
             {children}
         </Card>
     );
@@ -262,19 +262,19 @@ export default function Show({ customer, outstandingBalance, flourExchangeFee, s
                     </Button>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <Stat label="رصيد القمح الحالي" className="bg-primary text-primary-foreground sm:col-span-1">
-                        <KgText kg={customer.flour_balance_kg} className="text-3xl font-semibold" />
+                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                    <Stat label="رصيد القمح الحالي" className="bg-primary text-primary-foreground">
+                        <KgText kg={customer.flour_balance_kg} className="text-2xl font-semibold sm:text-3xl" />
                     </Stat>
                     <Stat label="المبلغ المستحق" className={cn(owes && 'ring-destructive/30')}>
-                        <MoneyText amount={outstandingBalance} className={cn('text-3xl font-semibold', owes ? 'text-destructive' : 'text-muted-foreground')} />
+                        <MoneyText amount={outstandingBalance} className={cn('text-2xl font-semibold sm:text-3xl', owes ? 'text-destructive' : 'text-muted-foreground')} />
                     </Stat>
-                    <Stat label="رقم الجوال">
+                    <Stat label="رقم الجوال" className="col-span-2 sm:col-span-1">
                         <span dir="ltr" className="text-end text-lg font-medium tabular-nums">
                             {customer.mobile_number}
                         </span>
                     </Stat>
-                    <Stat label="ملاحظات">
+                    <Stat label="ملاحظات" className="col-span-2 sm:col-span-1">
                         <p className="text-sm whitespace-pre-line">{customer.notes || '—'}</p>
                     </Stat>
                 </div>

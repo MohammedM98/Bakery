@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { CircleAlert, Coins, Plus, ReceiptText, Timer } from 'lucide-react';
+import { CircleAlert, Plus, ReceiptText } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Bar, BarChart, XAxis } from 'recharts';
 import { EmptyState } from '@/components/empty-state';
@@ -45,16 +45,12 @@ function DayTooltip({ active, payload }: { active?: boolean; payload?: { payload
     );
 }
 
-function SmallStat({ icon: Icon, label, children }: { icon: typeof Coins; label: string; children: ReactNode }) {
+/** A label and its figure: no icon, the number is the content. */
+function SmallStat({ label, children }: { label: string; children: ReactNode }) {
     return (
-        <Card className="flex-row items-center gap-4 p-5">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
-                <Icon className="size-5" aria-hidden />
-            </span>
-            <div className="min-w-0">
-                <p className="text-sm text-muted-foreground">{label}</p>
-                <p className="text-xl font-semibold tabular-nums">{children}</p>
-            </div>
+        <Card className="gap-1 p-4 sm:p-5">
+            <p className="text-xs text-muted-foreground sm:text-sm">{label}</p>
+            <p className="text-lg font-semibold tabular-nums sm:text-xl">{children}</p>
         </Card>
     );
 }
@@ -115,14 +111,14 @@ export default function Dashboard({ today, last7Days, unpaidSales, recentSales, 
                     </Card>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-3">
-                    <SmallStat icon={Coins} label="مقبوضات اليوم">
+                <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                    <SmallStat label="مقبوضات اليوم">
                         <MoneyText amount={today.takings} />
                     </SmallStat>
-                    <SmallStat icon={ReceiptText} label="عدد العمليات اليوم">
+                    <SmallStat label="عدد العمليات اليوم">
                         {today.salesCount}
                     </SmallStat>
-                    <SmallStat icon={Timer} label="عمليات غير مدفوعة اليوم">
+                    <SmallStat label="عمليات غير مدفوعة اليوم">
                         {today.unpaidCount}
                     </SmallStat>
                 </div>

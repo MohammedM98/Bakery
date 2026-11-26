@@ -250,7 +250,7 @@ export function CashSaleFields({ form, pricePerKg }: { form: ReturnType<typeof u
 
             <div className="flex items-center justify-between rounded-xl bg-secondary px-4 py-3 text-secondary-foreground">
                 <span className="text-sm">
-                    الإجمالي المتوقع <span className="text-muted-foreground">({formatMoney(pricePerKg)} للكيلو)</span>
+                    الإجمالي المتوقع <span className="text-muted-foreground">(<MoneyText amount={pricePerKg} /> للكيلو)</span>
                 </span>
                 <MoneyText amount={total} className="text-lg font-semibold" />
             </div>
