@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Http\Controllers\Owner\SalesLogController;
 use App\Models\Customer;
 use App\Models\Movement;
 use Mpdf\Config\ConfigVariables;
@@ -50,7 +51,7 @@ class StatementExport
                 (bool) $this->to => 'حتى '.$date($this->to),
                 default => 'كل الحركات',
             },
-            'تاريخ الإصدار' => now()->format('d/m/Y H:i'),
+            'تاريخ الإصدار' => now(SalesLogController::LOCAL_TIMEZONE)->format('d/m/Y H:i'),
         ];
     }
 

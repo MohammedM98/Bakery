@@ -38,6 +38,9 @@ class SalesLogController extends Controller
         Movement::TYPE_OPENING_BALANCE => 'رصيد افتتاحي',
     ];
 
+    /** shortcut: times are stored in UTC (app.timezone) and shown in Palestine time; move to a setting if bakeries elsewhere join. */
+    const LOCAL_TIMEZONE = 'Asia/Hebron';
+
     private const MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
     private const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -86,7 +89,7 @@ class SalesLogController extends Controller
                 'type' => $m->type,
                 'type_label' => self::TYPE_LABELS[$m->type] ?? $m->type,
                 'date' => $m->movement_date->toDateString(),
-                'time' => $m->created_at?->format('H:i'),
+                'time' => $m->created_at?->timezone(self::LOCAL_TIMEZONE)->format('H:i'),
                 'customer_id' => $m->customer_id,
                 'customer' => $m->customer?->name ?? $m->sale?->buyer_name,
                 'ledger' => $m->ledger,

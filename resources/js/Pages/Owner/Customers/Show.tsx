@@ -223,7 +223,8 @@ function PaymentDialog({ customer, open, onOpenChange, unpaidSales, banks }: Dia
             title="تسجيل دفعة"
             description="تُسجَّل «له» في الكشف المالي. يجوز أن تزيد عمّا عليه فيصبح الرصيد له"
             submitLabel="تسجيل الدفعة"
-            processing={form.processing}
+            // A transfer needs banks: nothing to choose from until some are added.
+            processing={form.processing || (form.data.method === 'transfer' && banks.length === 0)}
             onSubmit={submit}
         >
             {unpaidSales.length > 0 && (

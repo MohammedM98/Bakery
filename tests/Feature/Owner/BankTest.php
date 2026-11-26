@@ -98,6 +98,7 @@ class BankTest extends TestCase
         $other = $this->owner()->bakery->banks()->create(['name' => 'بنك آخر']);
 
         $this->actingAs($owner)->put(route('panel.banks.update', $other), ['name' => 'تغيير'])->assertNotFound();
+        $this->actingAs($owner)->put(route('panel.banks.update', $other), ['name' => ''])->assertNotFound();
         $this->actingAs($owner)->delete(route('panel.banks.destroy', $other))->assertNotFound();
         $this->assertSame('بنك آخر', $other->fresh()->name);
     }

@@ -122,22 +122,24 @@ export function StatementView({
 
     return (
         <div className="grid gap-3">
-            {statement.rows.length > 0 && (
+            {(statement.rows.length > 0 || exportUrl) && (
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                    <div className="relative sm:max-w-xs sm:flex-1">
-                        <label htmlFor={searchId} className="sr-only">
-                            بحث في الكشف
-                        </label>
-                        <Search aria-hidden className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            id={searchId}
-                            type="search"
-                            className="h-11 ps-9"
-                            placeholder={ledger === 'money' ? 'رقم الحركة، البيان، رقم الحوالة' : 'رقم الحركة أو البيان'}
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        />
-                    </div>
+                    {statement.rows.length > 0 && (
+                        <div className="relative sm:max-w-xs sm:flex-1">
+                            <label htmlFor={searchId} className="sr-only">
+                                بحث في الكشف
+                            </label>
+                            <Search aria-hidden className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                id={searchId}
+                                type="search"
+                                className="h-11 ps-9"
+                                placeholder={ledger === 'money' ? 'رقم الحركة، البيان، رقم الحوالة' : 'رقم الحركة أو البيان'}
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                        </div>
+                    )}
                     {exportUrl && (
                         <div className="grid grid-cols-2 gap-2 sm:ms-auto sm:flex">
                             <Button variant="outline" className="h-11" asChild>
@@ -156,6 +158,7 @@ export function StatementView({
                     )}
                 </div>
             )}
+
             {/* On wide screens the table carries these as its first and last rows. */}
             <div className={cn('grid grid-cols-2 gap-3', statement.rows.length > 0 && 'lg:hidden')}>
                 <Card className="gap-1 p-4">

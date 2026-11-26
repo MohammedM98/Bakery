@@ -11,6 +11,9 @@ class BankRequest extends FormRequest
 {
     public function authorize(): bool
     {
+        // Another bakery's bank is "not found" before its name is validated.
+        abort_if($this->route('bank') && $this->route('bank')->bakery_id !== $this->user()->bakery_id, 404);
+
         return Gate::allows('manage-banks');
     }
 
