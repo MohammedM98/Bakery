@@ -32,6 +32,8 @@
 | الأيقونات | `lucide-react` |
 | الرسوم البيانية | `recharts` |
 | الخط | Cairo (`@fontsource-variable/cairo`) — موجود |
+| تصدير الكشف PDF | `mpdf/mpdf` (يشكّل الحروف العربية ويدعم RTL عبر OTL)، مع Cairo مضمَّن من `resources/fonts` |
+| تصدير الكشف Excel | `phpoffice/phpspreadsheet` (ورقة من اليمين لليسار) |
 
 قواعد إضافة مكتبة جديدة:
 - لا تُضف مكتبة لشيء يمكن كتابته في أقل من 50 سطرًا.

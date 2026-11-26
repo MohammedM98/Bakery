@@ -48,6 +48,16 @@ class Bakery extends Model
         return $this->hasMany(Sale::class);
     }
 
+    public function banks(): HasMany
+    {
+        return $this->hasMany(Bank::class);
+    }
+
+    public function movements(): HasMany
+    {
+        return $this->hasMany(Movement::class);
+    }
+
     public function flourDeposits(): HasMany
     {
         return $this->hasMany(FlourDeposit::class);

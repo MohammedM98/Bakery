@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { ScrollText } from 'lucide-react';
+import { Download, ScrollText, Search } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { EmptyState } from '@/components/empty-state';
 import { Field } from '@/components/form-field';
@@ -98,12 +98,64 @@ export function RangePicker({ range, today, customerId }: { range: Range; today:
  * One ledger's statement: "رصيد سابق", each movement with the running balance, the closing balance.
  * Cards on the phone, a table from lg up (eight columns need the width).
  */
-export function StatementView({ ledger, statement, range }: { ledger: Ledger; statement: Statement; range: Range }) {
+export function StatementView({
+    ledger,
+    statement,
+    range,
+    exportUrl,
+}: {
+    ledger: Ledger;
+    statement: Statement;
+    range: Range;
+    /** Download link of this statement for the same range; no buttons without it. */
+    exportUrl?: (format: 'pdf' | 'xlsx') => string;
+}) {
     const unit = ledger === 'flour' ? ' (كغ)' : '';
     const period = range.from ? `قبل ${formatDate(range.from)}` : 'لا حركات قبل الفترة';
+    const [query, setQuery] = useState('');
+    const q = query.trim();
+    // Only narrows what is shown: the running balances stay those of the full statement.
+    const rows = q
+        ? statement.rows.filter((r) => [String(r.number), r.description, r.note, r.transfer, r.transfer_reference].some((v) => v?.includes(q)))
+        : statement.rows;
+    const searchId = `statement_search_${ledger}`;
 
     return (
         <div className="grid gap-3">
+            {statement.rows.length > 0 && (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <div className="relative sm:max-w-xs sm:flex-1">
+                        <label htmlFor={searchId} className="sr-only">
+                            بحث في الكشف
+                        </label>
+                        <Search aria-hidden className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            id={searchId}
+                            type="search"
+                            className="h-11 ps-9"
+                            placeholder={ledger === 'money' ? 'رقم الحركة، البيان، رقم الحوالة' : 'رقم الحركة أو البيان'}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                        />
+                    </div>
+                    {exportUrl && (
+                        <div className="grid grid-cols-2 gap-2 sm:ms-auto sm:flex">
+                            <Button variant="outline" className="h-11" asChild>
+                                <a href={exportUrl('pdf')} download>
+                                    <Download />
+                                    تحميل PDF
+                                </a>
+                            </Button>
+                            <Button variant="outline" className="h-11" asChild>
+                                <a href={exportUrl('xlsx')} download>
+                                    <Download />
+                                    تحميل Excel
+                                </a>
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            )}
             {/* On wide screens the table carries these as its first and last rows. */}
             <div className={cn('grid grid-cols-2 gap-3', statement.rows.length > 0 && 'lg:hidden')}>
                 <Card className="gap-1 p-4">
@@ -120,10 +172,12 @@ export function StatementView({ ledger, statement, range }: { ledger: Ledger; st
 
             {statement.rows.length === 0 ? (
                 <EmptyState icon={ScrollText} title="لا توجد حركات في هذه الفترة" description="اختر فترة أخرى أو «الكل»" />
+            ) : rows.length === 0 ? (
+                <EmptyState icon={Search} title="لا توجد حركات تطابق البحث" description="جرّب رقمًا أو كلمة أخرى" />
             ) : (
                 <>
                     <ol className="grid gap-3 lg:hidden">
-                        {statement.rows.map((row) => (
+                        {rows.map((row) => (
                             <li key={row.number}>
                                 <Card className="gap-2 p-4">
                                     <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
@@ -181,7 +235,7 @@ export function StatementView({ ledger, statement, range }: { ledger: Ledger; st
                                         </TableCell>
                                         <TableCell className="pe-6" />
                                     </TableRow>
-                                    {statement.rows.map((row) => (
+                                    {rows.map((row) => (
                                         <TableRow key={row.number}>
                                             <TableCell className="ps-6 tabular-nums">{row.number}</TableCell>
                                             <TableCell className="tabular-nums">{formatDate(row.date)}</TableCell>

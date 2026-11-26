@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Building2, ChevronDown, LayoutDashboard, LogOut, Receipt, Settings, UserRound, Users, type LucideIcon } from 'lucide-react';
+import { Building2, ChevronDown, History, Landmark, LayoutDashboard, LogOut, Receipt, Settings, UserRound, Users, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppLogoIcon } from '@/components/app-logo';
 import { FlashToast } from '@/components/flash-toast';
@@ -44,6 +44,8 @@ const navigation: Record<Role, NavItem[]> = {
         { label: 'لوحة التحكم', route: 'panel.dashboard', active: 'panel.dashboard', icon: LayoutDashboard },
         { label: 'العملاء', route: 'panel.customers.index', active: 'panel.customers.*', icon: Users },
         { label: 'المبيعات', route: 'panel.sales.index', active: 'panel.sales.*', icon: Receipt },
+        { label: 'سجل المبيعات', route: 'panel.sales-log', active: 'panel.sales-log', icon: History },
+        { label: 'البنوك والمحافظ', route: 'panel.banks.index', active: 'panel.banks.*', icon: Landmark },
         { label: 'الإعدادات', route: 'panel.settings.edit', active: 'panel.settings.*', icon: Settings },
     ],
 };

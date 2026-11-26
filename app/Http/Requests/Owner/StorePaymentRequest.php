@@ -4,6 +4,8 @@ namespace App\Http\Requests\Owner;
 
 use App\Http\Requests\Concerns\PreventsDuplicateSubmission;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Exists;
 
 /** A payment may exceed what the customer owes: the money balance then goes to "له". */
 class StorePaymentRequest extends FormRequest
@@ -20,6 +22,11 @@ class StorePaymentRequest extends FormRequest
             // Checked against this customer's sales in the action .
             'sale_id' => ['nullable', 'integer'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'method' => ['nullable', Rule::in(['cash', 'transfer'])], // Missing = cash.
+            // Both sides come from the bakery's own list (the same list for sender and receiver).
+            'from_bank_id' => ['exclude_unless:method,transfer', 'required', 'integer', $this->bakeryBank()],
+            'to_bank_id' => ['exclude_unless:method,transfer', 'required', 'integer', $this->bakeryBank()],
+            'transfer_reference' => ['exclude_unless:method,transfer', 'nullable', 'string', 'max:100'],
             ...$this->submissionRules(),
         ];
     }
@@ -32,6 +39,15 @@ class StorePaymentRequest extends FormRequest
             'payment_date' => 'التاريخ',
             'sale_id' => 'البيع',
             'notes' => 'الملاحظات',
+            'method' => 'طريقة الدفع',
+            'from_bank_id' => 'الحساب المحوَّل منه',
+            'to_bank_id' => 'الحساب المحوَّل إليه',
+            'transfer_reference' => 'رقم الحوالة',
         ];
+    }
+
+    private function bakeryBank(): Exists
+    {
+        return Rule::exists('banks', 'id')->where('bakery_id', $this->user()->bakery_id);
     }
 }

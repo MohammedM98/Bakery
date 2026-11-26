@@ -2,11 +2,14 @@
 
 use App\Http\Controllers\Admin\BakeryController;
 use App\Http\Controllers\HomeRedirectController;
+use App\Http\Controllers\Owner\BankController;
 use App\Http\Controllers\Owner\CustomerAccountController;
 use App\Http\Controllers\Owner\CustomerController;
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\SaleController;
+use App\Http\Controllers\Owner\SalesLogController;
 use App\Http\Controllers\Owner\SettingsController;
+use App\Http\Controllers\Owner\StatementExportController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,11 +55,17 @@ Route::middleware(['auth', 'role:bakery_owner'])
             Route::post('customers/{customer}/flour-sales', [CustomerAccountController::class, 'flourSale'])->name('customers.flour-sales.store');
             Route::post('customers/{customer}/payments', [CustomerAccountController::class, 'payment'])->name('customers.payments.store');
             Route::post('customers/{customer}/adjustments', [CustomerAccountController::class, 'adjustment'])->name('customers.adjustments.store');
+            Route::get('customers/{customer}/statement/{ledger}.{format}', StatementExportController::class)
+                ->whereIn('ledger', ['money', 'flour'])->whereIn('format', ['pdf', 'xlsx'])
+                ->name('customers.statement.export');
 
             Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
             Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');
             Route::post('sales', [SaleController::class, 'store'])->name('sales.store');
             Route::post('sales/{sale}/mark-paid', [SaleController::class, 'markPaid'])->name('sales.mark-paid');
+            Route::get('sales-log', SalesLogController::class)->name('sales-log');
+
+            Route::resource('banks', BankController::class)->only(['index', 'store', 'update', 'destroy']);
 
             Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
             Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');

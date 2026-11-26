@@ -37,7 +37,14 @@ interface Props {
     moneyStatement: Statement;
     flourStatement: Statement;
     sales: SaleRow[];
+    banks: Bank[];
     canAdjust: boolean;
+    canExport: boolean;
+}
+
+interface Bank {
+    id: number;
+    name: string;
 }
 
 type Open = 'deposit' | 'bread' | 'payment' | 'adjustment' | null;
@@ -164,9 +171,36 @@ function BreadDialog({ customer, open, onOpenChange, fee }: DialogProps & { fee:
     );
 }
 
-function PaymentDialog({ customer, open, onOpenChange, unpaidSales }: DialogProps & { unpaidSales: SaleRow[] }) {
+function BankSelect({ id, label, banks, value, onChange }: { id: string; label: string; banks: Bank[]; value: string; onChange: (v: string) => void }) {
+    return (
+        <Select value={value} onValueChange={onChange} dir="rtl">
+            <SelectTrigger id={id} aria-label={label} className="w-full min-w-0 data-[size=default]:h-11">
+                <SelectValue placeholder={label} />
+            </SelectTrigger>
+            <SelectContent>
+                {banks.map((b) => (
+                    <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+}
+
+function PaymentDialog({ customer, open, onOpenChange, unpaidSales, banks }: DialogProps & { unpaidSales: SaleRow[]; banks: Bank[] }) {
     const { currentDate: today } = usePage().props;
-    const blank = () => ({ amount: '', sale_id: '', payment_date: today, notes: '', submission_id: newSubmissionId() });
+    const blank = () => ({
+        amount: '',
+        sale_id: '',
+        payment_date: today,
+        notes: '',
+        method: 'cash' as 'cash' | 'transfer',
+        from_bank_id: '',
+        to_bank_id: '',
+        transfer_reference: '',
+        submission_id: newSubmissionId(),
+    });
     const form = useForm(blank());
     const submit = () => {
         form.transform((data) => ({ ...data, sale_id: data.sale_id || null }));
@@ -229,6 +263,50 @@ function PaymentDialog({ customer, open, onOpenChange, unpaidSales }: DialogProp
                     )}
                 </div>
             </Field>
+            <Choice
+                id="payment_method"
+                label="طريقة الدفع"
+                value={form.data.method}
+                options={[
+                    ['cash', 'نقدًا'],
+                    ['transfer', 'تحويل'],
+                ]}
+                onChange={(v) => form.setData('method', v)}
+                error={form.errors.method}
+            />
+            {form.data.method === 'transfer' &&
+                (banks.length === 0 ? (
+                    <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
+                        لا توجد بنوك أو محافظ في القائمة.{' '}
+                        <Link href={route('panel.banks.index')} className="font-medium underline underline-offset-4">
+                            أضفها من صفحة البنوك
+                        </Link>
+                    </p>
+                ) : (
+                    <>
+                        <Field id="payment_from_bank" label="التحويل (من ← إلى)" error={form.errors.from_bank_id || form.errors.to_bank_id}>
+                            <div className="flex items-center gap-2" aria-describedby="payment_from_bank-error">
+                                <BankSelect id="payment_from_bank" label="من" banks={banks} value={form.data.from_bank_id} onChange={(v) => form.setData('from_bank_id', v)} />
+                                <span aria-hidden className="text-muted-foreground">
+                                    ←
+                                </span>
+                                <BankSelect id="payment_to_bank" label="إلى" banks={banks} value={form.data.to_bank_id} onChange={(v) => form.setData('to_bank_id', v)} />
+                            </div>
+                        </Field>
+                        <Field id="payment_reference" label="رقم الحوالة (اختياري)" error={form.errors.transfer_reference}>
+                            <Input
+                                id="payment_reference"
+                                dir="ltr"
+                                maxLength={100}
+                                className="h-11 text-end"
+                                value={form.data.transfer_reference}
+                                onChange={(e) => form.setData('transfer_reference', e.target.value)}
+                                aria-invalid={!!form.errors.transfer_reference}
+                                aria-describedby="payment_reference-error"
+                            />
+                        </Field>
+                    </>
+                ))}
             <DateAndNotes
                 dateId="payment_date"
                 date={form.data.payment_date}
@@ -375,7 +453,7 @@ function Stat({ label, children, className }: { label: string; children: ReactNo
     );
 }
 
-export default function Show({ customer, flourExchangeFee, range, moneyStatement, flourStatement, sales, canAdjust }: Props) {
+export default function Show({ customer, flourExchangeFee, range, moneyStatement, flourStatement, sales, banks, canAdjust, canExport }: Props) {
     const { currentDate } = usePage().props;
     const [open, setOpen] = useState<Open>(null);
     const dialog = (name: Exclude<Open, null>) => ({ customer, open: open === name, onOpenChange: (o: boolean) => setOpen(o ? name : null) });
@@ -443,11 +521,11 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                     </TabsList>
                     <TabsContent value="money" className="grid gap-3">
                         <RangePicker range={range} today={currentDate} customerId={customer.id} />
-                        <StatementView ledger="money" statement={moneyStatement} range={range} />
+                        <StatementView ledger="money" statement={moneyStatement} range={range} exportUrl={canExport ? (format) => route('panel.customers.statement.export', { customer: customer.id, ledger: 'money', format, from: range.from ?? '', to: range.to ?? '' }) : undefined} />
                     </TabsContent>
                     <TabsContent value="flour" className="grid gap-3">
                         <RangePicker range={range} today={currentDate} customerId={customer.id} />
-                        <StatementView ledger="flour" statement={flourStatement} range={range} />
+                        <StatementView ledger="flour" statement={flourStatement} range={range} exportUrl={canExport ? (format) => route('panel.customers.statement.export', { customer: customer.id, ledger: 'flour', format, from: range.from ?? '', to: range.to ?? '' }) : undefined} />
                     </TabsContent>
                     <TabsContent value="sales">
                         {sales.length ? <SaleList sales={sales} showType /> : <EmptyState icon={Receipt} title="لا يوجد سجل مبيعات" />}
@@ -457,7 +535,7 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
 
             <DepositDialog {...dialog('deposit')} />
             <BreadDialog {...dialog('bread')} fee={flourExchangeFee} />
-            <PaymentDialog {...dialog('payment')} unpaidSales={unpaidSales} />
+            <PaymentDialog {...dialog('payment')} unpaidSales={unpaidSales} banks={banks} />
             {canAdjust && <AdjustmentDialog {...dialog('adjustment')} />}
         </AppLayout>
     );
