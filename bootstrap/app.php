@@ -8,6 +8,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -30,4 +32,25 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // Arabic error pages instead of Laravel's English ones. 500 and 503 keep the
+        // debug page while APP_DEBUG is on, so errors stay readable in development.
+        $exceptions->respond(function (Response $response, Throwable $e, Request $request) {
+            $status = $response->getStatusCode();
+
+            if (! in_array($status, [403, 404, 419, 500, 503], true)
+                || $request->is('api/*')
+                || (in_array($status, [500, 503], true) && config('app.debug'))) {
+                return $response;
+            }
+
+            // An expired form in an open page: back to it with a toast rather than a full error page.
+            if ($status === 419 && $request->header('X-Inertia')) {
+                return back()->with('error', 'انتهت صلاحية الصفحة. حاول مرة أخرى.');
+            }
+
+            return Inertia::render('Error', ['status' => $status, 'appName' => config('app.name')])
+                ->toResponse($request)
+                ->setStatusCode($status);
+        });
     })->create();
