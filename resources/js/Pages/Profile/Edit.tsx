@@ -152,6 +152,7 @@ function DeleteAccountForm() {
 }
 
 export default function Edit() {
+    const isStaff = usePage().props.auth.user?.role === 'bakery_staff';
     return (
         <AppLayout title="الملف الشخصي">
             <div className="grid max-w-2xl gap-6">
@@ -173,6 +174,8 @@ export default function Edit() {
                         <UpdatePasswordForm />
                     </CardContent>
                 </Card>
+                {/* Staff accounts are disabled by the bakery owner, not deleted by their holder. */}
+                {!isStaff && (
                 <Card>
                     <CardHeader>
                         <CardTitle>حذف الحساب</CardTitle>
@@ -182,6 +185,7 @@ export default function Edit() {
                         <DeleteAccountForm />
                     </CardContent>
                 </Card>
+                )}
             </div>
         </AppLayout>
     );

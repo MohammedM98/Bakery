@@ -38,6 +38,8 @@ class HandleInertiaRequests extends Middleware
                     'role' => $user->role,
                 ] : null,
                 'bakery' => $user?->bakery ? ['name' => $user->bakery->name] : null,
+                // Only hides links and buttons: every permission is checked again in the server.
+                'permissions' => $user ? $user->grantedPermissions() : [],
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

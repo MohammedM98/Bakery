@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/Layouts/AppLayout';
 
-export default function Edit({ customer }: { customer: CustomerFields }) {
+export default function Edit({ customer, canDelete }: { customer: CustomerFields; canDelete: boolean }) {
     const [deleting, setDeleting] = useState(false);
 
     const destroy = () =>
@@ -24,6 +24,7 @@ export default function Edit({ customer }: { customer: CustomerFields }) {
                     </CardContent>
                 </Card>
 
+                {canDelete && (
                 <Card className="border-destructive/30">
                     <CardHeader>
                         <CardTitle className="text-destructive">حذف العميل</CardTitle>
@@ -44,6 +45,7 @@ export default function Edit({ customer }: { customer: CustomerFields }) {
                         />
                     </CardContent>
                 </Card>
+                )}
             </div>
         </AppLayout>
     );

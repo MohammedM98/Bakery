@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Paginated } from '@/types';
 
@@ -42,6 +43,7 @@ function CustomerLink({ customer, className }: { customer: CustomerRow; classNam
 }
 
 export default function Index({ customers, search }: Props) {
+    const can = useCan();
     const [query, setQuery] = useState(search);
     const [searching, setSearching] = useState(false);
     const first = useRef(true);
@@ -64,7 +66,7 @@ export default function Index({ customers, search }: Props) {
         return () => clearTimeout(timer);
     }, [query]);
 
-    const addButton = (
+    const addButton = can('create-customers') && (
         <Button asChild className="h-11 px-5">
             <Link href={route('panel.customers.create')}>
                 <Plus />
@@ -135,7 +137,7 @@ export default function Index({ customers, search }: Props) {
                                                     <span className="block text-xs text-muted-foreground">رصيد الطحين</span>
                                                     <FlourBalance kg={c.flour_balance_kg} className="font-semibold" />
                                                 </div>
-                                                <EditButton customer={c} />
+                                                {can('edit-customers') && <EditButton customer={c} />}
                                             </Card>
                                         </li>
                                     ))}
@@ -168,7 +170,7 @@ export default function Index({ customers, search }: Props) {
                                                         <FlourBalance kg={c.flour_balance_kg} />
                                                     </TableCell>
                                                     <TableCell className="pe-6">
-                                                        <EditButton customer={c} />
+                                                        {can('edit-customers') && <EditButton customer={c} />}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}

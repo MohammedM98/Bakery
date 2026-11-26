@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Building2, ChevronDown, History, Landmark, LayoutDashboard, LogOut, Receipt, Settings, UserRound, Users, type LucideIcon } from 'lucide-react';
+import { Building2, ChevronDown, History, Landmark, LayoutDashboard, LogOut, Receipt, Settings, ShieldCheck, ShoppingBasket, UserRound, Users, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AppLogoIcon } from '@/components/app-logo';
 import { FlashToast } from '@/components/flash-toast';
@@ -29,31 +29,42 @@ import {
     SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import type { Role } from '@/types';
+import { useCan } from '@/lib/can';
+import type { Permission, Role } from '@/types';
 
 interface NavItem {
     label: string;
     route: string;
     active: string;
     icon: LucideIcon;
+    /** Shown only to whoever holds it. */
+    permission?: Permission;
 }
+
+const panel: NavItem[] = [
+    { label: 'لوحة التحكم', route: 'panel.dashboard', active: 'panel.dashboard', icon: LayoutDashboard, permission: 'view-dashboard' },
+    { label: 'العملاء', route: 'panel.customers.index', active: 'panel.customers.*', icon: Users, permission: 'view-customers' },
+    { label: 'المبيعات', route: 'panel.sales.index', active: 'panel.sales.*', icon: Receipt, permission: 'view-sales' },
+    { label: 'تسجيل بيع', route: 'panel.sales.create', active: 'panel.sales.create', icon: ShoppingBasket, permission: 'record-sale' },
+    { label: 'سجل المبيعات', route: 'panel.sales-log', active: 'panel.sales-log', icon: History, permission: 'view-sales-log' },
+    { label: 'البنوك والمحافظ', route: 'panel.banks.index', active: 'panel.banks.*', icon: Landmark, permission: 'view-banks' },
+    { label: 'المستخدمون', route: 'panel.users.index', active: 'panel.users.*', icon: ShieldCheck, permission: 'manage-users' },
+    { label: 'الإعدادات', route: 'panel.settings.edit', active: 'panel.settings.*', icon: Settings, permission: 'manage-settings' },
+];
 
 const navigation: Record<Role, NavItem[]> = {
     super_admin: [{ label: 'المخابز والاشتراكات', route: 'admin.bakeries.index', active: 'admin.bakeries.*', icon: Building2 }],
-    bakery_owner: [
-        { label: 'لوحة التحكم', route: 'panel.dashboard', active: 'panel.dashboard', icon: LayoutDashboard },
-        { label: 'العملاء', route: 'panel.customers.index', active: 'panel.customers.*', icon: Users },
-        { label: 'المبيعات', route: 'panel.sales.index', active: 'panel.sales.*', icon: Receipt },
-        { label: 'سجل المبيعات', route: 'panel.sales-log', active: 'panel.sales-log', icon: History },
-        { label: 'البنوك والمحافظ', route: 'panel.banks.index', active: 'panel.banks.*', icon: Landmark },
-        { label: 'الإعدادات', route: 'panel.settings.edit', active: 'panel.settings.*', icon: Settings },
-    ],
+    bakery_owner: panel,
+    bakery_staff: panel,
 };
 
 export default function AppLayout({ title, children }: { title: string; children: ReactNode }) {
     const { auth, appName } = usePage().props;
     const user = auth.user!;
-    const items = navigation[user.role] ?? [];
+    const can = useCan();
+    const items = (navigation[user.role] ?? []).filter((item) => !item.permission || can(item.permission))
+        // "تسجيل بيع" only for those who cannot open the sales list, where the button already is.
+        .filter((item) => item.route !== 'panel.sales.create' || !can('view-sales'));
 
     return (
         <TooltipProvider delayDuration={0}>

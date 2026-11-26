@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Paginated, SaleRow } from '@/types';
 
@@ -26,6 +27,7 @@ interface Props {
 
 export default function Index({ sales, filters, pricePerKg }: Props) {
     const [recording, setRecording] = useState(false);
+    const can = useCan();
     const isCash = filters.type === 'cash';
     const filtered = filters.status !== '' || filters.date !== '';
 
@@ -38,7 +40,7 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
         );
     };
 
-    const recordButton = (
+    const recordButton = can('record-sale') && (
         <Button className="h-11 w-full px-5 sm:w-auto" onClick={() => setRecording(true)}>
             <Plus />
             تسجيل عملية بيع
@@ -112,9 +114,11 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
                         title="لا توجد عمليات بيع مقابل الطحين"
                         description="يُسجَّل تسليم الخبز مقابل الطحين من صفحة العميل، على رصيده من الطحين"
                         action={
-                            <Button variant="outline" asChild className="h-11">
-                                <Link href={route('panel.customers.index')}>الذهاب إلى العملاء</Link>
-                            </Button>
+                            can('view-customers') && (
+                                <Button variant="outline" asChild className="h-11">
+                                    <Link href={route('panel.customers.index')}>الذهاب إلى العملاء</Link>
+                                </Button>
+                            )
                         }
                     />
                 )}

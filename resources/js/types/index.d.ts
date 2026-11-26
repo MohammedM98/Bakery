@@ -1,6 +1,29 @@
 import type { route as routeFn } from 'ziggy-js';
 
-export type Role = 'super_admin' | 'bakery_owner';
+export type Role = 'super_admin' | 'bakery_owner' | 'bakery_staff';
+
+/** A permission key from User::PERMISSIONS or User::OWNER_ONLY in PHP. */
+export type Permission =
+    | 'view-dashboard'
+    | 'view-customers'
+    | 'create-customers'
+    | 'edit-customers'
+    | 'view-sales'
+    | 'record-sale'
+    | 'record-flour-sale'
+    | 'record-payment'
+    | 'record-deposit'
+    | 'view-money-statement'
+    | 'view-flour-statement'
+    | 'export-statements'
+    | 'view-sales-log'
+    | 'record-adjustment'
+    | 'view-banks'
+    | 'manage-banks'
+    | 'delete-customers'
+    | 'delete-banks'
+    | 'manage-users'
+    | 'manage-settings';
 
 export interface AuthUser {
     id: number;
@@ -22,6 +45,8 @@ export interface SharedProps {
     auth: {
         user: AuthUser | null;
         bakery: { name: string } | null;
+        /** What the signed-in user may do. Only hides links and buttons: the server checks again. */
+        permissions: Permission[];
     };
     flash: Flash;
     [key: string]: unknown;

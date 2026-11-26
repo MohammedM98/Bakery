@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate, formatKg } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Paginated } from '@/types';
 
@@ -115,6 +116,8 @@ function Amount({ row }: { row: LogRow }) {
 }
 
 function Who({ row }: { row: LogRow }) {
+    const can = useCan();
+    if (row.customer_id && !can('view-customers')) return <span className="font-medium">{row.customer}</span>;
     if (row.customer_id) {
         return (
             <Link href={route('panel.customers.show', row.customer_id)} className="font-medium underline-offset-4 hover:underline">

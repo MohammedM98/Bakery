@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate, formatFlourBalance, formatMoney, newSubmissionId } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { SaleRow, Statement } from '@/types';
 
@@ -34,9 +35,12 @@ interface Props {
     customer: Customer;
     flourExchangeFee: string;
     range: Range;
-    moneyStatement: Statement;
-    flourStatement: Statement;
-    sales: SaleRow[];
+    /** Null without the permission to view that statement / the sales list. */
+    moneyStatement: Statement | null;
+    flourStatement: Statement | null;
+    sales: SaleRow[] | null;
+    /** For the payment dialog: empty without "تسجيل دفعة". */
+    unpaidSales: SaleRow[];
     banks: Bank[];
     canAdjust: boolean;
     canExport: boolean;
@@ -190,6 +194,7 @@ function BankSelect({ id, label, banks, value, onChange }: { id: string; label: 
 
 function PaymentDialog({ customer, open, onOpenChange, unpaidSales, banks }: DialogProps & { unpaidSales: SaleRow[]; banks: Bank[] }) {
     const { currentDate: today } = usePage().props;
+    const canManageBanks = useCan()('manage-banks');
     const blank = () => ({
         amount: '',
         sale_id: '',
@@ -279,9 +284,13 @@ function PaymentDialog({ customer, open, onOpenChange, unpaidSales, banks }: Dia
                 (banks.length === 0 ? (
                     <p className="rounded-xl bg-secondary px-4 py-3 text-sm text-secondary-foreground">
                         لا توجد بنوك أو محافظ في القائمة.{' '}
-                        <Link href={route('panel.banks.index')} className="font-medium underline underline-offset-4">
-                            أضفها من صفحة البنوك
-                        </Link>
+                        {canManageBanks ? (
+                            <Link href={route('panel.banks.index')} className="font-medium underline underline-offset-4">
+                                أضفها من صفحة البنوك
+                            </Link>
+                        ) : (
+                            'يضيفها صاحب المخبز من صفحة البنوك.'
+                        )}
                     </p>
                 ) : (
                     <>
@@ -454,40 +463,49 @@ function Stat({ label, children, className }: { label: string; children: ReactNo
     );
 }
 
-export default function Show({ customer, flourExchangeFee, range, moneyStatement, flourStatement, sales, banks, canAdjust, canExport }: Props) {
+export default function Show({ customer, flourExchangeFee, range, moneyStatement, flourStatement, sales, unpaidSales, banks, canAdjust, canExport }: Props) {
     const { currentDate } = usePage().props;
+    const can = useCan();
     const [open, setOpen] = useState<Open>(null);
     const dialog = (name: Exclude<Open, null>) => ({ customer, open: open === name, onOpenChange: (o: boolean) => setOpen(o ? name : null) });
-    const unpaidSales = sales.filter((s) => s.payment_status === 'unpaid');
+    const firstTab = moneyStatement ? 'money' : flourStatement ? 'flour' : 'sales';
 
     return (
         <AppLayout title={customer.name}>
             <div className="grid gap-6">
-                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                    <Button className="h-11" onClick={() => setOpen('bread')}>
-                        <Receipt />
-                        خبز مقابل الطحين
-                    </Button>
-                    <Button variant="secondary" className="h-11" onClick={() => setOpen('deposit')}>
-                        <Wheat />
-                        إيداع طحين
-                    </Button>
-                    <Button variant="secondary" className="h-11" onClick={() => setOpen('payment')}>
-                        <HandCoins />
-                        تسجيل دفعة
-                    </Button>
+                <div className="grid grid-cols-2 gap-2 empty:hidden sm:flex sm:flex-wrap">
+                    {can('record-flour-sale') && (
+                        <Button className="h-11" onClick={() => setOpen('bread')}>
+                            <Receipt />
+                            خبز مقابل الطحين
+                        </Button>
+                    )}
+                    {can('record-deposit') && (
+                        <Button variant="secondary" className="h-11" onClick={() => setOpen('deposit')}>
+                            <Wheat />
+                            إيداع طحين
+                        </Button>
+                    )}
+                    {can('record-payment') && (
+                        <Button variant="secondary" className="h-11" onClick={() => setOpen('payment')}>
+                            <HandCoins />
+                            تسجيل دفعة
+                        </Button>
+                    )}
                     {canAdjust && (
                         <Button variant="outline" className="h-11" onClick={() => setOpen('adjustment')}>
                             <Scale />
                             قيد تسوية
                         </Button>
                     )}
-                    <Button variant="outline" asChild className={cn('h-11 sm:ms-auto', canAdjust && 'col-span-2 sm:col-span-1')}>
-                        <Link href={route('panel.customers.edit', customer.id)}>
-                            <Pencil />
-                            تعديل
-                        </Link>
-                    </Button>
+                    {can('edit-customers') && (
+                        <Button variant="outline" asChild className="h-11 sm:ms-auto">
+                            <Link href={route('panel.customers.edit', customer.id)}>
+                                <Pencil />
+                                تعديل
+                            </Link>
+                        </Button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -508,35 +526,49 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                     </Stat>
                 </div>
 
-                <Tabs defaultValue="money" dir="rtl" className="gap-3">
-                    <TabsList className="w-full sm:w-auto group-data-horizontal/tabs:h-11">
-                        <TabsTrigger value="money" className="px-4">
-                            الحساب المالي
-                        </TabsTrigger>
-                        <TabsTrigger value="flour" className="px-4">
-                            الطحين
-                        </TabsTrigger>
-                        <TabsTrigger value="sales" className="px-4">
-                            المبيعات ({sales.length})
-                        </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="money" className="grid gap-3">
-                        <RangePicker range={range} today={currentDate} customerId={customer.id} />
-                        <StatementView ledger="money" statement={moneyStatement} range={range} exportUrl={canExport ? (format) => route('panel.customers.statement.export', { customer: customer.id, ledger: 'money', format, from: range.from ?? '', to: range.to ?? '' }) : undefined} />
-                    </TabsContent>
-                    <TabsContent value="flour" className="grid gap-3">
-                        <RangePicker range={range} today={currentDate} customerId={customer.id} />
-                        <StatementView ledger="flour" statement={flourStatement} range={range} exportUrl={canExport ? (format) => route('panel.customers.statement.export', { customer: customer.id, ledger: 'flour', format, from: range.from ?? '', to: range.to ?? '' }) : undefined} />
-                    </TabsContent>
-                    <TabsContent value="sales">
-                        {sales.length ? <SaleList sales={sales} showType /> : <EmptyState icon={Receipt} title="لا يوجد سجل مبيعات" />}
-                    </TabsContent>
-                </Tabs>
+                {(moneyStatement || flourStatement || sales) && (
+                    <Tabs defaultValue={firstTab} dir="rtl" className="gap-3">
+                        <TabsList className="w-full sm:w-auto group-data-horizontal/tabs:h-11">
+                            {moneyStatement && (
+                                <TabsTrigger value="money" className="px-4">
+                                    الحساب المالي
+                                </TabsTrigger>
+                            )}
+                            {flourStatement && (
+                                <TabsTrigger value="flour" className="px-4">
+                                    الطحين
+                                </TabsTrigger>
+                            )}
+                            {sales && (
+                                <TabsTrigger value="sales" className="px-4">
+                                    المبيعات ({sales.length})
+                                </TabsTrigger>
+                            )}
+                        </TabsList>
+                        {moneyStatement && (
+                            <TabsContent value="money" className="grid gap-3">
+                                <RangePicker range={range} today={currentDate} customerId={customer.id} />
+                                <StatementView ledger="money" statement={moneyStatement} range={range} exportUrl={canExport ? (format) => route('panel.customers.statement.export', { customer: customer.id, ledger: 'money', format, from: range.from ?? '', to: range.to ?? '' }) : undefined} />
+                            </TabsContent>
+                        )}
+                        {flourStatement && (
+                            <TabsContent value="flour" className="grid gap-3">
+                                <RangePicker range={range} today={currentDate} customerId={customer.id} />
+                                <StatementView ledger="flour" statement={flourStatement} range={range} exportUrl={canExport ? (format) => route('panel.customers.statement.export', { customer: customer.id, ledger: 'flour', format, from: range.from ?? '', to: range.to ?? '' }) : undefined} />
+                            </TabsContent>
+                        )}
+                        {sales && (
+                            <TabsContent value="sales">
+                                {sales.length ? <SaleList sales={sales} showType /> : <EmptyState icon={Receipt} title="لا يوجد سجل مبيعات" />}
+                            </TabsContent>
+                        )}
+                    </Tabs>
+                )}
             </div>
 
-            <DepositDialog {...dialog('deposit')} />
-            <BreadDialog {...dialog('bread')} fee={flourExchangeFee} />
-            <PaymentDialog {...dialog('payment')} unpaidSales={unpaidSales} banks={banks} />
+            {can('record-deposit') && <DepositDialog {...dialog('deposit')} />}
+            {can('record-flour-sale') && <BreadDialog {...dialog('bread')} fee={flourExchangeFee} />}
+            {can('record-payment') && <PaymentDialog {...dialog('payment')} unpaidSales={unpaidSales} banks={banks} />}
             {canAdjust && <AdjustmentDialog {...dialog('adjustment')} />}
         </AppLayout>
     );

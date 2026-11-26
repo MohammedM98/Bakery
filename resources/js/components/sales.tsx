@@ -13,6 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { useCan } from '@/lib/can';
 import { formatDate, formatMoney, newSubmissionId } from '@/lib/format';
 import type { SaleRow } from '@/types';
 
@@ -74,8 +75,10 @@ export function PaymentStatusField({
 
 /** "Confirm payment" for an unpaid sale: confirms the rest as received, with no undo. */
 export function MarkPaidButton({ sale, className }: { sale: SaleRow; className?: string }) {
+    const can = useCan();
     const [open, setOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
+    if (!can('record-payment')) return null;
 
     return (
         <ConfirmDialog

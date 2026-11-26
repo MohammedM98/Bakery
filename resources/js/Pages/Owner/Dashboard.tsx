@@ -11,6 +11,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@/components/ui/chart';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDate, formatKg, formatMoney } from '@/lib/format';
+import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { SaleRow } from '@/types';
 
@@ -71,15 +72,18 @@ function SaleLine({ sale, children }: { sale: SaleRow; children: ReactNode }) {
 
 export default function Dashboard({ today, last7Days, unpaidSales, recentSales, pricePerKg }: Props) {
     const [recording, setRecording] = useState(false);
+    const can = useCan();
     const hasWeek = last7Days.some((d) => d.kg > 0);
 
     return (
         <AppLayout title="لوحة التحكم">
             <div className="grid gap-6">
-                <Button className="h-12 w-full text-base sm:w-auto sm:justify-self-end sm:px-6" onClick={() => setRecording(true)}>
-                    <Plus />
-                    تسجيل عملية بيع
-                </Button>
+                {can('record-sale') && (
+                    <Button className="h-12 w-full text-base sm:w-auto sm:justify-self-end sm:px-6" onClick={() => setRecording(true)}>
+                        <Plus />
+                        تسجيل عملية بيع
+                    </Button>
+                )}
 
                 <div className="grid gap-4 lg:grid-cols-3">
                     <Card className="border-0 bg-sidebar p-6 text-sidebar-foreground ring-0 lg:col-span-2">
@@ -105,9 +109,11 @@ export default function Dashboard({ today, last7Days, unpaidSales, recentSales, 
                             <p className="text-sm text-muted-foreground">غير مدفوع اليوم</p>
                             <MoneyText amount={today.unpaid} className={today.unpaid > 0 ? 'text-3xl font-semibold text-destructive' : 'text-3xl font-semibold'} />
                         </div>
-                        <Button variant="outline" asChild className="h-11">
-                            <Link href={route('panel.sales.index', { status: 'unpaid' })}>عرض العمليات غير المدفوعة</Link>
-                        </Button>
+                        {can('view-sales') && (
+                            <Button variant="outline" asChild className="h-11">
+                                <Link href={route('panel.sales.index', { status: 'unpaid' })}>عرض العمليات غير المدفوعة</Link>
+                            </Button>
+                        )}
                     </Card>
                 </div>
 
@@ -127,11 +133,13 @@ export default function Dashboard({ today, last7Days, unpaidSales, recentSales, 
                     <Card>
                         <CardHeader>
                             <CardTitle>عمليات غير مدفوعة</CardTitle>
-                            <CardAction>
-                                <Button variant="link" asChild className="h-auto p-0">
-                                    <Link href={route('panel.sales.index', { status: 'unpaid' })}>عرض الكل</Link>
-                                </Button>
-                            </CardAction>
+                            {can('view-sales') && (
+                                <CardAction>
+                                    <Button variant="link" asChild className="h-auto p-0">
+                                        <Link href={route('panel.sales.index', { status: 'unpaid' })}>عرض الكل</Link>
+                                    </Button>
+                                </CardAction>
+                            )}
                         </CardHeader>
                         <CardContent>
                             {unpaidSales.length ? (
@@ -154,11 +162,13 @@ export default function Dashboard({ today, last7Days, unpaidSales, recentSales, 
                     <Card>
                         <CardHeader>
                             <CardTitle>آخر العمليات</CardTitle>
-                            <CardAction>
-                                <Button variant="link" asChild className="h-auto p-0">
-                                    <Link href={route('panel.sales.index')}>عرض الكل</Link>
-                                </Button>
-                            </CardAction>
+                            {can('view-sales') && (
+                                <CardAction>
+                                    <Button variant="link" asChild className="h-auto p-0">
+                                        <Link href={route('panel.sales.index')}>عرض الكل</Link>
+                                    </Button>
+                                </CardAction>
+                            )}
                         </CardHeader>
                         <CardContent>
                             {recentSales.length ? (
@@ -177,9 +187,11 @@ export default function Dashboard({ today, last7Days, unpaidSales, recentSales, 
                                     icon={ReceiptText}
                                     title="لا توجد عمليات بعد"
                                     action={
-                                        <Button className="h-11" onClick={() => setRecording(true)}>
-                                            تسجيل عملية بيع
-                                        </Button>
+                                        can('record-sale') && (
+                                            <Button className="h-11" onClick={() => setRecording(true)}>
+                                                تسجيل عملية بيع
+                                            </Button>
+                                        )
                                     }
                                 />
                             )}

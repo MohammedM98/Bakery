@@ -57,6 +57,9 @@ class CustomerController extends Controller
 
         ['from' => $from, 'to' => $to] = $request->range();
 
+        $user = $request->user();
+
+        // Each tab and its data only with its permission; the balances come with the customer.
         return Inertia::render('Owner/Customers/Show', [
             'customer' => [
                 ...$customer->only('id', 'name', 'mobile_number', 'notes', 'flour_balance_kg'),
@@ -64,13 +67,18 @@ class CustomerController extends Controller
             ],
             'flourExchangeFee' => $customer->bakery->flour_exchange_fee_per_kg,
             'range' => ['from' => $from, 'to' => $to],
-            'moneyStatement' => $customer->statement(Movement::LEDGER_MONEY, $from, $to),
-            'flourStatement' => $customer->statement(Movement::LEDGER_FLOUR, $from, $to),
-            'sales' => $customer->sales()->with('customer:id,name')->latest('sale_date')->latest('id')->get()
-                ->map(fn (Sale $sale) => $sale->toRow()),
-            'banks' => $customer->bakery->banks()->orderBy('name')->get(['id', 'name']),
-            'canAdjust' => $request->user()->can('record-adjustment'),
-            'canExport' => $request->user()->can('export-statements'),
+            'moneyStatement' => $user->can('view-money-statement') ? $customer->statement(Movement::LEDGER_MONEY, $from, $to) : null,
+            'flourStatement' => $user->can('view-flour-statement') ? $customer->statement(Movement::LEDGER_FLOUR, $from, $to) : null,
+            'sales' => $user->can('view-sales')
+                ? $customer->sales()->with('customer:id,name')->latest('sale_date')->latest('id')->get()->map(fn (Sale $sale) => $sale->toRow())
+                : null,
+            // The payment dialog needs the unpaid sales and the bank names even without "عرض المبيعات" / "عرض البنوك".
+            'unpaidSales' => $user->can('record-payment')
+                ? $customer->sales()->with('customer:id,name')->where('payment_status', Sale::STATUS_UNPAID)->latest('sale_date')->latest('id')->get()->map(fn (Sale $sale) => $sale->toRow())
+                : [],
+            'banks' => $user->can('record-payment') ? $customer->bakery->banks()->orderBy('name')->get(['id', 'name']) : [],
+            'canAdjust' => $user->can('record-adjustment'),
+            'canExport' => $user->can('export-statements'),
         ]);
     }
 
@@ -80,6 +88,7 @@ class CustomerController extends Controller
 
         return Inertia::render('Owner/Customers/Edit', [
             'customer' => $customer->only('id', 'name', 'mobile_number', 'notes'),
+            'canDelete' => $request->user()->can('delete-customers'),
         ]);
     }
 

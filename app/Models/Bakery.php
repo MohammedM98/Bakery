@@ -33,9 +33,20 @@ class Bakery extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function owners(): HasMany
+    /** Every account of the bakery: its owner and its staff. */
+    public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function owners(): HasMany
+    {
+        return $this->users()->where('role', User::ROLE_BAKERY_OWNER);
+    }
+
+    public function staff(): HasMany
+    {
+        return $this->users()->where('role', User::ROLE_BAKERY_STAFF);
     }
 
     public function customers(): HasMany

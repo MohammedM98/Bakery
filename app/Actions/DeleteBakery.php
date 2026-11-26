@@ -7,11 +7,11 @@ use Illuminate\Support\Facades\DB;
 
 class DeleteBakery
 {
-    /** Removes the owner accounts; customers, sales, deposits and payments go with the bakery via cascading foreign keys. */
+    /** Removes the owner and staff accounts; customers, sales, deposits and payments go with the bakery via cascading foreign keys. */
     public function handle(Bakery $bakery): void
     {
         DB::transaction(function () use ($bakery) {
-            $bakery->owners()->delete();
+            $bakery->users()->delete();
             $bakery->delete();
         });
     }

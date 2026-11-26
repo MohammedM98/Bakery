@@ -12,7 +12,7 @@
 |---|---|---|
 | مالك المنصة | `super_admin` | يضيف المخابز، ينشئ حسابات أصحابها، يجدد الاشتراكات أو يوقفها |
 | صاحب المخبز | `bakery_owner` | يدير مخبزه فقط: المبيعات، العملاء، رصيد القمح، الإعدادات |
-| موظف المخبز *(جديد، القسم 9-ب بند 7)* | يُحدَّد عند التنفيذ | يعمل داخل مخبز واحد بالصلاحيات التي يمنحها له صاحب المخبز |
+| موظف المخبز (القسم 9-ب بند 7) | `bakery_staff` | يعمل داخل مخبز واحد (`users.bakery_id`) بالصلاحيات التي يمنحها له صاحب المخبز (`users.permissions`)، ويُوقَف بـ `users.is_active` |
 
 ## 2. التقنيات
 
@@ -71,6 +71,8 @@
 
 الجلسة 5 لم تُضف مكوّنات shadcn جديدة. أضافت إلى `statement` (`StatementView`) حقل بحث وزرّي التحميل، وصفحتي `Pages/Owner/Banks/Index.tsx` و `Pages/Owner/SalesLog.tsx` (بطاقات الملخص `SummaryCard` وجدول الحركات: بطاقات على الجوال وجدول من `lg`).
 
+الجلسة 6 لم تُضف مكوّنات shadcn جديدة (استخدمت `checkbox` المثبّت لمربعات الصلاحيات). مكوّنها الخاص: `staff-form` (نموذج الموظف بمجموعات الصلاحيات)، والدالة `useCan()` في `lib/can.ts` لإخفاء الروابط والأزرار.
+
 الجلسة 3 لم تُضف مكوّنات shadcn جديدة. مكوّناتها الخاصة: نافذة النموذج (`form-dialog`) لكل نموذج تسجيل في نافذة، و `sales` (شارة حالة الدفع، حقل مدفوع/غير مدفوع بزرّين، زر "تأكيد الدفع" مع التأكيد، قائمة المبيعات بطاقاتٍ على الجوال وجدولًا على سطح المكتب، نموذج البيع النقدي ونافذته). `confirm-dialog` صار يقبل `variant="default"` للتأكيد الإيجابي.
 
 - لا يُبنى مكوّن من الصفر إذا كان له مقابل في shadcn. يُضاف بالأمر `npx shadcn@latest add <name>` ويُسجَّل في القائمة أعلاه.
@@ -115,7 +117,7 @@
 - كل استعلام في لوحة صاحب المخبز يبدأ من علاقات المخبز (`$bakery->customers()`, `$bakery->sales()`) لا من `Customer::query()` مباشرة.
 - عند استقبال معرّف سجل في المسار (مثل `customers/{customer}`) تحقق أنه يتبع مخبز المستخدم، وإلا أعد 404.
 - كل ميزة جديدة تتضمن اختبارًا يثبت أن صاحب مخبز لا يرى ولا يعدّل بيانات مخبز آخر.
-- مسارات `/panel` تمر دائمًا عبر `auth` ثم `role:bakery_owner` ثم `subscription.active`.
+- مسارات `/panel` تمر دائمًا عبر `auth` ثم `role:bakery_owner,bakery_staff` ثم `subscription.active`، ثم بوابة الصلاحية الخاصة بكل مسار (`can:<permission>`). صاحب المخبز يملك كل الصلاحيات؛ الموظف ما حُدِّد له فقط.
 - مسارات `/admin` تمر دائمًا عبر `auth` ثم `role:super_admin`.
 - لا ترسل إلى React إلا الحقول التي تحتاجها الصفحة. لا تمرّر نموذج Eloquent كاملًا كـ prop.
 
@@ -242,7 +244,7 @@ npm run build
 | 2 | المصادقة والملف الشخصي (تصميم ثم بناء) | منتهية (الجلسة 1)؛ صفحات Blade القديمة للمصادقة باقية حتى مرحلة التنظيف |
 | 3 | لوحة مالك المنصة (تصميم ثم بناء) | منتهية (الجلسة 2) |
 | 4 | لوحة صاحب المخبز: الإعدادات ← العملاء ← المبيعات ← صفحة العميل ← اللوحة الرئيسية (تصميم ثم بناء لكل جزء) | منتهية: الإعدادات والعملاء (الجلسة 2)؛ المبيعات وصفحة العميل واللوحة الرئيسية وصفحة انتهاء الاشتراك والصفحة الترحيبية (الجلسة 3) |
-| 5 | الميزات الجديدة في القسم 9-ب (جدول الحركات أولًا ثم رصيد الطحين، الكشفان، التسوية، البنوك، التحميل، سجل المبيعات، المستخدمون) | جارية: البنود 1–4 منتهية (الجلسة 4)؛ 4-ب و 5 و 6 منتهية (الجلسة 5)؛ 7 لم يبدأ |
+| 5 | الميزات الجديدة في القسم 9-ب (جدول الحركات أولًا ثم رصيد الطحين، الكشفان، التسوية، البنوك، التحميل، سجل المبيعات، المستخدمون) | منتهية: البنود 1–4 (الجلسة 4)؛ 4-ب و 5 و 6 (الجلسة 5)؛ 7 (الجلسة 6) |
 | 6 | التنظيف: حذف Livewire وBlade القديمة و `laravel/breeze` و `@tailwindcss/forms`، وتحديث `README.md` و `DEPLOY.md` و `Dockerfile` | لم تبدأ |
 
 قاعدة التحويل: منطق كل مكوّن Livewire (التحقق، الحسابات، الاستعلامات) يُنقل إلى متحكم + Form Request + Action، ولا يُحذف المكوّن القديم قبل أن تغطي الاختبارات الجديدة نفس الحالات.
@@ -355,6 +357,32 @@ npm run build
    - كل صلاحية تُفحص في الخادم (Policy أو middleware) لا بإخفاء الزر في الواجهة فقط، ولكل صلاحية اختبار يثبت منع من لا يملكها. عناصر القائمة الجانبية والأزرار التي لا يملك الموظف صلاحيتها لا تظهر له.
    - الموظف المعطَّل لا يستطيع الدخول، وحركاته السابقة تبقى باسمه.
    - عند إضافة ميزة جديدة لاحقًا تُضاف صلاحيتها إلى هذا الجدول.
+   - **التنفيذ (الجلسة 6):** الدور `bakery_staff`، والعمودان `users.permissions` (JSON، قائمة مفاتيح) و `users.is_active` (migration `2026_11_28_000001_add_staff_fields_to_users_table.php`). **مصدر واحد للقائمة:** `User::PERMISSIONS` (المجموعات والمفاتيح والتسميات العربية، تُرسل لصفحتي الإضافة والتعديل) و `User::OWNER_ONLY`. `User::hasPermission()`: صاحب المخبز يملك الكل؛ الموظف الفعّال يملك ما حُدِّد له إلا `OWNER_ONLY`؛ غيرهما لا شيء. لكل مفتاح بوابة باسمه في `AppServiceProvider`. React تأخذ `auth.permissions` (ما يملكه المستخدم) من `HandleInertiaRequests` وتخفي بها عناصر الشريط الجانبي (`AppLayout`) والأزرار (`useCan()`)؛ الفحص الحقيقي في الخادم. المفاتيح وأماكن فرضها (`can:` على المسار في `routes/web.php` ما لم يُذكر غيره):
+
+     | المفتاح | الصلاحية | يُفرض على |
+     |---|---|---|
+     | `view-dashboard` | عرض اللوحة الرئيسية | `panel.dashboard` |
+     | `view-customers` | عرض الزبائن | `customers.index`، `customers.show` |
+     | `create-customers` | إضافة زبون | `customers.create`، `customers.store` |
+     | `edit-customers` | تعديل زبون | `customers.edit`، `customers.update` |
+     | `view-sales` | عرض قائمة المبيعات | `sales.index`؛ وتبويب المبيعات في صفحة الزبون (`sales` = null بدونها) |
+     | `record-sale` | تسجيل بيع عادي | `sales.create`، `sales.store` |
+     | `record-flour-sale` | تسجيل بيع مقابل طحين | `customers.flour-sales.store` |
+     | `record-payment` | تسجيل دفعة | `customers.payments.store`، `sales.mark-paid` (تأكيد الدفع)؛ ومعها `unpaidSales` و `banks` في صفحة الزبون |
+     | `record-deposit` | تسجيل إيداع طحين | `customers.deposits.store` |
+     | `view-money-statement` | عرض كشف الحساب المالي | `moneyStatement` في `CustomerController::show` (null بدونها)؛ وتحميل الكشف المالي (`ExportStatementRequest`) |
+     | `view-flour-statement` | عرض كشف الطحين | `flourStatement` في `CustomerController::show`؛ وتحميل كشف الطحين (`ExportStatementRequest`) |
+     | `export-statements` | تحميل الكشوف | `customers.statement.export` و `ExportStatementRequest` |
+     | `view-sales-log` | عرض سجل مبيعات المخبز | `sales-log` و `SalesLogRequest` |
+     | `record-adjustment` | تسجيل قيد تسوية | `customers.adjustments.store` و `StoreAdjustmentRequest` |
+     | `view-banks` | عرض البنوك | `banks.index` و `BankController::index` |
+     | `manage-banks` | إضافة وتعديل بنك | `banks.store`، `banks.update` و `BankRequest` |
+     | `delete-customers` | *(صاحب المخبز فقط)* | `customers.destroy` |
+     | `delete-banks` | *(صاحب المخبز فقط)* | `banks.destroy` و `BankController::destroy` |
+     | `manage-settings` | *(صاحب المخبز فقط)* | `settings.edit`، `settings.update` |
+     | `manage-users` | *(صاحب المخبز فقط)* | `panel.users.*` و `StaffRequest` و `UpdateStaffStatusRequest` |
+
+     صفحة "المستخدمون": `Owner\UserController` (`index`، `create`، `store`، `edit`، `update`، `updateStatus`) وصفحات `Pages/Owner/Users/*`؛ تقبل فقط موظفي مخبز المستخدم (غيرهم وحساب صاحب المخبز نفسه = 404)، والدور والمخبز يُضبطان في الخادم. الإيقاف: `EnsureUserIsActive` في مجموعة `web` يُخرج الحساب الموقوف في طلبه التالي، و `LoginRequest` يحاول الدخول بشرط `is_active` (نفس رسالة الخطأ). بعد الدخول `HomeRedirectController` يوجّه الموظف إلى أول صفحة مسموحة (اللوحة، الزبائن، المبيعات، تسجيل بيع، السجل، البنوك) أو `panel.no-permissions`. يختبرها `StaffPermissionsTest` (لكل صلاحية: بدونها 403 ومعها نجاح) و `UserManagementTest`.
 
 الوضع الحالي في الكود (بعد الجلسة 4):
 - **جدول `movements`** هو مصدر رصيدي المال والطحين. أعمدته: `bakery_id`، `number` (تسلسلي لكل مخبز، فريد)، `customer_id` (فارغ لمشترٍ عابر)، `ledger` (`money` / `flour`)، `type` (`sale` بيع عادي، `exchange_fee` رسم تبديل، `flour_withdrawal` خبز مقابل طحين، `deposit` إيداع طحين، `payment` دفعة، `adjustment` تسوية، `opening_balance` رصيد افتتاحي)، `amount` بإشارة (موجب عليه، سالب له)، `description` (البيان)، `note`، `sale_id`، `corrects_movement_id`، `from_bank` / `to_bank` / `transfer_reference` (للجلسة 5)، `recorded_by` و `recorded_by_name`، `movement_date`، `created_at`.
@@ -375,7 +403,7 @@ npm run build
 | 3 | المبيعات (القائمة بتبويبيها والتسجيل)، صفحة الزبون، اللوحة الرئيسية، صفحة انتهاء الاشتراك، الصفحة الترحيبية | منتهية |
 | 4 | جدول الحركات الموحّد، رصيد الطحين، الكشفان، قيد التسوية، الدفعات (بنود 1–4 من 9-ب) | منتهية |
 | 5 | البنوك والتحويلات، تحميل PDF و Excel، سجل مبيعات المخبز (بنود 4-ب، 5، 6) | منتهية |
-| 6 | مستخدمو المخبز والصلاحيات (بند 7) | لم تبدأ |
+| 6 | مستخدمو المخبز والصلاحيات (بند 7) | منتهية |
 | 7 | التنظيف: حذف Livewire وBlade القديمة، تحديث الوثائق والنشر، مراجعة نهائية شاملة | لم تبدأ |
 
 قواعد العمل في غياب صاحب المشروع:
