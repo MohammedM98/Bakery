@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -14,11 +15,17 @@ class ProfileTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->get('/profile');
-
-        $response->assertOk();
+        $this->actingAs($user)
+            ->get('/profile')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Profile/Edit')
+                ->where('auth.user', [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ]));
     }
 
     public function test_profile_information_can_be_updated(): void
@@ -34,6 +41,7 @@ class ProfileTest extends TestCase
 
         $response
             ->assertSessionHasNoErrors()
+            ->assertSessionHas('success')
             ->assertRedirect('/profile');
 
         $user->refresh();
@@ -95,5 +103,33 @@ class ProfileTest extends TestCase
             ->assertRedirect('/profile');
 
         $this->assertNotNull($user->fresh());
+    }
+
+    public function test_guests_are_redirected_to_login_from_profile(): void
+    {
+        $this->get('/profile')->assertRedirect('/login');
+    }
+
+    public function test_profile_update_rejects_invalid_email(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->from('/profile')
+            ->patch('/profile', ['name' => '', 'email' => 'not-an-email'])
+            ->assertSessionHasErrors(['name', 'email'])
+            ->assertRedirect('/profile');
+    }
+
+    public function test_profile_email_must_be_unique(): void
+    {
+        $other = User::factory()->create();
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->patch('/profile', ['name' => 'x', 'email' => $other->email])
+            ->assertSessionHasErrors('email');
+
+        $this->assertNotSame($other->email, $user->fresh()->email);
     }
 }

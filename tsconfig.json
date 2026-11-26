@@ -10,11 +10,26 @@
         "esModuleInterop": true,
         "isolatedModules": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["ES2022", "DOM", "DOM.Iterable"],
-        "types": ["vite/client"],
+        "lib": [
+            "ES2022",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "types": [
+            "vite/client"
+        ],
         "paths": {
-            "@/*": ["./resources/js/*"]
+            "@/*": [
+                "./resources/js/*"
+            ],
+            "ziggy-js": [
+                "./vendor/tightenco/ziggy/src/js"
+            ]
         }
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx", "resources/js/**/*.d.ts"]
+    "include": [
+        "resources/js/**/*.ts",
+        "resources/js/**/*.tsx",
+        "resources/js/**/*.d.ts"
+    ]
 }
