@@ -2,21 +2,57 @@
 
 namespace App\Http\Controllers\Owner;
 
+use App\Actions\DeleteCustomer;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Owner\CustomerRequest;
 use App\Models\Customer;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class CustomerController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): Response
     {
-        return view('owner.customers.index');
+        $search = trim((string) $request->query('search', ''));
+
+        $customers = $request->user()->bakery->customers()
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('mobile_number', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('name')
+            ->paginate(15, ['id', 'name', 'mobile_number', 'flour_balance_kg'])
+            ->withQueryString();
+
+        return Inertia::render('Owner/Customers/Index', [
+            'customers' => $customers,
+            'search' => $search,
+        ]);
     }
 
-    public function create(): View
+    public function create(): Response
     {
-        return view('owner.customers.create');
+        return Inertia::render('Owner/Customers/Create');
+    }
+
+    public function store(CustomerRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+
+        $customer = $request->user()->bakery->customers()->create([
+            'name' => $data['name'],
+            'mobile_number' => $data['mobile_number'],
+            'flour_balance_kg' => $data['flour_balance_kg'] ?? 0,
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        return redirect()->route('panel.customers.index')
+            ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
     }
 
     public function show(Request $request, Customer $customer): View
@@ -28,10 +64,43 @@ class CustomerController extends Controller
         return view('owner.customers.show', compact('customer', 'outstandingBalance'));
     }
 
-    public function edit(Request $request, Customer $customer): View
+    public function edit(Request $request, Customer $customer): Response
     {
-        abort_unless($customer->bakery_id === $request->user()->bakery_id, 403);
+        $this->authorizeCustomer($request, $customer);
 
-        return view('owner.customers.edit', compact('customer'));
+        return Inertia::render('Owner/Customers/Edit', [
+            'customer' => $customer->only('id', 'name', 'mobile_number', 'notes'),
+        ]);
+    }
+
+    public function update(CustomerRequest $request, Customer $customer): RedirectResponse
+    {
+        $this->authorizeCustomer($request, $customer);
+
+        $data = $request->validated();
+
+        $customer->update([
+            'name' => $data['name'],
+            'mobile_number' => $data['mobile_number'],
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        return redirect()->route('panel.customers.index')
+            ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
+    }
+
+    public function destroy(Request $request, Customer $customer, DeleteCustomer $action): RedirectResponse
+    {
+        $this->authorizeCustomer($request, $customer);
+
+        $action->handle($customer);
+
+        return redirect()->route('panel.customers.index')
+            ->with('success', 'تم حذف العميل وجميع سجلاته.');
+    }
+
+    private function authorizeCustomer(Request $request, Customer $customer): void
+    {
+        abort_unless($customer->bakery_id === $request->user()->bakery_id, 404);
     }
 }
