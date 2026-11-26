@@ -79,15 +79,6 @@ class Bakery extends Model
         ]);
     }
 
-    public function toggleStatus(): void
-    {
-        $this->update([
-            'subscription_status' => $this->subscription_status === self::STATUS_ACTIVE
-                ? self::STATUS_INACTIVE
-                : self::STATUS_ACTIVE,
-        ]);
-    }
-
     protected function daysUntilExpiry(): Attribute
     {
         return Attribute::make(

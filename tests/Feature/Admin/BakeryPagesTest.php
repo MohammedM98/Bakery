@@ -230,16 +230,42 @@ class BakeryPagesTest extends TestCase
         $this->assertSame($before, $bakery->fresh()->subscription_expires_at->toDateString());
     }
 
-    public function test_toggle_stops_and_restarts_a_subscription(): void
+    public function test_status_change_sets_the_requested_status_and_is_idempotent(): void
     {
         $bakery = $this->bakery();
         $admin = $this->admin();
 
-        $this->actingAs($admin)->post(route('admin.bakeries.toggle-status', $bakery))->assertSessionHas('success', 'تم إيقاف الاشتراك.');
-        $this->assertFalse($bakery->fresh()->isSubscriptionActive());
+        foreach ([1, 2] as $attempt) {
+            $this->actingAs($admin)
+                ->post(route('admin.bakeries.status', $bakery), ['status' => 'inactive'])
+                ->assertSessionHas('success', 'تم إيقاف الاشتراك.');
+            $this->assertFalse($bakery->fresh()->isSubscriptionActive());
+        }
 
-        $this->actingAs($admin)->post(route('admin.bakeries.toggle-status', $bakery))->assertSessionHas('success', 'تم تفعيل الاشتراك.');
+        $this->actingAs($admin)
+            ->post(route('admin.bakeries.status', $bakery), ['status' => 'active'])
+            ->assertSessionHas('success', 'تم تفعيل الاشتراك.');
         $this->assertTrue($bakery->fresh()->isSubscriptionActive());
+    }
+
+    public function test_status_must_be_active_or_inactive(): void
+    {
+        $bakery = $this->bakery();
+
+        $this->actingAs($this->admin())
+            ->post(route('admin.bakeries.status', $bakery), ['status' => 'deleted'])
+            ->assertSessionHasErrors('status');
+
+        $this->assertSame(Bakery::STATUS_ACTIVE, $bakery->fresh()->subscription_status);
+    }
+
+    public function test_owner_email_is_stored_in_lowercase(): void
+    {
+        $this->actingAs($this->admin())
+            ->post(route('admin.bakeries.store'), $this->validStorePayload(['owner_email' => ' Ahmad@Example.COM ']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('users', ['email' => 'ahmad@example.com']);
     }
 
     public function test_deleting_a_bakery_removes_its_owner_and_data(): void
@@ -274,7 +300,7 @@ class BakeryPagesTest extends TestCase
         $this->post(route('admin.bakeries.store'), $this->validStorePayload())->assertForbidden();
         $this->put(route('admin.bakeries.update', $bakery), ['name' => 'x'])->assertForbidden();
         $this->post(route('admin.bakeries.renew', $bakery), ['months' => 12])->assertForbidden();
-        $this->post(route('admin.bakeries.toggle-status', $bakery))->assertForbidden();
+        $this->post(route('admin.bakeries.status', $bakery), ['status' => 'inactive'])->assertForbidden();
         $this->delete(route('admin.bakeries.destroy', $bakery))->assertForbidden();
 
         $this->assertSame('مخبز السنابل', $bakery->fresh()->name);

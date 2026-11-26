@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RenewSubscriptionRequest;
 use App\Http\Requests\Admin\StoreBakeryRequest;
 use App\Http\Requests\Admin\UpdateBakeryRequest;
+use App\Http\Requests\Admin\UpdateSubscriptionStatusRequest;
 use App\Models\Bakery;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -73,9 +74,10 @@ class BakeryController extends Controller
         return back()->with('success', "تم تجديد اشتراك \"{$bakery->name}\" بنجاح.");
     }
 
-    public function toggleStatus(Bakery $bakery): RedirectResponse
+    /** Sets the requested status (not a toggle), so a repeated request cannot undo itself. */
+    public function updateStatus(UpdateSubscriptionStatusRequest $request, Bakery $bakery): RedirectResponse
     {
-        $bakery->toggleStatus();
+        $bakery->update(['subscription_status' => $request->validated('status')]);
 
         return back()->with('success', $bakery->subscription_status === Bakery::STATUS_ACTIVE
             ? 'تم تفعيل الاشتراك.'

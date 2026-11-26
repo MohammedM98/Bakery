@@ -34,7 +34,7 @@ export function RenewDialog({
         <Dialog
             open={bakery !== null}
             onOpenChange={(open) => {
-                if (!open) form.clearErrors();
+                if (!open) form.reset(); // also clears errors
                 onOpenChange(open);
             }}
         >

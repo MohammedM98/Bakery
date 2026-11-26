@@ -35,7 +35,7 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::put('bakeries/{bakery}', [BakeryController::class, 'update'])->name('bakeries.update');
         Route::delete('bakeries/{bakery}', [BakeryController::class, 'destroy'])->name('bakeries.destroy');
         Route::post('bakeries/{bakery}/renew', [BakeryController::class, 'renew'])->name('bakeries.renew');
-        Route::post('bakeries/{bakery}/toggle-status', [BakeryController::class, 'toggleStatus'])->name('bakeries.toggle-status');
+        Route::post('bakeries/{bakery}/status', [BakeryController::class, 'updateStatus'])->name('bakeries.status');
     });
 
 // Bakery owner: sales, customers and flour-credit control panel.

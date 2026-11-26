@@ -57,7 +57,7 @@ export default function Edit({ settings }: Props) {
                             />
                         </Field>
                         <div>
-                            <Button type="submit" className="h-11 w-full px-6 sm:w-auto" disabled={form.processing || !form.isDirty}>
+                            <Button type="submit" className="h-11 w-full px-6 sm:w-auto" disabled={form.processing}>
                                 {form.processing && <LoaderCircle className="animate-spin" />}
                                 حفظ الأسعار
                             </Button>

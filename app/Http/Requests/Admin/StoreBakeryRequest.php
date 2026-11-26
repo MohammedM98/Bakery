@@ -6,6 +6,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreBakeryRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if (is_string($this->owner_email)) {
+            $this->merge(['owner_email' => strtolower(trim($this->owner_email))]);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -17,7 +24,7 @@ class StoreBakeryRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:255'],
             'subscription_months' => ['required', 'integer', 'min:1', 'max:24'],
             'owner_name' => ['required', 'string', 'max:255'],
-            'owner_email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
+            'owner_email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'owner_password' => ['required', 'string', 'min:8'],
         ];
     }

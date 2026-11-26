@@ -78,7 +78,7 @@ export default function Edit({ bakery, owners }: Props) {
     const stopped = bakery.subscription_status !== 'active';
 
     const toggle = () =>
-        router.post(route('admin.bakeries.toggle-status', bakery.id), {}, {
+        router.post(route('admin.bakeries.status', bakery.id), { status: stopped ? 'active' : 'inactive' }, {
             preserveScroll: true,
             onStart: () => setToggling(true),
             onFinish: () => setToggling(false),

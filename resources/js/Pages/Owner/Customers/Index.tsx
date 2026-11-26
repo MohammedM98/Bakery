@@ -57,7 +57,7 @@ export default function Index({ customers, search }: Props) {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
-                only: ['customers', 'search'],
+                only: ['customers', 'search', 'flash'], // flash too, or the last toast replays
                 onStart: () => setSearching(true),
                 onFinish: () => setSearching(false),
             });

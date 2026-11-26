@@ -29,7 +29,8 @@ interface BakeryRow extends Subscription {
 function RowActions({ bakery, onRenew, onDelete }: { bakery: BakeryRow; onRenew: () => void; onDelete: () => void }) {
     const stopped = bakery.subscription_status !== 'active';
     return (
-        <DropdownMenu>
+        // modal={false}: the menu opens dialogs; a modal menu closing under them can leave the page unclickable.
+        <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="size-11" aria-label={`إجراءات ${bakery.name}`}>
                     <MoreVertical />
@@ -47,7 +48,9 @@ function RowActions({ bakery, onRenew, onDelete }: { bakery: BakeryRow; onRenew:
                     تجديد الاشتراك
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    onSelect={() => router.post(route('admin.bakeries.toggle-status', bakery.id), {}, { preserveScroll: true })}
+                    onSelect={() =>
+                        router.post(route('admin.bakeries.status', bakery.id), { status: stopped ? 'active' : 'inactive' }, { preserveScroll: true })
+                    }
                 >
                     <Power />
                     {stopped ? 'تفعيل الاشتراك' : 'إيقاف الاشتراك'}
