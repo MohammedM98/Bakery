@@ -2,20 +2,23 @@
 
 namespace Tests\Feature\Owner;
 
-use App\Livewire\SaleCreate;
 use App\Models\Bakery;
+use App\Models\Customer;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Livewire\Livewire;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class SaleManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected function makeOwnerWithBakery(): array
+    public function test_the_general_sale_form_ignores_a_flour_exchange_type_or_customer(): void
     {
+        // Flour-exchange sales are only ever created from the customer's own page
+        // (against their flour balance); the general sale route takes no sale type,
+        // customer or price from the browser.
         $bakery = Bakery::create([
             'name' => 'مخبز الاختبار',
             'subscription_status' => Bakery::STATUS_ACTIVE,
@@ -23,63 +26,24 @@ class SaleManagementTest extends TestCase
             'regular_price_per_kg' => 5,
             'flour_exchange_fee_per_kg' => 2,
         ]);
+        $owner = User::factory()->create(['role' => User::ROLE_BAKERY_OWNER, 'bakery_id' => $bakery->id]);
+        $customer = Customer::create(['bakery_id' => $bakery->id, 'name' => 'زبون', 'mobile_number' => '0500000000']);
 
-        $owner = User::factory()->create([
-            'role' => User::ROLE_BAKERY_OWNER,
-            'bakery_id' => $bakery->id,
-        ]);
-
-        return [$owner, $bakery];
-    }
-
-    public function test_sale_price_always_comes_from_bakery_settings(): void
-    {
-        [$owner, $bakery] = $this->makeOwnerWithBakery();
-
-        // The sale form has no price field at all — price_per_kg is always
-        // derived server-side from the bakery's settings, never user input.
-        Livewire::actingAs($owner)
-            ->test(SaleCreate::class)
-            ->set('kg_amount', '4')
-            ->set('payment_status', Sale::STATUS_PAID)
-            ->set('sale_date', now()->toDateString())
-            ->call('save')
-            ->assertRedirect(route('panel.sales.index'));
+        $this->actingAs($owner)->post(route('panel.sales.store'), [
+            'kg_amount' => '3',
+            'payment_status' => Sale::STATUS_PAID,
+            'sale_date' => now()->toDateString(),
+            'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
+            'customer_id' => $customer->id,
+            'price_per_kg' => '1',
+            'submission_id' => (string) Str::uuid(),
+        ])->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('sales', [
             'sale_type' => Sale::TYPE_CASH,
-            'price_per_kg' => $bakery->regular_price_per_kg,
-            'total_amount' => 4 * $bakery->regular_price_per_kg,
-        ]);
-    }
-
-    public function test_sale_records_the_buyer_name_and_mobile(): void
-    {
-        [$owner] = $this->makeOwnerWithBakery();
-
-        Livewire::actingAs($owner)
-            ->test(SaleCreate::class)
-            ->set('buyer_name', 'خالد أحمد')
-            ->set('buyer_mobile', '0544444444')
-            ->set('kg_amount', '3')
-            ->set('payment_status', Sale::STATUS_PAID)
-            ->set('sale_date', now()->toDateString())
-            ->call('save')
-            ->assertRedirect(route('panel.sales.index'));
-
-        $this->assertDatabaseHas('sales', [
-            'buyer_name' => 'خالد أحمد',
-            'buyer_mobile' => '0544444444',
             'customer_id' => null,
+            'price_per_kg' => '5.00',
+            'total_amount' => '15.00',
         ]);
-    }
-
-    public function test_the_general_sale_form_has_no_flour_exchange_option(): void
-    {
-        // Flour-exchange sales are only ever created from the customer's own
-        // page (against their tracked flour balance) — the general "sell
-        // bread" form has no sale_type or customer selection at all.
-        $this->assertFalse(property_exists(SaleCreate::class, 'sale_type'));
-        $this->assertFalse(property_exists(SaleCreate::class, 'customer_id'));
     }
 }

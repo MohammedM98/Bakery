@@ -69,11 +69,6 @@ class Bakery extends Model
         return $this->hasMany(Movement::class);
     }
 
-    public function flourDeposits(): HasMany
-    {
-        return $this->hasMany(FlourDeposit::class);
-    }
-
     public function isSubscriptionActive(): bool
     {
         if ($this->subscription_status !== self::STATUS_ACTIVE) {

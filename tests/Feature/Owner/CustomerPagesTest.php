@@ -4,11 +4,10 @@ namespace Tests\Feature\Owner;
 
 use App\Models\Bakery;
 use App\Models\Customer;
-use App\Models\FlourDeposit;
-use App\Models\Payment;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -191,8 +190,8 @@ class CustomerPagesTest extends TestCase
         ]);
         $sale($customer);
         $keptSale = $sale($keep);
-        FlourDeposit::create(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'kg_amount' => 10, 'deposit_date' => now()->toDateString()]);
-        Payment::create(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'amount' => 5, 'payment_date' => now()->toDateString()]);
+        DB::table('flour_deposits')->insert(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'kg_amount' => 10, 'deposit_date' => now()->toDateString()]);
+        DB::table('payments')->insert(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'amount' => 5, 'payment_date' => now()->toDateString()]);
 
         $this->actingAs($owner)
             ->delete(route('panel.customers.destroy', $customer))
@@ -203,8 +202,8 @@ class CustomerPagesTest extends TestCase
         $this->assertSame(0, Sale::where('customer_id', $customer->id)->count());
         $this->assertSame(1, Sale::count());
         $this->assertDatabaseHas('sales', ['id' => $keptSale->id]);
-        $this->assertSame(0, FlourDeposit::count());
-        $this->assertSame(0, Payment::count());
+        $this->assertSame(0, DB::table('flour_deposits')->count());
+        $this->assertSame(0, DB::table('payments')->count());
     }
 
     public function test_owner_cannot_edit_update_or_delete_another_bakerys_customer(): void

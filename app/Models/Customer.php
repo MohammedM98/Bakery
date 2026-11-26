@@ -23,19 +23,9 @@ class Customer extends Model
         return $this->belongsTo(Bakery::class);
     }
 
-    public function flourDeposits(): HasMany
-    {
-        return $this->hasMany(FlourDeposit::class);
-    }
-
     public function sales(): HasMany
     {
         return $this->hasMany(Sale::class);
-    }
-
-    public function payments(): HasMany
-    {
-        return $this->hasMany(Payment::class);
     }
 
     public function movements(): HasMany

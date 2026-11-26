@@ -5,11 +5,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@source '../views';
-
-/* Only for the legacy Blade pages; remove with them in the cleanup phase. */
-@plugin '@tailwindcss/forms';
-
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Cairo Variable', 'Cairo', ui-sans-serif, system-ui, sans-serif;
