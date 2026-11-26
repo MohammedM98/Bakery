@@ -21,6 +21,9 @@ class CreateCustomer
     public function handle(Bakery $bakery, array $data, User $user): Customer
     {
         return DB::transaction(function () use ($bakery, $data, $user) {
+            // Bakery lock before the insert (see RecordSale): avoids a shared-to-exclusive deadlock on MySQL.
+            Bakery::whereKey($bakery->id)->lockForUpdate()->value('id');
+
             $customer = $bakery->customers()->create([
                 'name' => $data['name'],
                 'mobile_number' => $data['mobile_number'],

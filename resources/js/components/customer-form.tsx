@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCan } from '@/lib/can';
+import { newSubmissionId } from '@/lib/format';
 
 export interface CustomerFields {
     id: number;
@@ -23,15 +24,17 @@ export function CustomerForm({ customer }: { customer?: CustomerFields }) {
         mobile_number: customer?.mobile_number ?? '',
         notes: customer?.notes ?? '',
         flour_balance_kg: '',
+        submission_id: newSubmissionId(),
     });
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
         if (customer) {
-            form.transform(({ flour_balance_kg: _, ...data }) => data);
+            form.transform(({ flour_balance_kg: _, submission_id: __, ...data }) => data);
             form.put(route('panel.customers.update', customer.id));
         } else {
-            form.post(route('panel.customers.store'));
+            // A new id for the next customer when the form stays open after saving.
+            form.post(route('panel.customers.store'), { onSuccess: () => form.setData('submission_id', newSubmissionId()) });
         }
     };
 

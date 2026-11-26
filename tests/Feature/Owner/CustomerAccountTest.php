@@ -32,7 +32,7 @@ class CustomerAccountTest extends TestCase
     /** A customer created through the page, so the opening flour balance is a movement. */
     private function customer(User $owner, float $flourCredit = 0): Customer
     {
-        $this->actingAs($owner)->post(route('panel.customers.store'), [
+        $this->actingAs($owner)->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(),
             'name' => 'أحمد', 'mobile_number' => '0591111111', 'notes' => 'زبون قديم', 'flour_balance_kg' => (string) $flourCredit,
         ]);
 

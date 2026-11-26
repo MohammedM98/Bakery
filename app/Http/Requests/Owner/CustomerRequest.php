@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests\Owner;
 
+use App\Http\Requests\Concerns\PreventsDuplicateSubmission;
 use Illuminate\Foundation\Http\FormRequest;
 
 /** Create and update share the rules; the opening flour balance is only accepted on create. */
 class CustomerRequest extends FormRequest
 {
+    use PreventsDuplicateSubmission;
+
     /**
      * @return array<string, mixed>
      */
@@ -19,9 +22,10 @@ class CustomerRequest extends FormRequest
         ];
 
         if ($this->isMethod('post')) {
+            $rules += $this->submissionRules();
             // An opening balance is flour credit: only for whoever may record flour deposits.
             $rules['flour_balance_kg'] = $this->user()->can('record-deposit')
-                ? ['nullable', 'numeric', 'min:0', 'max:99999999']
+                ? ['nullable', 'numeric', 'decimal:0,2', 'min:0', 'max:100000']
                 : ['prohibited'];
         }
 

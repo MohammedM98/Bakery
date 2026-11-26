@@ -16,7 +16,7 @@ class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
+            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:99999999'],
             // No future dates: a statement ending today must close on the current balance.
             'payment_date' => ['required', 'date', 'before_or_equal:today'],
             // Checked against this customer's sales in the action .

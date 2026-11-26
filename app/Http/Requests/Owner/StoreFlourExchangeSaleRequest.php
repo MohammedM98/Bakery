@@ -16,7 +16,7 @@ class StoreFlourExchangeSaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kg_amount' => ['required', 'numeric', 'min:0.01', 'max:100000'],
+            'kg_amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:100000'],
             'payment_status' => ['required', Rule::in([Sale::STATUS_PAID, Sale::STATUS_UNPAID])],
             // No future dates: a statement ending today must close on the current balance.
             'sale_date' => ['required', 'date', 'before_or_equal:today'],

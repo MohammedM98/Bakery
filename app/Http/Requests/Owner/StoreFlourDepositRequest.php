@@ -13,7 +13,7 @@ class StoreFlourDepositRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kg_amount' => ['required', 'numeric', 'min:0.01', 'max:100000'],
+            'kg_amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:100000'],
             // No future dates: a statement ending today must close on the current balance.
             'deposit_date' => ['required', 'date', 'before_or_equal:today'],
             'notes' => ['nullable', 'string', 'max:1000'],

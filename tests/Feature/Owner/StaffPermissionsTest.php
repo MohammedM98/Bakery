@@ -75,7 +75,7 @@ class StaffPermissionsTest extends TestCase
             'customers list' => $as->get(route('panel.customers.index')),
             'customer page' => $as->get(route('panel.customers.show', $c)),
             'add customer page' => $as->get(route('panel.customers.create')),
-            'add customer' => $as->post(route('panel.customers.store'), ['name' => 'جديد', 'mobile_number' => '0592222222']),
+            'add customer' => $as->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'جديد', 'mobile_number' => '0592222222']),
             'edit customer page' => $as->get(route('panel.customers.edit', $c)),
             'edit customer' => $as->put(route('panel.customers.update', $c), ['name' => 'معدّل', 'mobile_number' => '0591111111']),
             'sales list' => $as->get(route('panel.sales.index')),
@@ -283,17 +283,17 @@ class StaffPermissionsTest extends TestCase
 
     public function test_an_opening_flour_balance_needs_the_deposit_permission(): void
     {
-        $data = ['name' => 'جديد', 'mobile_number' => '0592222222', 'flour_balance_kg' => '50000'];
+        $data = ['submission_id' => fake()->uuid(), 'name' => 'جديد', 'mobile_number' => '0592222222', 'flour_balance_kg' => '50000'];
 
         $this->actingAs($this->staff(['create-customers']))->post(route('panel.customers.store'), $data)
             ->assertSessionHasErrors('flour_balance_kg');
         $this->assertSame(0, $this->owner->bakery->movements()->count());
 
         // The hidden field arrives empty: allowed.
-        $this->actingAs($this->staff(['create-customers']))->post(route('panel.customers.store'), [...$data, 'flour_balance_kg' => ''])
+        $this->actingAs($this->staff(['create-customers']))->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), ...$data, 'flour_balance_kg' => ''])
             ->assertSessionHasNoErrors();
 
-        $this->actingAs($this->staff(['create-customers', 'record-deposit']))->post(route('panel.customers.store'), [...$data, 'name' => 'ثالث'])
+        $this->actingAs($this->staff(['create-customers', 'record-deposit']))->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), ...$data, 'name' => 'ثالث'])
             ->assertSessionHasNoErrors();
         $this->assertSame('-50000.00', $this->owner->bakery->customers()->where('name', 'ثالث')->first()->flour_balance_kg);
     }
@@ -301,7 +301,7 @@ class StaffPermissionsTest extends TestCase
     public function test_staff_without_the_customer_list_stay_on_the_form_after_saving(): void
     {
         $this->actingAs($this->staff(['create-customers']))
-            ->post(route('panel.customers.store'), ['name' => 'جديد', 'mobile_number' => '0592222222'])
+            ->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'جديد', 'mobile_number' => '0592222222'])
             ->assertRedirect(route('panel.customers.create'))->assertSessionHas('success');
 
         $this->actingAs($this->staff(['edit-customers']))

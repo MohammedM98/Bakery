@@ -31,7 +31,7 @@ class StatementExportTest extends TestCase
     private function customer(User $owner): Customer
     {
         $this->travelTo('2026-10-15 09:00');
-        $this->actingAs($owner)->post(route('panel.customers.store'), ['name' => 'أحمد', 'mobile_number' => '0591111111', 'flour_balance_kg' => '12.5']);
+        $this->actingAs($owner)->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'أحمد', 'mobile_number' => '0591111111', 'flour_balance_kg' => '12.5']);
         $customer = Customer::where('bakery_id', $owner->bakery_id)->latest('id')->first();
         $this->travelTo('2026-11-26 09:00');
 

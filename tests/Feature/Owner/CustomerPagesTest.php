@@ -92,7 +92,7 @@ class CustomerPagesTest extends TestCase
         $other = $this->owner();
 
         $this->actingAs($owner)
-            ->post(route('panel.customers.store'), [
+            ->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(),
                 'name' => 'عميل تجريبي',
                 'mobile_number' => '0500000000',
                 'flour_balance_kg' => '10',
@@ -113,9 +113,21 @@ class CustomerPagesTest extends TestCase
     {
         $owner = $this->owner();
 
-        $this->actingAs($owner)->post(route('panel.customers.store'), ['name' => 'عميل', 'mobile_number' => '0500000000']);
+        $this->actingAs($owner)->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'عميل', 'mobile_number' => '0500000000']);
 
         $this->assertSame('0.00', Customer::sole()->flour_balance_kg);
+    }
+
+    public function test_a_double_submitted_customer_is_saved_once(): void
+    {
+        $owner = $this->owner();
+        $data = ['submission_id' => fake()->uuid(), 'name' => 'مكرر', 'mobile_number' => '0500000000', 'flour_balance_kg' => '5'];
+
+        $this->actingAs($owner)->post(route('panel.customers.store'), $data)->assertRedirect();
+        $this->actingAs($owner)->post(route('panel.customers.store'), $data)->assertRedirect();
+
+        $this->assertSame(1, Customer::where('name', 'مكرر')->count());
+        $this->assertSame(1, $owner->bakery->movements()->count());
     }
 
     public function test_creating_a_customer_validates_input(): void
@@ -123,7 +135,7 @@ class CustomerPagesTest extends TestCase
         $owner = $this->owner();
 
         $this->actingAs($owner)
-            ->post(route('panel.customers.store'), ['name' => '', 'mobile_number' => '', 'flour_balance_kg' => '-3'])
+            ->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => '', 'mobile_number' => '', 'flour_balance_kg' => '-3'])
             ->assertSessionHasErrors(['name', 'mobile_number', 'flour_balance_kg']);
 
         $this->assertSame('حقل اسم العميل مطلوب.', session('errors')->first('name'));
@@ -226,7 +238,7 @@ class CustomerPagesTest extends TestCase
 
         $this->actingAs($admin);
         $this->get(route('panel.customers.index'))->assertForbidden();
-        $this->post(route('panel.customers.store'), ['name' => 'x', 'mobile_number' => '1'])->assertForbidden();
+        $this->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'x', 'mobile_number' => '1'])->assertForbidden();
         $this->put(route('panel.customers.update', $customer), ['name' => 'x', 'mobile_number' => '1'])->assertForbidden();
         $this->delete(route('panel.customers.destroy', $customer))->assertForbidden();
         $this->assertSame(1, Customer::count());
@@ -238,7 +250,7 @@ class CustomerPagesTest extends TestCase
         $owner->bakery->update(['subscription_expires_at' => now()->subDay()]);
 
         $this->actingAs($owner)
-            ->post(route('panel.customers.store'), ['name' => 'x', 'mobile_number' => '1'])
+            ->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'x', 'mobile_number' => '1'])
             ->assertRedirect(route('panel.subscription.expired'));
         $this->assertSame(0, Customer::count());
     }

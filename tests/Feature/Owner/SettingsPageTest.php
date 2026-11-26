@@ -70,6 +70,14 @@ class SettingsPageTest extends TestCase
         $this->assertSame('4.50', $owner->bakery->fresh()->regular_price_per_kg);
     }
 
+    public function test_prices_stay_small_enough_for_a_sale_total_and_have_at_most_two_decimals(): void
+    {
+        // 100,000 kg at the highest price must still fit sales.total_amount (decimal 10,2).
+        $this->actingAs($this->owner())
+            ->put(route('panel.settings.update'), ['regular_price_per_kg' => '1000', 'flour_exchange_fee_per_kg' => '1.555'])
+            ->assertSessionHasErrors(['regular_price_per_kg', 'flour_exchange_fee_per_kg']);
+    }
+
     public function test_super_admin_and_expired_bakery_are_blocked(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);

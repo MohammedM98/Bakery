@@ -23,7 +23,7 @@ class StoreAdjustmentRequest extends FormRequest
         return [
             'ledger' => ['required', Rule::in([Movement::LEDGER_MONEY, Movement::LEDGER_FLOUR])],
             'direction' => ['required', Rule::in(['debit', 'credit'])],
-            'amount' => ['required', 'numeric', 'min:0.01', 'max:1000000'],
+            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:1000000'],
             'reason' => ['required', 'string', 'max:200'],
             // No future dates: a statement ending today must close on the current balance.
             'movement_date' => ['required', 'date', 'before_or_equal:today'],

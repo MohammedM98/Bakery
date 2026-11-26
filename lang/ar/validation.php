@@ -24,6 +24,7 @@ return [
     'current_password' => 'كلمة المرور غير صحيحة.',
     'date' => 'حقل :attribute ليس تاريخًا صحيحًا.',
     'date_equals' => 'يجب أن يكون حقل :attribute تاريخًا يساوي :date.',
+    'decimal' => 'يجب ألا تتجاوز منازل :attribute العشرية منزلتين.',
     'date_format' => 'حقل :attribute لا يطابق الصيغة :format.',
     'different' => 'يجب أن يكون حقل :attribute و :other مختلفين.',
     'digits' => 'يجب أن يتكون حقل :attribute من :digits أرقام.',

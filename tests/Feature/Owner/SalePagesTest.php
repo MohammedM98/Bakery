@@ -184,6 +184,13 @@ class SalePagesTest extends TestCase
         $this->assertDatabaseCount('sales', 0);
     }
 
+    public function test_a_quantity_with_more_than_two_decimals_is_rejected(): void
+    {
+        $this->actingAs($this->owner())
+            ->post(route('panel.sales.store'), $this->validSale(['kg_amount' => '1.555']))
+            ->assertSessionHasErrors(['kg_amount' => 'يجب ألا تتجاوز منازل الكمية العشرية منزلتين.']);
+    }
+
     public function test_a_double_submitted_sale_is_saved_once(): void
     {
         $owner = $this->owner();

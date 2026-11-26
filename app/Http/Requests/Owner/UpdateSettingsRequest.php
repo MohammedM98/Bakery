@@ -12,8 +12,9 @@ class UpdateSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'regular_price_per_kg' => ['required', 'numeric', 'min:0', 'max:99999999'],
-            'flour_exchange_fee_per_kg' => ['required', 'numeric', 'min:0', 'max:99999999'],
+            // A sale's total (up to 100,000 kg x price) must fit sales.total_amount, decimal(10,2).
+            'regular_price_per_kg' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:999.99'],
+            'flour_exchange_fee_per_kg' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:999.99'],
         ];
     }
 

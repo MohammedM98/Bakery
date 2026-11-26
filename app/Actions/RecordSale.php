@@ -30,6 +30,9 @@ class RecordSale
                 // Serialise this customer's writes so the settle step below sees a stable balance.
                 $customer = $bakery->customers()->lockForUpdate()->findOrFail($customer->id);
             }
+            // Lock the bakery before inserting the sale: the insert's foreign-key check takes a shared
+            // lock on the bakery row, and two sales upgrading it in RecordMovements would deadlock (MySQL).
+            Bakery::whereKey($bakery->id)->lockForUpdate()->value('id');
 
             $exchange = $type === Sale::TYPE_FLOUR_EXCHANGE;
             $pricePerKg = $exchange ? $bakery->flour_exchange_fee_per_kg : $bakery->regular_price_per_kg;

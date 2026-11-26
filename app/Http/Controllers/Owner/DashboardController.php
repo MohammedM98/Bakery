@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\Movement;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -23,15 +24,24 @@ class DashboardController extends Controller
             ->get(['sale_date', 'kg_amount', 'total_amount', 'payment_status'])
             ->groupBy(fn (Sale $sale) => $sale->sale_date->toDateString());
 
+        // Takings = money actually received (payment movements), as in the sales log: a sale settled
+        // from the customer's earlier credit brings in nothing, a payment on account does.
+        $takingsCents = $bakery->movements()
+            ->where('type', Movement::TYPE_PAYMENT)
+            ->whereDate('movement_date', '>=', $today->copy()->subDays(6))
+            ->get(['movement_date', 'amount'])
+            ->groupBy(fn (Movement $m) => $m->movement_date->toDateString())
+            ->map(fn ($rows) => -$rows->sum(fn (Movement $m) => Movement::cents($m->amount)));
+
         // All seven days, zeros included, so the chart keeps its shape.
-        $last7Days = collect(range(6, 0))->map(function (int $daysAgo) use ($today, $byDay) {
+        $last7Days = collect(range(6, 0))->map(function (int $daysAgo) use ($today, $byDay, $takingsCents) {
             $date = $today->copy()->subDays($daysAgo)->toDateString();
             $sales = $byDay->get($date, collect());
 
             return [
                 'date' => $date,
                 'kg' => round((float) $sales->sum('kg_amount'), 2),
-                'takings' => round((float) $sales->where('payment_status', Sale::STATUS_PAID)->sum('total_amount'), 2),
+                'takings' => $takingsCents->get($date, 0) / 100,
             ];
         });
 
@@ -41,7 +51,7 @@ class DashboardController extends Controller
         return Inertia::render('Owner/Dashboard', [
             'today' => [
                 'kg' => round((float) $todaySales->sum('kg_amount'), 2),
-                'takings' => round((float) $todaySales->where('payment_status', Sale::STATUS_PAID)->sum('total_amount'), 2),
+                'takings' => $last7Days->last()['takings'],
                 'unpaid' => round($todayUnpaid->sum(fn (Sale $sale) => $sale->remainingAmount()), 2),
                 'salesCount' => $todaySales->count(),
                 'unpaidCount' => $todayUnpaid->count(),

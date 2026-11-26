@@ -45,11 +45,13 @@ class CustomerController extends Controller
 
     public function store(CustomerRequest $request, CreateCustomer $action): RedirectResponse
     {
-        $customer = $action->handle($request->user()->bakery, $request->validated(), $request->user());
+        // A double tap or retried request saves the customer (and its opening balance) once.
+        $request->once(fn () => $action->handle($request->user()->bakery, $request->validated(), $request->user()));
+        $name = $request->validated('name');
 
         // Staff without the list stay on the form, ready for the next customer.
         return redirect()->route($request->user()->can('view-customers') ? 'panel.customers.index' : 'panel.customers.create')
-            ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
+            ->with('success', "تم حفظ بيانات \"{$name}\" بنجاح.");
     }
 
     public function show(StatementRequest $request, Customer $customer): Response
