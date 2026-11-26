@@ -40,14 +40,14 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('dashboard', absolute: false));
     }
 
-    public function test_inertia_login_does_a_full_page_visit_to_the_dashboard(): void
+    public function test_inertia_login_is_a_plain_redirect_without_a_409(): void
     {
         $user = User::factory()->create();
 
         $this->withHeaders(['X-Inertia' => 'true'])
             ->post('/login', ['email' => $user->email, 'password' => 'password'])
-            ->assertStatus(409)
-            ->assertHeader('X-Inertia-Location', route('dashboard'));
+            ->assertRedirect(route('dashboard', absolute: false))
+            ->assertHeaderMissing('X-Inertia-Location');
 
         $this->assertAuthenticatedAs($user);
     }

@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class ConfirmablePasswordController extends Controller
 {
@@ -23,7 +23,7 @@ class ConfirmablePasswordController extends Controller
     /**
      * Confirm the user's password.
      */
-    public function store(Request $request): SymfonyResponse
+    public function store(Request $request): RedirectResponse
     {
         if (! Auth::guard('web')->validate([
             'email' => $request->user()->email,
@@ -36,7 +36,6 @@ class ConfirmablePasswordController extends Controller
 
         $request->session()->put('auth.password_confirmed_at', time());
 
-        // Full page load: the target pages are still Blade/Livewire until they are converted.
-        return Inertia::location(redirect()->intended(route('dashboard', absolute: false))->getTargetUrl());
+        return redirect()->intended(route('dashboard', absolute: false));
     }
 }
