@@ -6,7 +6,7 @@
 
         <title>{{ config('app.name') }}</title>
 
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.tsx'])
     </head>
     <body class="antialiased text-gray-900 bg-gradient-to-b from-violet-50 via-slate-50 to-pink-50">
         <div class="min-h-screen flex flex-col">

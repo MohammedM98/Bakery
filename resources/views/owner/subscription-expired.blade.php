@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>{{ config('app.name') }}</title>
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/app.tsx'])
     </head>
     <body class="antialiased text-gray-900 bg-gradient-to-br from-violet-50 via-slate-50 to-pink-50">
         <div class="min-h-screen flex flex-col items-center justify-center px-6 text-center">
