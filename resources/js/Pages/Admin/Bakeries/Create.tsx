@@ -57,7 +57,7 @@ export default function Create() {
                         <Field
                             id="subscription_months"
                             label="مدة الاشتراك الأولى (بالأشهر)"
-                            hint="من 1 إلى 24 شهرًا، تبدأ من اليوم."
+                            hint="من 1 إلى 24 شهرًا، تبدأ من اليوم"
                             error={form.errors.subscription_months}
                         >
                             {input('subscription_months', {
@@ -75,7 +75,7 @@ export default function Create() {
                 <Card>
                     <CardHeader>
                         <CardTitle>حساب صاحب المخبز</CardTitle>
-                        <CardDescription>يدخل بهذا البريد وكلمة المرور إلى لوحة مخبزه.</CardDescription>
+                        <CardDescription>يدخل بهذا البريد وكلمة المرور إلى لوحة مخبزه</CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-5">
                         <Field id="owner_name" label="الاسم" error={form.errors.owner_name}>
@@ -84,7 +84,7 @@ export default function Create() {
                         <Field id="owner_email" label="البريد الإلكتروني" error={form.errors.owner_email}>
                             {input('owner_email', { type: 'email', dir: 'ltr', autoComplete: 'off', className: 'h-11 text-end' })}
                         </Field>
-                        <Field id="owner_password" label="كلمة المرور" hint="8 أحرف على الأقل." error={form.errors.owner_password}>
+                        <Field id="owner_password" label="كلمة المرور" hint="8 أحرف على الأقل" error={form.errors.owner_password}>
                             {input('owner_password', { type: 'password', dir: 'ltr', autoComplete: 'new-password', className: 'h-11 text-end' })}
                         </Field>
                     </CardContent>

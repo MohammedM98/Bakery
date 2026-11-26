@@ -141,7 +141,7 @@ export default function Edit({ bakery, owners }: Props) {
                     </CardHeader>
                     <CardContent>
                         {owners.length === 0 ? (
-                            <p className="text-muted-foreground">لا يوجد حساب مرتبط بهذا المخبز.</p>
+                            <p className="text-muted-foreground">لا يوجد حساب مرتبط بهذا المخبز</p>
                         ) : (
                             <ul className="grid gap-3">
                                 {owners.map((o) => (
@@ -161,7 +161,7 @@ export default function Edit({ bakery, owners }: Props) {
                     <CardHeader>
                         <CardTitle className="text-destructive">حذف المخبز</CardTitle>
                         <CardDescription>
-                            يُحذف المخبز وحساب صاحبه وكل عملائه ومبيعاته ودفعاته نهائيًا.
+                            يُحذف المخبز وحساب صاحبه وكل عملائه ومبيعاته ودفعاته نهائيًا
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

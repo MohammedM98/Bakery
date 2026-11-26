@@ -6,6 +6,7 @@ type Props = Omit<ComponentProps<typeof Input>, 'type'>;
 
 function UnitInput({ unit, className, ...props }: Props & { unit: string }) {
     return (
+        // The input is LTR (digits), so its ps-* is the left side; the unit sits there too (end-0 in the RTL page).
         <div className="relative">
             <Input
                 type="number"
@@ -16,7 +17,7 @@ function UnitInput({ unit, className, ...props }: Props & { unit: string }) {
                 className={cn('h-11 pe-3 ps-12 text-end tabular-nums', className)}
                 {...props}
             />
-            <span className="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-4 text-sm text-muted-foreground" aria-hidden>
+            <span className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-4 text-sm text-muted-foreground" aria-hidden>
                 {unit}
             </span>
         </div>

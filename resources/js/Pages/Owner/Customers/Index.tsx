@@ -83,7 +83,7 @@ export default function Index({ customers, search }: Props) {
                     <EmptyState
                         icon={Users}
                         title="لا يوجد عملاء بعد"
-                        description="أضف عملاءك لتسجّل عليهم المبيعات وتتابع أرصدتهم من القمح والمال."
+                        description="أضف عملاءك لتسجّل عليهم المبيعات وتتابع أرصدتهم من القمح والمال"
                         action={addButton}
                     />
                 ) : (
@@ -98,7 +98,7 @@ export default function Index({ customers, search }: Props) {
                                     id="search"
                                     type="search"
                                     className="h-11 ps-9 pe-9"
-                                    placeholder="ابحث بالاسم أو رقم الجوال"
+                                    placeholder="بحث بالاسم أو رقم الجوال"
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
                                 />
@@ -112,8 +112,8 @@ export default function Index({ customers, search }: Props) {
                         {customers.data.length === 0 ? (
                             <EmptyState
                                 icon={Search}
-                                title={`لا يوجد عملاء مطابقون لـ "${search}"`}
-                                description="جرّب جزءًا من الاسم أو آخر أرقام الجوال."
+                                title={`لا يوجد عملاء مطابقون لـ «${search}»`}
+                                description="جرّب جزءًا من الاسم أو آخر أرقام الجوال"
                                 action={
                                     <Button variant="outline" className="h-11" onClick={() => setQuery('')}>
                                         مسح البحث
@@ -148,7 +148,7 @@ export default function Index({ customers, search }: Props) {
                                             <TableRow>
                                                 <TableHead className="ps-6">الاسم</TableHead>
                                                 <TableHead>رقم الجوال</TableHead>
-                                                <TableHead>رصيد القمح</TableHead>
+                                                <TableHead className="text-end">رصيد القمح</TableHead>
                                                 <TableHead className="w-16 pe-6">
                                                     <span className="sr-only">تعديل</span>
                                                 </TableHead>
@@ -165,7 +165,7 @@ export default function Index({ customers, search }: Props) {
                                                             {c.mobile_number}
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell>
+                                                    <TableCell className="text-end">
                                                         <KgText kg={c.flour_balance_kg} />
                                                     </TableCell>
                                                     <TableCell className="pe-6">

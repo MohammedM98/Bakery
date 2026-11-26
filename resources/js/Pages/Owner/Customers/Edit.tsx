@@ -27,7 +27,7 @@ export default function Edit({ customer }: { customer: CustomerFields }) {
                 <Card className="border-destructive/30">
                     <CardHeader>
                         <CardTitle className="text-destructive">حذف العميل</CardTitle>
-                        <CardDescription>يُحذف العميل مع كل سجلاته: المبيعات والدفعات واستلام القمح.</CardDescription>
+                        <CardDescription>يُحذف العميل مع كل سجلاته: المبيعات والدفعات واستلام القمح</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ConfirmDialog

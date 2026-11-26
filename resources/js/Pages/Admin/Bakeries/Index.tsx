@@ -91,7 +91,7 @@ export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) 
             <div className="grid gap-6">
                 <div className="flex items-center justify-between gap-3">
                     <p className="text-sm text-muted-foreground tabular-nums">
-                        {bakeries.total > 0 && `${bakeries.total} مخبز`}
+                        {bakeries.total > 0 && `عدد المخابز: ${bakeries.total}`}
                     </p>
                     {bakeries.total > 0 && addButton}
                 </div>
@@ -100,7 +100,7 @@ export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) 
                     <EmptyState
                         icon={Building2}
                         title="لا توجد مخابز بعد"
-                        description="أضف أول مخبز مع حساب صاحبه ومدة اشتراكه."
+                        description="أضف أول مخبز مع حساب صاحبه ومدة اشتراكه"
                         action={addButton}
                     />
                 ) : (

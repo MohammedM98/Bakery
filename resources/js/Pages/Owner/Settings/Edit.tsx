@@ -24,14 +24,14 @@ export default function Edit({ settings }: Props) {
             <Card className="mx-auto max-w-2xl">
                 <CardHeader>
                     <CardTitle>أسعار الخبز</CardTitle>
-                    <CardDescription>تُستخدم هذه الأسعار تلقائيًا عند تسجيل البيع، ولا تغيّر المبيعات المسجّلة سابقًا.</CardDescription>
+                    <CardDescription>تُستخدم هذه الأسعار تلقائيًا عند تسجيل البيع، ولا تغيّر المبيعات المسجّلة سابقًا</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={submit} className="grid gap-5" noValidate>
                         <Field
                             id="regular_price_per_kg"
                             label="سعر الكيلو للبيع النقدي"
-                            hint="سعر كيلو الخبز عند البيع العادي."
+                            hint="سعر كيلو الخبز عند البيع العادي"
                             error={form.errors.regular_price_per_kg}
                         >
                             <MoneyInput
@@ -45,7 +45,7 @@ export default function Edit({ settings }: Props) {
                         <Field
                             id="flour_exchange_fee_per_kg"
                             label="رسم تبديل القمح للكيلو"
-                            hint="ما يدفعه العميل عن كل كيلو خبز يأخذه مقابل القمح الذي أودعه."
+                            hint="ما يدفعه العميل عن كل كيلو خبز يأخذه مقابل القمح الذي أودعه"
                             error={form.errors.flour_exchange_fee_per_kg}
                         >
                             <MoneyInput
