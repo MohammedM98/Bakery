@@ -51,6 +51,7 @@ Route::middleware(['auth', 'role:bakery_owner'])
             Route::post('customers/{customer}/deposits', [CustomerAccountController::class, 'deposit'])->name('customers.deposits.store');
             Route::post('customers/{customer}/flour-sales', [CustomerAccountController::class, 'flourSale'])->name('customers.flour-sales.store');
             Route::post('customers/{customer}/payments', [CustomerAccountController::class, 'payment'])->name('customers.payments.store');
+            Route::post('customers/{customer}/adjustments', [CustomerAccountController::class, 'adjustment'])->name('customers.adjustments.store');
 
             Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
             Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');

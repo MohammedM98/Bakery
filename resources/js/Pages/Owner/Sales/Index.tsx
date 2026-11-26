@@ -55,7 +55,7 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
                                 البيع النقدي
                             </TabsTrigger>
                             <TabsTrigger value="flour_exchange" className="px-4">
-                                البيع مقابل القمح
+                                البيع مقابل الطحين
                             </TabsTrigger>
                         </TabsList>
                     </Tabs>
@@ -109,8 +109,8 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
                 ) : (
                     <EmptyState
                         icon={Wheat}
-                        title="لا توجد عمليات بيع مقابل القمح"
-                        description="يُسجَّل تسليم الخبز مقابل القمح من صفحة العميل، على رصيده من القمح"
+                        title="لا توجد عمليات بيع مقابل الطحين"
+                        description="يُسجَّل تسليم الخبز مقابل الطحين من صفحة العميل، على رصيده من الطحين"
                         action={
                             <Button variant="outline" asChild className="h-11">
                                 <Link href={route('panel.customers.index')}>الذهاب إلى العملاء</Link>

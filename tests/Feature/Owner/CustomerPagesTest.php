@@ -105,7 +105,8 @@ class CustomerPagesTest extends TestCase
 
         $customer = Customer::sole();
         $this->assertSame($owner->bakery_id, $customer->bakery_id);
-        $this->assertSame('10.00', $customer->flour_balance_kg);
+        $this->assertSame('-10.00', $customer->flour_balance_kg);
+        $this->assertDatabaseHas('movements', ['customer_id' => $customer->id, 'type' => 'opening_balance', 'ledger' => 'flour', 'amount' => -10]);
         $this->assertNull($customer->notes);
     }
 

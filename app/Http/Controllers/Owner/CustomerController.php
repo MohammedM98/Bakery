@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Owner;
 
+use App\Actions\CreateCustomer;
 use App\Actions\DeleteCustomer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\CustomerRequest;
 use App\Models\Customer;
+use App\Models\Movement;
 use App\Models\Sale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,16 +42,9 @@ class CustomerController extends Controller
         return Inertia::render('Owner/Customers/Create');
     }
 
-    public function store(CustomerRequest $request): RedirectResponse
+    public function store(CustomerRequest $request, CreateCustomer $action): RedirectResponse
     {
-        $data = $request->validated();
-
-        $customer = $request->user()->bakery->customers()->create([
-            'name' => $data['name'],
-            'mobile_number' => $data['mobile_number'],
-            'flour_balance_kg' => $data['flour_balance_kg'] ?? 0,
-            'notes' => $data['notes'] ?? null,
-        ]);
+        $customer = $action->handle($request->user()->bakery, $request->validated(), $request->user());
 
         return redirect()->route('panel.customers.index')
             ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
@@ -59,18 +54,24 @@ class CustomerController extends Controller
     {
         $this->authorizeCustomer($request, $customer);
 
+        $date = fn (string $key) => is_string($request->query($key)) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $request->query($key))
+            ? $request->query($key) : null;
+        // Default: the current month up to today. "All" sends from= empty, so no start date.
+        $from = $request->has('from') ? $date('from') : now()->startOfMonth()->toDateString();
+        $to = $request->has('to') ? $date('to') : now()->toDateString();
+
         return Inertia::render('Owner/Customers/Show', [
-            'customer' => $customer->only('id', 'name', 'mobile_number', 'notes', 'flour_balance_kg'),
-            'outstandingBalance' => number_format($customer->outstandingBalance(), 2, '.', ''),
+            'customer' => [
+                ...$customer->only('id', 'name', 'mobile_number', 'notes', 'flour_balance_kg'),
+                'money_balance' => Movement::decimal($customer->balanceCents(Movement::LEDGER_MONEY)),
+            ],
             'flourExchangeFee' => $customer->bakery->flour_exchange_fee_per_kg,
+            'range' => ['from' => $from, 'to' => $to],
+            'moneyStatement' => $customer->statement(Movement::LEDGER_MONEY, $from, $to),
+            'flourStatement' => $customer->statement(Movement::LEDGER_FLOUR, $from, $to),
             'sales' => $customer->sales()->with('customer:id,name')->latest('sale_date')->latest('id')->get()
                 ->map(fn (Sale $sale) => $sale->toRow()),
-            'deposits' => $customer->flourDeposits()->latest('deposit_date')->latest('id')
-                ->get(['id', 'deposit_date', 'kg_amount', 'notes'])
-                ->map(fn ($d) => [...$d->only('id', 'kg_amount', 'notes'), 'deposit_date' => $d->deposit_date->toDateString()]),
-            'payments' => $customer->payments()->latest('payment_date')->latest('id')
-                ->get(['id', 'payment_date', 'amount', 'notes'])
-                ->map(fn ($p) => [...$p->only('id', 'amount', 'notes'), 'payment_date' => $p->payment_date->toDateString()]),
+            'canAdjust' => $request->user()->can('record-adjustment'),
         ]);
     }
 

@@ -64,8 +64,8 @@ export function CustomerForm({ customer }: { customer?: CustomerFields }) {
             {!customer && (
                 <Field
                     id="flour_balance_kg"
-                    label="رصيد قمح ابتدائي (اختياري)"
-                    hint="القمح الموجود للعميل عند المخبز قبل استخدام النظام"
+                    label="رصيد طحين ابتدائي له (اختياري)"
+                    hint="الطحين الموجود للعميل عند المخبز قبل استخدام النظام"
                     error={form.errors.flour_balance_kg}
                 >
                     <KgInput

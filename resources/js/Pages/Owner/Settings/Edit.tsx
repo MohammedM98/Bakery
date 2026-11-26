@@ -44,8 +44,8 @@ export default function Edit({ settings }: Props) {
                         </Field>
                         <Field
                             id="flour_exchange_fee_per_kg"
-                            label="رسم تبديل القمح للكيلو"
-                            hint="ما يدفعه العميل عن كل كيلو خبز يأخذه مقابل القمح الذي أودعه"
+                            label="رسم تبديل الطحين للكيلو"
+                            hint="ما يدفعه العميل عن كل كيلو خبز يأخذه مقابل الطحين الذي أودعه"
                             error={form.errors.flour_exchange_fee_per_kg}
                         >
                             <MoneyInput

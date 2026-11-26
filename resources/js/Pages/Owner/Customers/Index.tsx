@@ -2,7 +2,7 @@ import { Link, router } from '@inertiajs/react';
 import { LoaderCircle, Pencil, Plus, Search, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
-import { KgText } from '@/components/kg-text';
+import { FlourBalance } from '@/components/kg-text';
 import { PaginationLinks } from '@/components/pagination-links';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -82,7 +82,7 @@ export default function Index({ customers, search }: Props) {
                     <EmptyState
                         icon={Users}
                         title="لا يوجد عملاء بعد"
-                        description="أضف عملاءك لتسجّل عليهم المبيعات وتتابع أرصدتهم من القمح والمال"
+                        description="أضف عملاءك لتسجّل عليهم المبيعات وتتابع أرصدتهم من الطحين والمال"
                         action={addButton}
                     />
                 ) : (
@@ -132,8 +132,8 @@ export default function Index({ customers, search }: Props) {
                                                     </span>
                                                 </div>
                                                 <div className="text-end">
-                                                    <span className="block text-xs text-muted-foreground">رصيد القمح</span>
-                                                    <KgText kg={c.flour_balance_kg} className="font-semibold" />
+                                                    <span className="block text-xs text-muted-foreground">رصيد الطحين</span>
+                                                    <FlourBalance kg={c.flour_balance_kg} className="font-semibold" />
                                                 </div>
                                                 <EditButton customer={c} />
                                             </Card>
@@ -147,7 +147,7 @@ export default function Index({ customers, search }: Props) {
                                             <TableRow>
                                                 <TableHead className="ps-6">الاسم</TableHead>
                                                 <TableHead>رقم الجوال</TableHead>
-                                                <TableHead className="text-end">رصيد القمح</TableHead>
+                                                <TableHead className="text-end">رصيد الطحين</TableHead>
                                                 <TableHead className="w-16 pe-6">
                                                     <span className="sr-only">تعديل</span>
                                                 </TableHead>
@@ -165,7 +165,7 @@ export default function Index({ customers, search }: Props) {
                                                         </span>
                                                     </TableCell>
                                                     <TableCell className="text-end">
-                                                        <KgText kg={c.flour_balance_kg} />
+                                                        <FlourBalance kg={c.flour_balance_kg} />
                                                     </TableCell>
                                                     <TableCell className="pe-6">
                                                         <EditButton customer={c} />

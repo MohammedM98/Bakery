@@ -33,7 +33,7 @@ class CustomerRequest extends FormRequest
         return [
             'name' => 'اسم العميل',
             'mobile_number' => 'رقم الجوال',
-            'flour_balance_kg' => 'رصيد القمح الابتدائي',
+            'flour_balance_kg' => 'رصيد الطحين الابتدائي',
             'notes' => 'الملاحظات',
         ];
     }

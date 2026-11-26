@@ -9,3 +9,10 @@ export function MoneyText({ amount, className }: { amount: number | string | nul
         </span>
     );
 }
+
+/** A money balance with its sign: positive = عليه (red), negative = له (green). */
+export function MoneyBalance({ amount, className, plain = false }: { amount: number | string | null; className?: string; plain?: boolean }) {
+    const n = Number(amount) || 0;
+    const tone = plain ? '' : n < 0 ? 'text-success' : n > 0 ? 'text-destructive' : 'text-muted-foreground';
+    return <MoneyText amount={amount} className={cn(tone, className)} />;
+}

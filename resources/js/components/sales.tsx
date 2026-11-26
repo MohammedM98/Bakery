@@ -114,7 +114,7 @@ function BuyerName({ sale }: { sale: SaleRow }) {
     );
 }
 
-const typeLabel = (sale: SaleRow) => (sale.sale_type === 'flour_exchange' ? 'مقابل قمح' : 'بيع نقدي');
+const typeLabel = (sale: SaleRow) => (sale.sale_type === 'flour_exchange' ? 'مقابل طحين' : 'بيع نقدي');
 
 /** Sales as cards on the phone and a table from md up. */
 export function SaleList({ sales, showType = false }: { sales: SaleRow[]; showType?: boolean }) {

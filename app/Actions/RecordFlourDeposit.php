@@ -3,32 +3,29 @@
 namespace App\Actions;
 
 use App\Models\Customer;
-use App\Models\FlourDeposit;
+use App\Models\Movement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class RecordFlourDeposit
 {
+    public function __construct(private RecordMovements $movements) {}
+
     /**
-     * Records the deposit and adds it to the customer's flour balance.
+     * A flour "له" movement. It nets against flour the customer already owes by plain arithmetic.
      *
      * @param  array{kg_amount: string, deposit_date: string, notes?: ?string}  $data
      */
-    public function handle(Customer $customer, array $data, User $user): FlourDeposit
+    public function handle(Customer $customer, array $data, User $user): Movement
     {
-        return DB::transaction(function () use ($customer, $data, $user) {
-            $deposit = FlourDeposit::create([
-                'bakery_id' => $customer->bakery_id,
-                'customer_id' => $customer->id,
-                'kg_amount' => $data['kg_amount'],
-                'deposit_date' => $data['deposit_date'],
-                'notes' => $data['notes'] ?? null,
-                'created_by' => $user->id,
-            ]);
-
-            $customer->increment('flour_balance_kg', $data['kg_amount']);
-
-            return $deposit;
-        });
+        return DB::transaction(fn () => $this->movements->handle($customer->bakery, $user, [[
+            'customer_id' => $customer->id,
+            'ledger' => Movement::LEDGER_FLOUR,
+            'type' => Movement::TYPE_DEPOSIT,
+            'amount_cents' => -Movement::cents($data['kg_amount']),
+            'description' => 'إيداع طحين '.kg($data['kg_amount']),
+            'note' => $data['notes'] ?? null,
+            'movement_date' => $data['deposit_date'],
+        ]])->first());
     }
 }

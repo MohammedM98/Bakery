@@ -11,6 +11,13 @@ export function formatKg(kg: number | string | null | undefined): string {
     return `${kgFormatter.format(Number(kg ?? 0) || 0)} كغ`;
 }
 
+/** Flour balance in words, never a sign: positive = "عليه 20 كغ", negative = "له 20 كغ", zero = "0 كغ". */
+export function formatFlourBalance(kg: number | string | null | undefined): string {
+    const n = Number(kg ?? 0) || 0;
+    if (n === 0) return formatKg(0);
+    return `${n > 0 ? 'عليه' : 'له'} ${formatKg(Math.abs(n))}`;
+}
+
 /** "2026-11-26" → "26/11/2026" with Latin digits. */
 export function formatDate(date: string | null | undefined): string {
     if (!date) return '';

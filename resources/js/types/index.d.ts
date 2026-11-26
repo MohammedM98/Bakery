@@ -61,3 +61,23 @@ export interface SaleRow {
     payment_status: 'paid' | 'unpaid';
     is_partially_paid: boolean;
 }
+
+/** One movement in a customer statement (Customer::statement()). Amounts are positive decimal strings; balance is signed. */
+export interface StatementRow {
+    number: number;
+    date: string;
+    description: string;
+    note: string | null;
+    transfer: string | null;
+    transfer_reference: string | null;
+    debit: string | null;
+    credit: string | null;
+    balance: string;
+    recorded_by: string;
+}
+
+export interface Statement {
+    opening: string;
+    closing: string;
+    rows: StatementRow[];
+}

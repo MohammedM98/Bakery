@@ -27,7 +27,7 @@ export default function Edit({ customer }: { customer: CustomerFields }) {
                 <Card className="border-destructive/30">
                     <CardHeader>
                         <CardTitle className="text-destructive">حذف العميل</CardTitle>
-                        <CardDescription>يُحذف العميل مع كل سجلاته: المبيعات والدفعات واستلام القمح</CardDescription>
+                        <CardDescription>يُحذف العميل مع كل سجلاته: المبيعات وكل حركات الكشف المالي وكشف الطحين</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ConfirmDialog
@@ -37,7 +37,7 @@ export default function Edit({ customer }: { customer: CustomerFields }) {
                                 </Button>
                             }
                             title={`حذف "${customer.name}" نهائيًا؟`}
-                            description="تُحذف كل مبيعات العميل ودفعاته واستلامات القمح الخاصة به. لا يمكن التراجع عن هذا الإجراء."
+                            description="تُحذف كل مبيعات العميل وكل حركات كشفيه المالي والطحين. لا يمكن التراجع عن هذا الإجراء."
                             confirmLabel="حذف نهائيًا"
                             processing={deleting}
                             onConfirm={destroy}

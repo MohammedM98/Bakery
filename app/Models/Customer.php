@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['bakery_id', 'name', 'mobile_number', 'flour_balance_kg', 'notes'])]
 class Customer extends Model
 {
+    /** Cached copy of the sum of the flour movements, kept in step by RecordMovements. Positive = عليه. */
     protected function casts(): array
     {
         return [
@@ -37,6 +38,59 @@ class Customer extends Model
         return $this->hasMany(Payment::class);
     }
 
+    public function movements(): HasMany
+    {
+        return $this->hasMany(Movement::class);
+    }
+
+    /** Sum of the ledger's movements in cents: positive = عليه, negative = له. */
+    public function balanceCents(string $ledger): int
+    {
+        return Movement::cents($this->movements()->where('ledger', $ledger)->sum('amount'));
+    }
+
+    /**
+     * The ledger's statement between two dates (either may be null: unbounded), as the page and
+     * the future PDF / Excel export show it: the balance before the start, each movement with
+     * the running balance after it, and the closing balance. Amounts are decimal strings.
+     *
+     * @return array{opening: string, closing: string, rows: array<int, array<string, mixed>>}
+     */
+    public function statement(string $ledger, ?string $from, ?string $to): array
+    {
+        $movements = $this->movements()->where('ledger', $ledger);
+        $balance = $from ? Movement::cents((clone $movements)->whereDate('movement_date', '<', $from)->sum('amount')) : 0;
+        $opening = $balance;
+
+        $rows = $movements
+            ->when($from, fn ($q) => $q->whereDate('movement_date', '>=', $from))
+            ->when($to, fn ($q) => $q->whereDate('movement_date', '<=', $to))
+            ->orderBy('movement_date')->orderBy('number')
+            ->get()
+            ->map(function (Movement $m) use (&$balance) {
+                $amount = Movement::cents($m->amount);
+                $balance += $amount;
+
+                return [
+                    'number' => $m->number,
+                    'date' => $m->movement_date->toDateString(),
+                    'description' => $m->description,
+                    'note' => $m->note,
+                    'transfer' => $m->type === Movement::TYPE_PAYMENT
+                        ? ($m->from_bank ? $m->from_bank.' ← '.$m->to_bank : 'نقدًا')
+                        : null,
+                    'transfer_reference' => $m->transfer_reference,
+                    'debit' => $amount > 0 ? Movement::decimal($amount) : null,
+                    'credit' => $amount < 0 ? Movement::decimal(-$amount) : null,
+                    'balance' => Movement::decimal($balance),
+                    'recorded_by' => $m->recorded_by_name,
+                ];
+            });
+
+        return ['opening' => Movement::decimal($opening), 'closing' => Movement::decimal($balance), 'rows' => $rows->all()];
+    }
+
+    /** Legacy: what the unpaid sales still owe. The money balance is balanceCents('money'). */
     public function outstandingBalance(): float
     {
         return round((float) $this->sales()

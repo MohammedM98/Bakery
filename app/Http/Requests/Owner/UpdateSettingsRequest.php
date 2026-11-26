@@ -24,7 +24,7 @@ class UpdateSettingsRequest extends FormRequest
     {
         return [
             'regular_price_per_kg' => 'سعر الكيلو',
-            'flour_exchange_fee_per_kg' => 'رسم تبديل القمح للكيلو',
+            'flour_exchange_fee_per_kg' => 'رسم تبديل الطحين للكيلو',
         ];
     }
 }

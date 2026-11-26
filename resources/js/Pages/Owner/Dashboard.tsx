@@ -61,7 +61,7 @@ function SaleLine({ sale, children }: { sale: SaleRow; children: ReactNode }) {
             <div className="min-w-0">
                 <p className="truncate font-medium">{sale.buyer}</p>
                 <p className="text-sm text-muted-foreground tabular-nums">
-                    {formatDate(sale.sale_date)} · {sale.sale_type === 'flour_exchange' ? 'مقابل قمح' : 'بيع نقدي'} · {formatKg(sale.kg_amount)}
+                    {formatDate(sale.sale_date)} · {sale.sale_type === 'flour_exchange' ? 'مقابل طحين' : 'بيع نقدي'} · {formatKg(sale.kg_amount)}
                 </p>
             </div>
             {children}

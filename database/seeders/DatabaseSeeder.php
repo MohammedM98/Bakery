@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Actions\CreateCustomer;
+use App\Actions\RecordFlourDeposit;
+use App\Actions\RecordSale;
 use App\Models\Bakery;
-use App\Models\Customer;
-use App\Models\FlourDeposit;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -50,60 +51,18 @@ class DatabaseSeeder extends Seeder
             'role' => User::ROLE_BAKERY_OWNER,
         ]);
 
-        $customer = Customer::create([
-            'bakery_id' => $bakery->id,
+        // Through the actions, so every record has its movements.
+        $customer = app(CreateCustomer::class)->handle($bakery, [
             'name' => 'أحمد المالكي',
             'mobile_number' => '0501234567',
-            'flour_balance_kg' => 20,
-            'notes' => 'عميل زوّد المخبز بـ 30 كجم قمح، استهلك 10 كجم حتى الآن.',
-        ]);
+            'notes' => 'زبون أودع 30 كغ طحين، وأخذ 18 كغ خبزًا حتى الآن.',
+        ], $owner);
 
-        FlourDeposit::create([
-            'bakery_id' => $bakery->id,
-            'customer_id' => $customer->id,
-            'kg_amount' => 30,
-            'deposit_date' => now()->subDays(5)->toDateString(),
-            'created_by' => $owner->id,
-        ]);
+        app(RecordFlourDeposit::class)->handle($customer, ['kg_amount' => '30', 'deposit_date' => now()->subDays(5)->toDateString()], $owner);
 
-        Sale::create([
-            'bakery_id' => $bakery->id,
-            'customer_id' => $customer->id,
-            'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
-            'kg_amount' => 10,
-            'price_per_kg' => $bakery->flour_exchange_fee_per_kg,
-            'total_amount' => 10 * $bakery->flour_exchange_fee_per_kg,
-            'paid_amount' => 10 * $bakery->flour_exchange_fee_per_kg,
-            'payment_status' => Sale::STATUS_PAID,
-            'paid_at' => now()->subDays(2),
-            'sale_date' => now()->subDays(2)->toDateString(),
-            'created_by' => $owner->id,
-        ]);
-
-        Sale::create([
-            'bakery_id' => $bakery->id,
-            'customer_id' => $customer->id,
-            'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
-            'kg_amount' => 8,
-            'price_per_kg' => $bakery->flour_exchange_fee_per_kg,
-            'total_amount' => 8 * $bakery->flour_exchange_fee_per_kg,
-            'paid_amount' => 0,
-            'payment_status' => Sale::STATUS_UNPAID,
-            'sale_date' => now()->subDay()->toDateString(),
-            'created_by' => $owner->id,
-        ]);
-
-        Sale::create([
-            'bakery_id' => $bakery->id,
-            'customer_id' => null,
-            'sale_type' => Sale::TYPE_CASH,
-            'kg_amount' => 5,
-            'price_per_kg' => $bakery->regular_price_per_kg,
-            'total_amount' => 5 * $bakery->regular_price_per_kg,
-            'paid_amount' => 0,
-            'payment_status' => Sale::STATUS_UNPAID,
-            'sale_date' => now()->toDateString(),
-            'created_by' => $owner->id,
-        ]);
+        $sale = app(RecordSale::class);
+        $sale->handle($bakery, $customer, Sale::TYPE_FLOUR_EXCHANGE, ['kg_amount' => '10', 'payment_status' => Sale::STATUS_PAID, 'sale_date' => now()->subDays(2)->toDateString()], $owner);
+        $sale->handle($bakery, $customer, Sale::TYPE_FLOUR_EXCHANGE, ['kg_amount' => '8', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->subDay()->toDateString()], $owner);
+        $sale->handle($bakery, null, Sale::TYPE_CASH, ['kg_amount' => '5', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->toDateString()], $owner);
     }
 }
