@@ -36,17 +36,15 @@ interface NavItem {
     route: string;
     active: string;
     icon: LucideIcon;
-    /** False while the page is still Blade/Livewire: needs a full page load. */
-    inertia: boolean;
 }
 
 const navigation: Record<Role, NavItem[]> = {
-    super_admin: [{ label: 'المخابز والاشتراكات', route: 'admin.bakeries.index', active: 'admin.bakeries.*', icon: Building2, inertia: true }],
+    super_admin: [{ label: 'المخابز والاشتراكات', route: 'admin.bakeries.index', active: 'admin.bakeries.*', icon: Building2 }],
     bakery_owner: [
-        { label: 'لوحة التحكم', route: 'panel.dashboard', active: 'panel.dashboard', icon: LayoutDashboard, inertia: false },
-        { label: 'العملاء', route: 'panel.customers.index', active: 'panel.customers.*', icon: Users, inertia: true },
-        { label: 'المبيعات', route: 'panel.sales.index', active: 'panel.sales.*', icon: Receipt, inertia: false },
-        { label: 'الإعدادات', route: 'panel.settings.edit', active: 'panel.settings.*', icon: Settings, inertia: true },
+        { label: 'لوحة التحكم', route: 'panel.dashboard', active: 'panel.dashboard', icon: LayoutDashboard },
+        { label: 'العملاء', route: 'panel.customers.index', active: 'panel.customers.*', icon: Users },
+        { label: 'المبيعات', route: 'panel.sales.index', active: 'panel.sales.*', icon: Receipt },
+        { label: 'الإعدادات', route: 'panel.settings.edit', active: 'panel.settings.*', icon: Settings },
     ],
 };
 
@@ -64,13 +62,13 @@ export default function AppLayout({ title, children }: { title: string; children
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <SidebarMenuButton size="lg" asChild tooltip={appName}>
-                                <a href={route('dashboard')}>
+                                <Link href={route('dashboard')}>
                                     <AppLogoIcon />
                                     <span className="flex min-w-0 flex-col leading-tight">
                                         <span className="truncate font-semibold">{auth.bakery?.name ?? appName}</span>
                                         {auth.bakery && <span className="truncate text-xs text-sidebar-foreground/70">{appName}</span>}
                                     </span>
-                                </a>
+                                </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     </SidebarMenu>
@@ -87,18 +85,10 @@ export default function AppLayout({ title, children }: { title: string; children
                                             isActive={route().current(item.active)}
                                             tooltip={item.label}
                                         >
-                                            {/* shortcut: unconverted pages need a full load; set inertia: true as each is converted. */}
-                                            {item.inertia ? (
-                                                <Link href={route(item.route)}>
-                                                    <item.icon />
-                                                    <span>{item.label}</span>
-                                                </Link>
-                                            ) : (
-                                                <a href={route(item.route)}>
-                                                    <item.icon />
-                                                    <span>{item.label}</span>
-                                                </a>
-                                            )}
+                                            <Link href={route(item.route)}>
+                                                <item.icon />
+                                                <span>{item.label}</span>
+                                            </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 ))}

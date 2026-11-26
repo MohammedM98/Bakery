@@ -26,3 +26,14 @@ export function formatDays(days: number): string {
     if (n >= 3 && n <= 10) return `${n} أيام`;
     return `${n} يومًا`;
 }
+
+/** Today as "YYYY-MM-DD" in the device's time zone, for date inputs. */
+export function today(): string {
+    return new Date().toLocaleDateString('en-CA');
+}
+
+/** Random id sent with each new record so the server saves a double-submitted form once. */
+export function newSubmissionId(): string {
+    // randomUUID only exists on https/localhost; the fallback is unique enough per user.
+    return crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}

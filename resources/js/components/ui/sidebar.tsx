@@ -271,7 +271,7 @@ function SidebarTrigger({
       {...props}
     >
       <PanelLeftIcon className="rtl:rotate-180" />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="sr-only">القائمة الجانبية</span>
     </Button>
   )
 }

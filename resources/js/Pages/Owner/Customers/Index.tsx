@@ -33,12 +33,11 @@ function EditButton({ customer }: { customer: CustomerRow }) {
     );
 }
 
-// shortcut: the customer page is still Livewire (session 3), so a full page load; switch to <Link> when it is converted.
 function CustomerLink({ customer, className }: { customer: CustomerRow; className?: string }) {
     return (
-        <a href={route('panel.customers.show', customer.id)} className={className}>
+        <Link href={route('panel.customers.show', customer.id)} className={className}>
             {customer.name}
-        </a>
+        </Link>
     );
 }
 

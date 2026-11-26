@@ -20,6 +20,8 @@ interface ConfirmDialogProps {
     description: ReactNode;
     confirmLabel?: string;
     processing?: boolean;
+    /** 'default' for a positive confirmation such as receiving a payment. */
+    variant?: 'destructive' | 'default';
     onConfirm: () => void;
     children?: ReactNode;
 }
@@ -33,6 +35,7 @@ export function ConfirmDialog({
     description,
     confirmLabel = 'حذف',
     processing = false,
+    variant = 'destructive',
     onConfirm,
     children,
 }: ConfirmDialogProps) {
@@ -48,7 +51,7 @@ export function ConfirmDialog({
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={processing}>إلغاء</AlertDialogCancel>
                     <AlertDialogAction
-                        variant="destructive"
+                        variant={variant}
                         disabled={processing}
                         onClick={(e) => {
                             e.preventDefault(); // keep the dialog open until the server answers

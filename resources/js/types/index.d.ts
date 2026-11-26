@@ -44,3 +44,18 @@ export interface Paginated<T> {
     prev_page_url: string | null;
     next_page_url: string | null;
 }
+
+/** A sale as the server's Sale::toRow() sends it. Amounts are decimal strings. */
+export interface SaleRow {
+    id: number;
+    sale_date: string;
+    sale_type: 'cash' | 'flour_exchange';
+    customer_id: number | null;
+    buyer: string;
+    buyer_mobile: string | null;
+    kg_amount: string;
+    total_amount: string;
+    remaining_amount: string;
+    payment_status: 'paid' | 'unpaid';
+    is_partially_paid: boolean;
+}
