@@ -17,7 +17,7 @@ export default function Login({ status }: { status: string | null }) {
     };
 
     return (
-        <GuestLayout title="تسجيل الدخول" description="ادخل ببريدك وكلمة المرور لإدارة مخبزك.">
+        <GuestLayout title="تسجيل الدخول" description="ادخل ببريدك وكلمة المرور لإدارة مخبزك">
             {status && <p className="mb-6 rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{status}</p>}
             <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
                 <div className="grid gap-2">
@@ -26,7 +26,7 @@ export default function Login({ status }: { status: string | null }) {
                         id="email"
                         type="email"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete="username"
                         autoFocus
                         required
@@ -48,7 +48,7 @@ export default function Login({ status }: { status: string | null }) {
                         id="password"
                         type="password"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete="current-password"
                         required
                         value={form.data.password}

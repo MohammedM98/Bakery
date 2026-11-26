@@ -24,7 +24,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                         id="email"
                         type="email"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete="username"
                         value={form.data.email}
                         onChange={(e) => form.setData('email', e.target.value)}
@@ -39,7 +39,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                         id="password"
                         type="password"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete="new-password"
                         autoFocus
                         value={form.data.password}
@@ -55,7 +55,7 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                         id="password_confirmation"
                         type="password"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete="new-password"
                         value={form.data.password_confirmation}
                         onChange={(e) => form.setData('password_confirmation', e.target.value)}

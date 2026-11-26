@@ -28,6 +28,7 @@ import {
     SidebarProvider,
     SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import type { Role } from '@/types';
 
 interface NavItem {
@@ -53,6 +54,7 @@ export default function AppLayout({ title, children }: { title: string; children
     const items = navigation[user.role] ?? [];
 
     return (
+        <TooltipProvider delayDuration={0}>
         <SidebarProvider>
             <Head title={title} />
             <Sidebar side="right" collapsible="icon">
@@ -63,7 +65,7 @@ export default function AppLayout({ title, children }: { title: string; children
                                 <a href={route('dashboard')}>
                                     <AppLogoIcon />
                                     <span className="flex min-w-0 flex-col leading-tight">
-                                        <span className="truncate font-bold">{auth.bakery?.name ?? appName}</span>
+                                        <span className="truncate font-semibold">{auth.bakery?.name ?? appName}</span>
                                         {auth.bakery && <span className="truncate text-xs text-sidebar-foreground/70">{appName}</span>}
                                     </span>
                                 </a>
@@ -112,7 +114,7 @@ export default function AppLayout({ title, children }: { title: string; children
             <SidebarInset>
                 <header className="sticky top-0 z-10 flex h-16 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur md:px-8">
                     <SidebarTrigger className="size-10" aria-label="القائمة" />
-                    <h1 className="min-w-0 flex-1 truncate text-lg font-bold">{title}</h1>
+                    <h1 className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</h1>
                     <ThemeToggle />
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -151,5 +153,6 @@ export default function AppLayout({ title, children }: { title: string; children
             </SidebarInset>
             <FlashToast />
         </SidebarProvider>
+        </TooltipProvider>
     );
 }

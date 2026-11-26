@@ -29,7 +29,7 @@ function ProfileInformationForm() {
     };
 
     return (
-        <form onSubmit={submit} className="grid max-w-xl gap-5" noValidate>
+        <form onSubmit={submit} className="grid gap-5" noValidate>
             <Field id="name" label="الاسم" error={form.errors.name}>
                 <Input
                     id="name"
@@ -46,7 +46,7 @@ function ProfileInformationForm() {
                     id="email"
                     type="email"
                     dir="ltr"
-                    className="h-11 text-start"
+                    className="h-11 text-end"
                     autoComplete="username"
                     value={form.data.email}
                     onChange={(e) => form.setData('email', e.target.value)}
@@ -84,14 +84,14 @@ function UpdatePasswordForm() {
     ] as const;
 
     return (
-        <form onSubmit={submit} className="grid max-w-xl gap-5" noValidate>
+        <form onSubmit={submit} className="grid gap-5" noValidate>
             {fields.map((f) => (
                 <Field key={f.id} id={f.id} label={f.label} error={form.errors[f.id]}>
                     <Input
                         id={f.id}
                         type="password"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete={f.autoComplete}
                         value={form.data[f.id]}
                         onChange={(e) => form.setData(f.id, e.target.value)}
@@ -139,7 +139,7 @@ function DeleteAccountForm() {
                     id="delete_password"
                     type="password"
                     dir="ltr"
-                    className="h-11 text-start"
+                    className="h-11 text-end"
                     autoComplete="current-password"
                     value={form.data.password}
                     onChange={(e) => form.setData('password', e.target.value)}
@@ -154,11 +154,11 @@ function DeleteAccountForm() {
 export default function Edit() {
     return (
         <AppLayout title="الملف الشخصي">
-            <div className="grid gap-6">
+            <div className="grid max-w-2xl gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>بيانات الحساب</CardTitle>
-                        <CardDescription>الاسم والبريد الذي تدخل به.</CardDescription>
+                        <CardDescription>الاسم والبريد الذي تدخل به</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <ProfileInformationForm />
@@ -167,7 +167,7 @@ export default function Edit() {
                 <Card>
                     <CardHeader>
                         <CardTitle>كلمة المرور</CardTitle>
-                        <CardDescription>استخدم كلمة مرور طويلة يصعب تخمينها.</CardDescription>
+                        <CardDescription>استخدم كلمة مرور طويلة يصعب تخمينها</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <UpdatePasswordForm />
@@ -176,7 +176,7 @@ export default function Edit() {
                 <Card>
                     <CardHeader>
                         <CardTitle>حذف الحساب</CardTitle>
-                        <CardDescription>يُحذف الحساب نهائيًا ولا يمكن استعادته.</CardDescription>
+                        <CardDescription>يُحذف الحساب نهائيًا ولا يمكن استعادته</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <DeleteAccountForm />

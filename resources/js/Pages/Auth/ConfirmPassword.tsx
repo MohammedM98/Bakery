@@ -16,7 +16,7 @@ export default function ConfirmPassword() {
     };
 
     return (
-        <GuestLayout title="تأكيد كلمة المرور" description="هذه منطقة محمية. أكّد كلمة المرور للمتابعة.">
+        <GuestLayout title="تأكيد كلمة المرور" description="هذه منطقة محمية. أكّد كلمة المرور للمتابعة">
             <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
                 <div className="grid gap-2">
                     <Label htmlFor="password">كلمة المرور</Label>
@@ -24,7 +24,7 @@ export default function ConfirmPassword() {
                         id="password"
                         type="password"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete="current-password"
                         autoFocus
                         value={form.data.password}

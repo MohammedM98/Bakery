@@ -14,11 +14,12 @@ export default function GuestLayout({ title, description, children }: GuestLayou
     const { appName } = usePage().props;
 
     return (
-        <div className="grid min-h-svh lg:grid-cols-2">
+        <>
             <Head title={title} />
+            <div className="grid min-h-svh lg:grid-cols-2">
             <div className="flex flex-col px-4 py-6 sm:px-8">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-bold lg:invisible">
+                    <div className="flex items-center gap-2 font-semibold lg:invisible">
                         <AppLogoIcon />
                         <span>{appName}</span>
                     </div>
@@ -26,26 +27,27 @@ export default function GuestLayout({ title, description, children }: GuestLayou
                 </div>
                 <div className="flex flex-1 items-center justify-center py-10">
                     <div className="w-full max-w-sm">
-                        <h1 className="text-2xl font-bold">{title}</h1>
+                        <h1 className="text-2xl font-semibold">{title}</h1>
                         {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
                         <div className="mt-8">{children}</div>
                     </div>
                 </div>
             </div>
             <aside className="hidden flex-col justify-between bg-sidebar p-10 text-sidebar-foreground lg:flex">
-                <div className="flex items-center gap-3 text-lg font-bold">
+                <div className="flex items-center gap-3 text-lg font-semibold">
                     <AppLogoIcon />
                     <span>{appName}</span>
                 </div>
                 <div className="max-w-md">
-                    <p className="text-3xl leading-snug font-bold text-sidebar-accent-foreground">
-                        مبيعات اليوم، أرصدة الزبائن، وحساب الطحين في مكان واحد.
+                    <p className="text-3xl leading-snug font-semibold text-sidebar-accent-foreground">
+                        مبيعات اليوم، أرصدة الزبائن، وحساب الطحين في مكان واحد
                     </p>
-                    <p className="mt-4 text-sidebar-foreground/70">سجّل البيع من هاتفك وأنت أمام الفرن.</p>
+                    <p className="mt-4 text-sidebar-foreground/70">سجّل البيع من هاتفك وأنت أمام الفرن</p>
                 </div>
                 <p className="text-sm text-sidebar-foreground/60">الحسابات ينشئها مالك المنصة. تواصل معه إن لم يكن لديك حساب.</p>
             </aside>
+            </div>
             <FlashToast />
-        </div>
+        </>
     );
 }

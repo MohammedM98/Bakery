@@ -16,7 +16,7 @@ export default function ForgotPassword({ status }: { status: string | null }) {
     };
 
     return (
-        <GuestLayout title="نسيت كلمة المرور" description="اكتب بريدك وسنرسل لك رابطًا لتعيين كلمة مرور جديدة.">
+        <GuestLayout title="نسيت كلمة المرور" description="اكتب بريدك وسنرسل لك رابطًا لتعيين كلمة مرور جديدة">
             {status && <p className="mb-6 rounded-xl bg-success/10 px-4 py-3 text-sm text-success">{status}</p>}
             <form onSubmit={submit} className="flex flex-col gap-5" noValidate>
                 <div className="grid gap-2">
@@ -25,7 +25,7 @@ export default function ForgotPassword({ status }: { status: string | null }) {
                         id="email"
                         type="email"
                         dir="ltr"
-                        className="h-11 text-start"
+                        className="h-11 text-end"
                         autoComplete="username"
                         autoFocus
                         required
