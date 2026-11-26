@@ -104,7 +104,8 @@ export function StatementView({ ledger, statement, range }: { ledger: Ledger; st
 
     return (
         <div className="grid gap-3">
-            <div className="grid grid-cols-2 gap-3">
+            {/* On wide screens the table carries these as its first and last rows. */}
+            <div className={cn('grid grid-cols-2 gap-3', statement.rows.length > 0 && 'lg:hidden')}>
                 <Card className="gap-1 p-4">
                     <span className="text-sm text-muted-foreground">رصيد سابق</span>
                     <Balance ledger={ledger} value={statement.opening} className="text-lg font-semibold" />

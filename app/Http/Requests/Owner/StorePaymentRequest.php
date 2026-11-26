@@ -15,7 +15,8 @@ class StorePaymentRequest extends FormRequest
     {
         return [
             'amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
-            'payment_date' => ['required', 'date'],
+            // No future dates: a statement ending today must close on the current balance.
+            'payment_date' => ['required', 'date', 'before_or_equal:today'],
             // Checked against this customer's sales in the action .
             'sale_id' => ['nullable', 'integer'],
             'notes' => ['nullable', 'string', 'max:1000'],

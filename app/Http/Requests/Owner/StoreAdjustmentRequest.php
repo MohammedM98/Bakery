@@ -25,7 +25,8 @@ class StoreAdjustmentRequest extends FormRequest
             'direction' => ['required', Rule::in(['debit', 'credit'])],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:1000000'],
             'reason' => ['required', 'string', 'max:200'],
-            'movement_date' => ['required', 'date'],
+            // No future dates: a statement ending today must close on the current balance.
+            'movement_date' => ['required', 'date', 'before_or_equal:today'],
             // Checked against this customer's movements in the action .
             'corrects_number' => ['nullable', 'integer', 'min:1'],
             ...$this->submissionRules(),

@@ -69,12 +69,12 @@ return new class extends Migration
 
             if ($total > 0) {
                 $add([...$base, 'ledger' => 'money', 'type' => $sale->sale_type === 'flour_exchange' ? 'exchange_fee' : 'sale', 'amount' => $total,
-                    'description' => ($sale->sale_type === 'flour_exchange' ? 'رسم تبديل طحين ' : 'خبز ').$kgText.' × '.money($sale->price_per_kg)]);
+                    'description' => ($sale->sale_type === 'flour_exchange' ? 'رسم تبديل طحين ' : 'خبز ').$kgText.' × '.number_format((float) $sale->price_per_kg, 2).' ₪']);
             }
 
             $paid = $cents($sale->paid_amount);
-            // A sale paid when it was recorded (paid_at in the same minute as created_at) was never paid by a payment row.
-            $paidAtSale = $sale->paid_at && substr($sale->paid_at, 0, 16) === substr((string) $sale->created_at, 0, 16);
+            // A sale paid when it was recorded (paid_at within seconds of created_at) was never paid by a payment row.
+            $paidAtSale = $sale->paid_at && $sale->created_at && abs(strtotime($sale->paid_at) - strtotime($sale->created_at)) <= 5;
             if ($sale->customer_id !== null && ! $paidAtSale) {
                 $covered = min($paid, $pool[$sale->customer_id] ?? 0);
                 $pool[$sale->customer_id] = ($pool[$sale->customer_id] ?? 0) - $covered;

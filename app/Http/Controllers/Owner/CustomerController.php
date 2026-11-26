@@ -54,11 +54,13 @@ class CustomerController extends Controller
     {
         $this->authorizeCustomer($request, $customer);
 
-        $date = fn (string $key) => is_string($request->query($key)) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $request->query($key))
-            ? $request->query($key) : null;
+        // A real Y-m-d date or null ("no bound"); anything else falls back to the default range below.
+        $valid = fn ($v) => is_string($v) && ($d = \DateTime::createFromFormat('!Y-m-d', $v)) && $d->format('Y-m-d') === $v;
+        $date = fn (string $key) => $valid($request->query($key)) ? $request->query($key) : null;
+        $explicit = fn (string $key) => $request->has($key) && in_array($request->query($key), [null, ''], true) || $valid($request->query($key));
         // Default: the current month up to today. "All" sends from= empty, so no start date.
-        $from = $request->has('from') ? $date('from') : now()->startOfMonth()->toDateString();
-        $to = $request->has('to') ? $date('to') : now()->toDateString();
+        $from = $explicit('from') ? $date('from') : now()->startOfMonth()->toDateString();
+        $to = $explicit('to') ? $date('to') : now()->toDateString();
 
         return Inertia::render('Owner/Customers/Show', [
             'customer' => [

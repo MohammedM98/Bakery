@@ -4,6 +4,7 @@ namespace App\Actions;
 
 use App\Models\Customer;
 use App\Models\Movement;
+use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -23,8 +24,8 @@ class RecordCustomerPayment
         return DB::transaction(function () use ($customer, $data, $user) {
             $customer = $customer->bakery->customers()->lockForUpdate()->findOrFail($customer->id);
             $sale = isset($data['sale_id'])
-                ? $customer->sales()->find($data['sale_id'])
-                    ?? throw ValidationException::withMessages(['sale_id' => 'هذا البيع غير موجود في حساب هذا الزبون.'])
+                ? $customer->sales()->where('payment_status', Sale::STATUS_UNPAID)->find($data['sale_id'])
+                    ?? throw ValidationException::withMessages(['sale_id' => 'هذا البيع غير موجود في مبيعات هذا الزبون غير المدفوعة.'])
                 : null;
             $cents = Movement::cents($data['amount']);
 

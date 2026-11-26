@@ -335,7 +335,7 @@ function AdjustmentDialog({ customer, open, onOpenChange }: DialogProps) {
                 />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-                <Field id="adjustment_corrects" label="تصحيح الحركة رقم (اختياري)" error={form.errors.corrects_number}>
+                <Field id="adjustment_corrects" label="يصحّح الحركة (اختياري)" error={form.errors.corrects_number}>
                     <Input
                         id="adjustment_corrects"
                         type="number"
@@ -353,6 +353,7 @@ function AdjustmentDialog({ customer, open, onOpenChange }: DialogProps) {
                     <Input
                         id="adjustment_date"
                         type="date"
+                        max={today}
                         className="h-11"
                         value={form.data.movement_date}
                         onChange={(e) => form.setData('movement_date', e.target.value)}
@@ -402,7 +403,7 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                             قيد تسوية
                         </Button>
                     )}
-                    <Button variant="outline" asChild className={cn('h-11 sm:ms-auto', !canAdjust && 'col-span-2 sm:col-span-1')}>
+                    <Button variant="outline" asChild className={cn('h-11 sm:ms-auto', canAdjust && 'col-span-2 sm:col-span-1')}>
                         <Link href={route('panel.customers.edit', customer.id)}>
                             <Pencil />
                             تعديل

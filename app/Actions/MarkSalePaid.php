@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Models\Bakery;
 use App\Models\Movement;
 use App\Models\Sale;
 use App\Models\User;
@@ -18,6 +19,11 @@ class MarkSalePaid
     public function handle(Sale $sale, User $user): ?string
     {
         return DB::transaction(function () use ($sale, $user) {
+            // Same lock order as every other write: customer, then bakery, then sales (no deadlocks).
+            if ($sale->customer_id) {
+                $sale->bakery->customers()->whereKey($sale->customer_id)->lockForUpdate()->first();
+            }
+            Bakery::whereKey($sale->bakery_id)->lockForUpdate()->first();
             $sale = $sale->bakery->sales()->whereKey($sale->id)->lockForUpdate()->first();
 
             if ($sale->isPaid()) {

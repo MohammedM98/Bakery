@@ -314,12 +314,14 @@ export function DateAndNotes({
     onNotes: (value: string) => void;
     notesError?: string;
 }) {
+    const { currentDate } = usePage().props;
     return (
         <>
             <Field id={dateId} label="التاريخ" error={dateError}>
                 <Input
                     id={dateId}
                     type="date"
+                    max={currentDate}
                     className="h-11"
                     value={date}
                     onChange={(e) => onDate(e.target.value)}

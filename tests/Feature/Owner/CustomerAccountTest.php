@@ -268,9 +268,33 @@ class CustomerAccountTest extends TestCase
         $before = Movement::count();
 
         $this->send($owner, 'panel.customers.payments.store', $customer, ['amount' => '5', 'sale_id' => Sale::sole()->id, 'payment_date' => '2026-11-21'])
-            ->assertSessionHasErrors(['sale_id' => 'هذا البيع غير موجود في حساب هذا الزبون.']);
+            ->assertSessionHasErrors(['sale_id' => 'هذا البيع غير موجود في مبيعات هذا الزبون غير المدفوعة.']);
 
         $this->assertSame($before, Movement::count());
+    }
+
+    public function test_entries_cannot_be_dated_in_the_future(): void
+    {
+        $owner = $this->owner();
+        $customer = $this->customer($owner);
+        $before = Movement::count();
+        $tomorrow = now()->addDay()->toDateString();
+
+        $this->send($owner, 'panel.customers.payments.store', $customer, ['amount' => '5', 'payment_date' => $tomorrow])->assertSessionHasErrors('payment_date');
+        $this->send($owner, 'panel.customers.deposits.store', $customer, ['kg_amount' => '5', 'deposit_date' => $tomorrow])->assertSessionHasErrors('deposit_date');
+        $this->breadForFlour($owner, $customer, '5', 'paid', $tomorrow)->assertSessionHasErrors('sale_date');
+
+        $this->assertSame($before, Movement::count());
+    }
+
+    public function test_an_invalid_range_in_the_url_falls_back_to_this_month(): void
+    {
+        $owner = $this->owner();
+        $customer = $this->customer($owner);
+
+        $this->actingAs($owner)
+            ->get(route('panel.customers.show', [$customer, 'from' => '2026-02-31', 'to' => 'x']))
+            ->assertInertia(fn (Assert $page) => $page->where('range', ['from' => now()->startOfMonth()->toDateString(), 'to' => now()->toDateString()]));
     }
 
     public function test_payment_validation_failure(): void
