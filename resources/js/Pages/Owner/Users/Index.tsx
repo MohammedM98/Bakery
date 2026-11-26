@@ -30,7 +30,7 @@ function Actions({ user, onStatus }: { user: StaffRow; onStatus: () => void }) {
                     <Pencil />
                 </Link>
             </Button>
-            <Button variant="ghost" size="icon" className={cn('size-11', user.is_active && 'text-destructive')} onClick={onStatus} aria-label={user.is_active ? `إيقاف ${user.name}` : `تفعيل ${user.name}`}>
+            <Button variant="ghost" size="icon" className="size-11 text-muted-foreground" onClick={onStatus} aria-label={user.is_active ? `إيقاف ${user.name}` : `تفعيل ${user.name}`}>
                 <Power />
             </Button>
         </div>
@@ -74,7 +74,7 @@ export default function Index({ users, permissionsTotal }: { users: StaffRow[]; 
                 ) : (
                     <>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-sm text-muted-foreground">كل موظف يرى ويفعل ما تحدّده له فقط، وتُنسب إليه كل حركة يسجّلها.</p>
+                            <p className="text-sm text-muted-foreground">كل موظف يرى ويفعل ما تحدّده له فقط، وتُنسب إليه كل حركة يسجّلها</p>
                             {addButton}
                         </div>
 
@@ -90,7 +90,7 @@ export default function Index({ users, permissionsTotal }: { users: StaffRow[]; 
                                             <span dir="ltr" className="truncate text-end text-sm text-muted-foreground">
                                                 {u.email}
                                             </span>
-                                            <span className="text-sm text-muted-foreground">{count(u)}</span>
+                                            <span className="text-sm text-muted-foreground tabular-nums">{count(u)}</span>
                                         </div>
                                         <Actions user={u} onStatus={() => setTarget(u)} />
                                     </Card>

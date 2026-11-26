@@ -80,9 +80,10 @@ export function StaffForm({ user, groups }: { user?: StaffFields; groups: Permis
                 <p className="-mt-2 text-sm text-muted-foreground">
                     لا يرى الموظف ولا يفعل إلا ما تحدّده هنا. حذف الزبائن والبنوك وإدارة المستخدمين والأسعار تبقى لك وحدك.
                 </p>
-                <div className="grid gap-3 sm:grid-cols-2">
+                {/* Columns, not a grid: groups of 1–3 items keep their own height instead of stretching to the row. */}
+                <div className="gap-3 sm:columns-2">
                     {groups.map((group) => (
-                        <div key={group.label} role="group" aria-labelledby={`group-${group.label}`} className="rounded-xl border p-3">
+                        <div key={group.label} role="group" aria-labelledby={`group-${group.label}`} className="mb-3 break-inside-avoid rounded-xl border p-3">
                             <p id={`group-${group.label}`} className="px-1 pb-1 text-sm font-medium text-muted-foreground">
                                 {group.label}
                             </p>
