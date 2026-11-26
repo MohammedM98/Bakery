@@ -12,7 +12,10 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface ConfirmDialogProps {
-    trigger: ReactNode;
+    /** Omit and pass `open`/`onOpenChange` to open the dialog from elsewhere (e.g. a menu item). */
+    trigger?: ReactNode;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
     title: string;
     description: ReactNode;
     confirmLabel?: string;
@@ -24,6 +27,8 @@ interface ConfirmDialogProps {
 /** Every delete goes through this. `children` renders extra fields (e.g. a password) above the buttons. */
 export function ConfirmDialog({
     trigger,
+    open,
+    onOpenChange,
     title,
     description,
     confirmLabel = 'حذف',
@@ -32,8 +37,8 @@ export function ConfirmDialog({
     children,
 }: ConfirmDialogProps) {
     return (
-        <AlertDialog>
-            <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
+        <AlertDialog open={open} onOpenChange={onOpenChange}>
+            {trigger && <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>}
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>{title}</AlertDialogTitle>

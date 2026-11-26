@@ -66,6 +66,28 @@ class Bakery extends Model
         return ! $this->subscription_expires_at->lt(Carbon::today());
     }
 
+    /** Extends from the current expiry if it is still in the future, otherwise from today, and reactivates. */
+    public function renew(int $months): void
+    {
+        $base = $this->subscription_expires_at && $this->subscription_expires_at->isFuture()
+            ? $this->subscription_expires_at
+            : now();
+
+        $this->update([
+            'subscription_status' => self::STATUS_ACTIVE,
+            'subscription_expires_at' => $base->copy()->addMonths($months)->toDateString(),
+        ]);
+    }
+
+    public function toggleStatus(): void
+    {
+        $this->update([
+            'subscription_status' => $this->subscription_status === self::STATUS_ACTIVE
+                ? self::STATUS_INACTIVE
+                : self::STATUS_ACTIVE,
+        ]);
+    }
+
     protected function daysUntilExpiry(): Attribute
     {
         return Attribute::make(

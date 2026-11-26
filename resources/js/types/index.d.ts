@@ -34,3 +34,13 @@ declare module '@inertiajs/core' {
 declare global {
     const route: typeof routeFn;
 }
+
+/** Laravel's LengthAwarePaginator as JSON (the fields we read). */
+export interface Paginated<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    prev_page_url: string | null;
+    next_page_url: string | null;
+}

@@ -17,3 +17,12 @@ export function formatDate(date: string | null | undefined): string {
     const [y, m, d] = date.slice(0, 10).split('-');
     return `${d}/${m}/${y}`;
 }
+
+/** Arabic count of days with Latin digits: "يوم واحد", "يومان", "5 أيام", "12 يومًا". */
+export function formatDays(days: number): string {
+    const n = Math.abs(days);
+    if (n === 1) return 'يوم واحد';
+    if (n === 2) return 'يومان';
+    if (n >= 3 && n <= 10) return `${n} أيام`;
+    return `${n} يومًا`;
+}
