@@ -16,7 +16,7 @@ class StoreFlourExchangeSaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kg_amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
+            'kg_amount' => ['required', 'numeric', 'min:0.01', 'max:100000'],
             'payment_status' => ['required', Rule::in([Sale::STATUS_PAID, Sale::STATUS_UNPAID])],
             'sale_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],

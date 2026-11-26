@@ -175,6 +175,15 @@ class SalePagesTest extends TestCase
         $this->assertStringContainsString('الكمية', session('errors')->first('kg_amount'));
     }
 
+    public function test_a_quantity_too_large_for_the_amount_columns_is_a_validation_error(): void
+    {
+        $this->actingAs($this->owner())
+            ->post(route('panel.sales.store'), $this->validSale(['kg_amount' => '50000000']))
+            ->assertSessionHasErrors('kg_amount');
+
+        $this->assertDatabaseCount('sales', 0);
+    }
+
     public function test_a_double_submitted_sale_is_saved_once(): void
     {
         $owner = $this->owner();

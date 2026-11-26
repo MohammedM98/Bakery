@@ -62,6 +62,29 @@ class DashboardPageTest extends TestCase
                 ->where('pricePerKg', '6.00'));
     }
 
+    public function test_another_bakerys_sales_never_reach_the_dashboard(): void
+    {
+        $owner = $this->owner();
+        $this->sale($this->owner(), ['kg_amount' => 50, 'total_amount' => 300, 'payment_status' => Sale::STATUS_UNPAID]);
+
+        $this->actingAs($owner)
+            ->get(route('panel.dashboard'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('today', ['kg' => 0, 'takings' => 0, 'unpaid' => 0, 'salesCount' => 0, 'unpaidCount' => 0])
+                ->where('last7Days.6.kg', 0)
+                ->has('unpaidSales', 0)
+                ->has('recentSales', 0));
+    }
+
+    public function test_the_servers_date_is_shared_for_date_field_defaults(): void
+    {
+        $this->travelTo('2026-11-26 23:30:00');
+
+        $this->actingAs($this->owner())
+            ->get(route('panel.dashboard'))
+            ->assertInertia(fn (Assert $page) => $page->where('currentDate', '2026-11-26'));
+    }
+
     public function test_admin_cannot_open_the_owner_dashboard(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);

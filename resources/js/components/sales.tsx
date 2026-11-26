@@ -1,4 +1,4 @@
-import { Link, router, useForm } from '@inertiajs/react';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { CircleCheck, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
-import { formatDate, formatMoney, newSubmissionId, today } from '@/lib/format';
+import { formatDate, formatMoney, newSubmissionId } from '@/lib/format';
 import type { SaleRow } from '@/types';
 
 export type PaymentStatus = 'paid' | 'unpaid';
@@ -201,13 +201,13 @@ export function SaleList({ sales, showType = false }: { sales: SaleRow[]; showTy
     );
 }
 
-function emptyCashSale() {
+function emptyCashSale(today: string) {
     return {
         kg_amount: '',
         payment_status: 'paid' as PaymentStatus,
         buyer_name: '',
         buyer_mobile: '',
-        sale_date: today(),
+        sale_date: today,
         notes: '',
         submission_id: newSubmissionId(),
     };
@@ -218,12 +218,13 @@ function emptyCashSale() {
  * the buyer is optional (walk-in). The total is a preview; the server prices the sale.
  */
 export function useCashSaleForm(onSaved?: () => void) {
-    const form = useForm(emptyCashSale());
+    const { currentDate: today } = usePage().props;
+    const form = useForm(emptyCashSale(today));
     const submit = () =>
         form.post(route('panel.sales.store'), {
             preserveScroll: true,
             onSuccess: () => {
-                form.setData(emptyCashSale());
+                form.setData(emptyCashSale(today));
                 onSaved?.();
             },
         });

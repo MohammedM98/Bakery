@@ -21,7 +21,7 @@ class RecordCustomerPayment
     {
         return DB::transaction(function () use ($customer, $data, $user) {
             // Serialise payments per customer so two of them cannot both pass the check below.
-            $customer = Customer::lockForUpdate()->findOrFail($customer->id);
+            $customer = $customer->bakery->customers()->lockForUpdate()->findOrFail($customer->id);
 
             $unpaidSales = $customer->sales()
                 ->where('payment_status', Sale::STATUS_UNPAID)

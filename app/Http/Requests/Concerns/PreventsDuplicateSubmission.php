@@ -4,7 +4,6 @@ namespace App\Http\Requests\Concerns;
 
 use Closure;
 use Illuminate\Support\Facades\Cache;
-use Throwable;
 
 /**
  * The form sends a random submission_id, new for each record. A second request with the
@@ -19,25 +18,21 @@ trait PreventsDuplicateSubmission
     }
 
     /**
-     * Runs $save only for the first request carrying this submission_id; returns false for a repeat.
-     * If $save fails (e.g. a balance check), the id is released so the corrected form can be sent again.
+     * Runs $save unless a request with this submission_id already saved. A repeat that arrives
+     * while the first is still running waits for it, so it reports the first one's real outcome:
+     * if the first failed (e.g. a balance check), the repeat runs and fails the same way.
      */
-    public function once(Closure $save): bool
+    public function once(Closure $save): void
     {
         $key = 'submission:'.$this->user()->id.':'.$this->input('submission_id');
 
-        if (! Cache::add($key, true, now()->addDay())) {
-            return false;
-        }
+        Cache::lock($key.':lock', 30)->block(15, function () use ($key, $save) {
+            if (Cache::has($key)) {
+                return;
+            }
 
-        try {
             $save();
-        } catch (Throwable $e) {
-            Cache::forget($key);
-
-            throw $e;
-        }
-
-        return true;
+            Cache::put($key, true, now()->addDay());
+        });
     }
 }

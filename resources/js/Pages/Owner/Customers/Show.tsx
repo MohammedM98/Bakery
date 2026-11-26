@@ -1,4 +1,4 @@
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { Banknote, HandCoins, Pencil, Receipt, Wheat, WheatOff } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { EmptyState } from '@/components/empty-state';
@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { formatDate, formatKg, formatMoney, newSubmissionId, today } from '@/lib/format';
+import { formatDate, formatKg, formatMoney, newSubmissionId } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import AppLayout from '@/Layouts/AppLayout';
 import type { SaleRow } from '@/types';
@@ -64,7 +64,8 @@ function closeHandler(form: { clearErrors: () => void }, onOpenChange: (open: bo
 }
 
 function DepositDialog({ customer, open, onOpenChange }: DialogProps) {
-    const blank = () => ({ kg_amount: '', deposit_date: today(), notes: '', submission_id: newSubmissionId() });
+    const { currentDate: today } = usePage().props;
+    const blank = () => ({ kg_amount: '', deposit_date: today, notes: '', submission_id: newSubmissionId() });
     const form = useForm(blank());
     const submit = () =>
         form.post(route('panel.customers.deposits.store', customer.id), {
@@ -110,10 +111,11 @@ function DepositDialog({ customer, open, onOpenChange }: DialogProps) {
 }
 
 function BreadDialog({ customer, open, onOpenChange, fee }: DialogProps & { fee: string }) {
+    const { currentDate: today } = usePage().props;
     const blank = () => ({
         kg_amount: '',
         payment_status: 'paid' as PaymentStatus,
-        sale_date: today(),
+        sale_date: today,
         notes: '',
         submission_id: newSubmissionId(),
     });
@@ -170,7 +172,8 @@ function BreadDialog({ customer, open, onOpenChange, fee }: DialogProps & { fee:
 }
 
 function PaymentDialog({ customer, open, onOpenChange, outstanding }: DialogProps & { outstanding: string }) {
-    const blank = () => ({ amount: '', payment_date: today(), notes: '', submission_id: newSubmissionId() });
+    const { currentDate: today } = usePage().props;
+    const blank = () => ({ amount: '', payment_date: today, notes: '', submission_id: newSubmissionId() });
     const form = useForm(blank());
     const submit = () =>
         form.post(route('panel.customers.payments.store', customer.id), {

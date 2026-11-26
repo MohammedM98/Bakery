@@ -28,6 +28,8 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'appName' => config('app.name'),
+            // The server's date, used as the default in date fields so they match the dashboard's "today".
+            'currentDate' => fn () => now()->toDateString(),
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,

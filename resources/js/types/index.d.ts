@@ -17,6 +17,8 @@ export interface Flash {
 
 export interface SharedProps {
     appName: string;
+    /** The server's date (YYYY-MM-DD): default for date fields. */
+    currentDate: string;
     auth: {
         user: AuthUser | null;
         bakery: { name: string } | null;

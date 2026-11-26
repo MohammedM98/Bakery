@@ -20,7 +20,7 @@ class RecordFlourExchangeSale
     {
         return DB::transaction(function () use ($customer, $data, $user) {
             // Lock the row so two requests cannot both spend the same balance.
-            $customer = Customer::lockForUpdate()->findOrFail($customer->id);
+            $customer = $customer->bakery->customers()->lockForUpdate()->findOrFail($customer->id);
 
             // Compared in hundredths of a kilo: exact, no float comparison.
             if (round((float) $customer->flour_balance_kg * 100) < round((float) $data['kg_amount'] * 100)) {

@@ -13,7 +13,7 @@ class StoreFlourDepositRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kg_amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
+            'kg_amount' => ['required', 'numeric', 'min:0.01', 'max:100000'],
             'deposit_date' => ['required', 'date'],
             'notes' => ['nullable', 'string', 'max:1000'],
             ...$this->submissionRules(),

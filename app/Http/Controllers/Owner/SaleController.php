@@ -81,7 +81,7 @@ class SaleController extends Controller
         $remaining = $sale->remainingAmount();
 
         // Conditional update: a second click (or tab) finds nothing left to update.
-        $updated = Sale::whereKey($sale->id)
+        $updated = $request->user()->bakery->sales()->whereKey($sale->id)
             ->where('payment_status', Sale::STATUS_UNPAID)
             ->update(['payment_status' => Sale::STATUS_PAID, 'paid_amount' => $sale->total_amount, 'paid_at' => now()]);
 
