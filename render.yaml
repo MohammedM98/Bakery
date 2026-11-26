@@ -22,8 +22,12 @@ services:
         value: ar
       - key: APP_FALLBACK_LOCALE
         value: en
+      # Never commit the key. Set it once in the Render dashboard from
+      # `php artisan key:generate --show` (see DEPLOY.md).
       - key: APP_KEY
-        value: "base64:e5HH3INwVlBYDJK5G18kTygIBR+U9f8k9qfmrgPNJ5U="
+        sync: false
+      - key: SEED_DEMO_DATA
+        value: "true"
       - key: LOG_CHANNEL
         value: stderr
       - key: SESSION_DRIVER
