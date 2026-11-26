@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -73,5 +74,17 @@ class PasswordResetTest extends TestCase
 
             return true;
         });
+    }
+
+    public function test_reset_link_request_does_not_reveal_unknown_emails(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+
+        $known = $this->post('/forgot-password', ['email' => $user->email]);
+        $unknown = $this->post('/forgot-password', ['email' => 'nobody@example.test']);
+
+        $known->assertSessionHasNoErrors()->assertSessionHas('status', __(Password::RESET_LINK_SENT));
+        $unknown->assertSessionHasNoErrors()->assertSessionHas('status', __(Password::RESET_LINK_SENT));
     }
 }

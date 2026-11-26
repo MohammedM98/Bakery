@@ -55,7 +55,7 @@ export default function AppLayout({ title, children }: { title: string; children
 
     return (
         <TooltipProvider delayDuration={0}>
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={!document.cookie.includes('sidebar_state=false')}>
             <Head title={title} />
             <Sidebar side="right" collapsible="icon">
                 <SidebarHeader>
