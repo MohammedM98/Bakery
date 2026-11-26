@@ -83,7 +83,7 @@ return new class extends Migration
             if ($paid > 0) {
                 $add([...$base, 'ledger' => 'money', 'type' => 'payment', 'amount' => -$paid, 'order' => 2, 'note' => null,
                     'movement_date' => substr($sale->paid_at ?? $sale->sale_date, 0, 10),
-                    'description' => 'دفعة عن بيع '.substr($sale->sale_date, 0, 10)]);
+                    'description' => 'دفعة عن بيع '.date('d/m/Y', strtotime($sale->sale_date))]);
             }
             if ($sale->customer_id !== null) {
                 $moneyCents[$sale->customer_id] = ($moneyCents[$sale->customer_id] ?? 0) + $total - $paid;

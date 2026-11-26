@@ -39,7 +39,7 @@ class MarkSalePaid
                 'ledger' => Movement::LEDGER_MONEY,
                 'type' => Movement::TYPE_PAYMENT,
                 'amount_cents' => -$remaining,
-                'description' => 'دفعة عن بيع '.$sale->sale_date->toDateString(),
+                'description' => 'دفعة عن بيع '.$sale->sale_date->format('d/m/Y'),
                 'movement_date' => now()->toDateString(),
             ]]);
 

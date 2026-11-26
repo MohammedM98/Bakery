@@ -63,7 +63,7 @@ class RecordSale
                     'amount_cents' => $totalCents, 'description' => ($exchange ? 'رسم تبديل طحين ' : 'خبز ').$kg.' × '.money($pricePerKg),
                     'note' => $data['notes'] ?? null],
                 ...($paid ? [[...$base, 'ledger' => Movement::LEDGER_MONEY, 'type' => Movement::TYPE_PAYMENT,
-                    'amount_cents' => -$totalCents, 'description' => 'دفعة عن بيع '.$sale->sale_date->toDateString()]] : []),
+                    'amount_cents' => -$totalCents, 'description' => 'دفعة عن بيع '.$sale->sale_date->format('d/m/Y')]] : []),
             ]);
 
             if ($customer && ! $paid) {

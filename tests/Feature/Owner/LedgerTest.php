@@ -107,7 +107,7 @@ class LedgerTest extends TestCase
         $this->actingAs($owner)->post(route('panel.sales.store'), ['kg_amount' => '2', 'payment_status' => 'unpaid', 'sale_date' => '2026-11-20', 'submission_id' => fake()->uuid()]);
 
         $this->assertSame(
-            [[null, 'sale', '12.00', 'خبز 3 كغ × 4.00 ₪'], [null, 'payment', '-12.00', 'دفعة عن بيع 2026-11-20'], [null, 'sale', '8.00', 'خبز 2 كغ × 4.00 ₪']],
+            [[null, 'sale', '12.00', 'خبز 3 كغ × 4.00 ₪'], [null, 'payment', '-12.00', 'دفعة عن بيع 20/11/2026'], [null, 'sale', '8.00', 'خبز 2 كغ × 4.00 ₪']],
             Movement::orderBy('number')->get()->map(fn ($m) => [$m->customer_id, $m->type, $m->amount, $m->description])->all(),
         );
     }
@@ -181,7 +181,7 @@ class LedgerTest extends TestCase
             ['deposit', 'flour_withdrawal', 'exchange_fee', 'payment', 'flour_withdrawal', 'exchange_fee', 'payment'],
             Movement::where('customer_id', $a->id)->orderBy('number')->pluck('type')->all(),
         );
-        $this->assertSame('دفعة عن بيع 2026-10-03', Movement::where('customer_id', $a->id)->where('type', 'payment')->orderBy('number')->value('description'));
+        $this->assertSame('دفعة عن بيع 03/10/2026', Movement::where('customer_id', $a->id)->where('type', 'payment')->orderBy('number')->value('description'));
         $this->assertSame(['opening_balance', '-7.00'], [Movement::where('customer_id', $b->id)->value('type'), Movement::where('customer_id', $b->id)->value('amount')]);
         $this->assertSame(['payment', 'opening_balance'], Movement::where('customer_id', $c->id)->orderBy('amount')->pluck('type')->all());
         $this->assertSame(['sale'], Movement::where('bakery_id', $walkInBakery->id)->pluck('type')->all());

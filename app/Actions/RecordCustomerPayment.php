@@ -35,7 +35,7 @@ class RecordCustomerPayment
                 'ledger' => Movement::LEDGER_MONEY,
                 'type' => Movement::TYPE_PAYMENT,
                 'amount_cents' => -$cents,
-                'description' => $sale ? 'دفعة عن بيع '.$sale->sale_date->toDateString() : 'دفعة',
+                'description' => $sale ? 'دفعة عن بيع '.$sale->sale_date->format('d/m/Y') : 'دفعة',
                 'note' => $data['notes'] ?? null,
                 'movement_date' => $data['payment_date'],
             ]])->first();

@@ -162,7 +162,7 @@ class CustomerAccountTest extends TestCase
             [['flour', 'flour_withdrawal', '8.00'], ['money', 'exchange_fee', '12.00'], ['money', 'payment', '-12.00']],
             Movement::where('sale_id', $sale->id)->orderBy('number')->get()->map(fn ($m) => [$m->ledger, $m->type, $m->amount])->all(),
         );
-        $this->assertSame('دفعة عن بيع 2026-11-20', Movement::where('type', 'payment')->value('description'));
+        $this->assertSame('دفعة عن بيع 20/11/2026', Movement::where('type', 'payment')->value('description'));
         $this->assertBalancesMatchMovements($customer);
     }
 
@@ -255,7 +255,7 @@ class CustomerAccountTest extends TestCase
 
         $this->assertTrue($newer->fresh()->isPaid());
         $this->assertFalse(Sale::oldest('id')->first()->isPaid());
-        $this->assertDatabaseHas('movements', ['type' => 'payment', 'sale_id' => $newer->id, 'description' => 'دفعة عن بيع 2026-11-10']);
+        $this->assertDatabaseHas('movements', ['type' => 'payment', 'sale_id' => $newer->id, 'description' => 'دفعة عن بيع 10/11/2026']);
         $this->assertBalancesMatchMovements($customer);
     }
 
