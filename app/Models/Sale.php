@@ -71,4 +71,22 @@ class Sale extends Model
     {
         return $this->customer->name ?? $this->buyer_name ?? 'عميل نقدي';
     }
+
+    /** The fields the sale lists in React need. Load `customer:id,name` first. */
+    public function toRow(): array
+    {
+        return [
+            'id' => $this->id,
+            'sale_date' => $this->sale_date->toDateString(),
+            'sale_type' => $this->sale_type,
+            'customer_id' => $this->customer_id,
+            'buyer' => $this->buyerDisplayName(),
+            'buyer_mobile' => $this->customer_id ? null : $this->buyer_mobile,
+            'kg_amount' => $this->kg_amount,
+            'total_amount' => $this->total_amount,
+            'remaining_amount' => number_format($this->remainingAmount(), 2, '.', ''),
+            'payment_status' => $this->payment_status,
+            'is_partially_paid' => $this->isPartiallyPaid(),
+        ];
+    }
 }

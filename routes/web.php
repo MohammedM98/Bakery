@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BakeryController;
 use App\Http\Controllers\HomeRedirectController;
+use App\Http\Controllers\Owner\CustomerAccountController;
 use App\Http\Controllers\Owner\CustomerController;
 use App\Http\Controllers\Owner\DashboardController;
 use App\Http\Controllers\Owner\SaleController;
@@ -9,9 +10,7 @@ use App\Http\Controllers\Owner\SettingsController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::inertia('/', 'Welcome')->name('home');
 
 Route::get('/dashboard', HomeRedirectController::class)
     ->middleware(['auth'])
@@ -43,17 +42,20 @@ Route::middleware(['auth', 'role:bakery_owner'])
     ->prefix('panel')
     ->name('panel.')
     ->group(function () {
-        Route::get('subscription-expired', function () {
-            return view('owner.subscription-expired');
-        })->name('subscription.expired');
+        Route::inertia('subscription-expired', 'Owner/SubscriptionExpired')->name('subscription.expired');
 
         Route::middleware('subscription.active')->group(function () {
             Route::get('dashboard', DashboardController::class)->name('dashboard');
 
             Route::resource('customers', CustomerController::class);
+            Route::post('customers/{customer}/deposits', [CustomerAccountController::class, 'deposit'])->name('customers.deposits.store');
+            Route::post('customers/{customer}/flour-sales', [CustomerAccountController::class, 'flourSale'])->name('customers.flour-sales.store');
+            Route::post('customers/{customer}/payments', [CustomerAccountController::class, 'payment'])->name('customers.payments.store');
 
             Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
             Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');
+            Route::post('sales', [SaleController::class, 'store'])->name('sales.store');
+            Route::post('sales/{sale}/mark-paid', [SaleController::class, 'markPaid'])->name('sales.mark-paid');
 
             Route::get('settings', [SettingsController::class, 'edit'])->name('settings.edit');
             Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');

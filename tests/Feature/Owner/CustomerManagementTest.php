@@ -59,7 +59,7 @@ class CustomerManagementTest extends TestCase
 
         $this->actingAs($owner)
             ->get(route('panel.customers.show', $foreignCustomer))
-            ->assertForbidden();
+            ->assertNotFound();
     }
 
     public function test_deleting_a_customer_removes_their_records(): void

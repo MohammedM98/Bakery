@@ -6,9 +6,9 @@ use App\Actions\DeleteCustomer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\CustomerRequest;
 use App\Models\Customer;
+use App\Models\Sale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -55,13 +55,23 @@ class CustomerController extends Controller
             ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
     }
 
-    public function show(Request $request, Customer $customer): View
+    public function show(Request $request, Customer $customer): Response
     {
-        abort_unless($customer->bakery_id === $request->user()->bakery_id, 403);
+        $this->authorizeCustomer($request, $customer);
 
-        $outstandingBalance = $customer->outstandingBalance();
-
-        return view('owner.customers.show', compact('customer', 'outstandingBalance'));
+        return Inertia::render('Owner/Customers/Show', [
+            'customer' => $customer->only('id', 'name', 'mobile_number', 'notes', 'flour_balance_kg'),
+            'outstandingBalance' => number_format($customer->outstandingBalance(), 2, '.', ''),
+            'flourExchangeFee' => $customer->bakery->flour_exchange_fee_per_kg,
+            'sales' => $customer->sales()->with('customer:id,name')->latest('sale_date')->latest('id')->get()
+                ->map(fn (Sale $sale) => $sale->toRow()),
+            'deposits' => $customer->flourDeposits()->latest('deposit_date')->latest('id')
+                ->get(['id', 'deposit_date', 'kg_amount', 'notes'])
+                ->map(fn ($d) => [...$d->only('id', 'kg_amount', 'notes'), 'deposit_date' => $d->deposit_date->toDateString()]),
+            'payments' => $customer->payments()->latest('payment_date')->latest('id')
+                ->get(['id', 'payment_date', 'amount', 'notes'])
+                ->map(fn ($p) => [...$p->only('id', 'amount', 'notes'), 'payment_date' => $p->payment_date->toDateString()]),
+        ]);
     }
 
     public function edit(Request $request, Customer $customer): Response
