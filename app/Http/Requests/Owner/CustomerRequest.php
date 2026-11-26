@@ -19,7 +19,10 @@ class CustomerRequest extends FormRequest
         ];
 
         if ($this->isMethod('post')) {
-            $rules['flour_balance_kg'] = ['nullable', 'numeric', 'min:0', 'max:99999999'];
+            // An opening balance is flour credit: only for whoever may record flour deposits.
+            $rules['flour_balance_kg'] = $this->user()->can('record-deposit')
+                ? ['nullable', 'numeric', 'min:0', 'max:99999999']
+                : ['prohibited'];
         }
 
         return $rules;

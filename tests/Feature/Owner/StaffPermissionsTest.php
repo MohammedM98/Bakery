@@ -280,4 +280,35 @@ class StaffPermissionsTest extends TestCase
 
         $this->actingAs($this->staff(User::permissionKeys()))->get(route('admin.bakeries.index'))->assertForbidden();
     }
+
+    public function test_an_opening_flour_balance_needs_the_deposit_permission(): void
+    {
+        $data = ['name' => 'جديد', 'mobile_number' => '0592222222', 'flour_balance_kg' => '50000'];
+
+        $this->actingAs($this->staff(['create-customers']))->post(route('panel.customers.store'), $data)
+            ->assertSessionHasErrors('flour_balance_kg');
+        $this->assertSame(0, $this->owner->bakery->movements()->count());
+
+        // The hidden field arrives empty: allowed.
+        $this->actingAs($this->staff(['create-customers']))->post(route('panel.customers.store'), [...$data, 'flour_balance_kg' => ''])
+            ->assertSessionHasNoErrors();
+
+        $this->actingAs($this->staff(['create-customers', 'record-deposit']))->post(route('panel.customers.store'), [...$data, 'name' => 'ثالث'])
+            ->assertSessionHasNoErrors();
+        $this->assertSame('-50000.00', $this->owner->bakery->customers()->where('name', 'ثالث')->first()->flour_balance_kg);
+    }
+
+    public function test_staff_without_the_customer_list_stay_on_the_form_after_saving(): void
+    {
+        $this->actingAs($this->staff(['create-customers']))
+            ->post(route('panel.customers.store'), ['name' => 'جديد', 'mobile_number' => '0592222222'])
+            ->assertRedirect(route('panel.customers.create'))->assertSessionHas('success');
+
+        $this->actingAs($this->staff(['edit-customers']))
+            ->from(route('panel.customers.edit', $this->customer))
+            ->put(route('panel.customers.update', $this->customer), ['name' => 'معدّل', 'mobile_number' => '0591111111'])
+            ->assertRedirect(route('panel.customers.edit', $this->customer))->assertSessionHas('success');
+
+        $this->actingAs($this->staff(['create-customers']))->get(route('dashboard'))->assertRedirect(route('panel.customers.create'));
+    }
 }

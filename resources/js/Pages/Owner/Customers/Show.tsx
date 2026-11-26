@@ -194,7 +194,8 @@ function BankSelect({ id, label, banks, value, onChange }: { id: string; label: 
 
 function PaymentDialog({ customer, open, onOpenChange, unpaidSales, banks }: DialogProps & { unpaidSales: SaleRow[]; banks: Bank[] }) {
     const { currentDate: today } = usePage().props;
-    const canManageBanks = useCan()('manage-banks');
+    const can = useCan();
+    const canManageBanks = can('view-banks') && can('manage-banks');
     const blank = () => ({
         amount: '',
         sale_id: '',

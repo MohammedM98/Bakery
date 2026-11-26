@@ -6,7 +6,7 @@ import AppLayout from '@/Layouts/AppLayout';
 export default function NoPermissions() {
     return (
         <AppLayout title="لا توجد صلاحيات">
-            <EmptyState icon={ShieldOff} title="لا توجد صلاحيات" description="لم يحدّد لك صاحب المخبز أي صلاحية بعد. تواصل معه ليمنحك ما تحتاجه." />
+            <EmptyState icon={ShieldOff} title="لا توجد صلاحيات" description="صلاحياتك الحالية لا تتضمن صفحة يمكنك فتحها. تواصل مع صاحب المخبز ليمنحك ما تحتاجه." />
         </AppLayout>
     );
 }

@@ -108,7 +108,8 @@ export function MarkPaidButton({ sale, className }: { sale: SaleRow; className?:
 }
 
 function BuyerName({ sale }: { sale: SaleRow }) {
-    return sale.customer_id ? (
+    const can = useCan();
+    return sale.customer_id && can('view-customers') ? (
         <Link href={route('panel.customers.show', sale.customer_id)} className="font-medium underline-offset-4 hover:underline">
             {sale.buyer}
         </Link>

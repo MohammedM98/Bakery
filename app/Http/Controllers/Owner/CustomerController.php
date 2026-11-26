@@ -47,7 +47,8 @@ class CustomerController extends Controller
     {
         $customer = $action->handle($request->user()->bakery, $request->validated(), $request->user());
 
-        return redirect()->route('panel.customers.index')
+        // Staff without the list stay on the form, ready for the next customer.
+        return redirect()->route($request->user()->can('view-customers') ? 'panel.customers.index' : 'panel.customers.create')
             ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
     }
 
@@ -103,6 +104,10 @@ class CustomerController extends Controller
             'mobile_number' => $data['mobile_number'],
             'notes' => $data['notes'] ?? null,
         ]);
+
+        if (! $request->user()->can('view-customers')) {
+            return back()->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
+        }
 
         return redirect()->route('panel.customers.index')
             ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");

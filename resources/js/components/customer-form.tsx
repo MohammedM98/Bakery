@@ -6,6 +6,7 @@ import { KgInput } from '@/components/unit-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useCan } from '@/lib/can';
 
 export interface CustomerFields {
     id: number;
@@ -16,6 +17,7 @@ export interface CustomerFields {
 
 /** Create when `customer` is absent (with an optional opening flour balance), edit otherwise. */
 export function CustomerForm({ customer }: { customer?: CustomerFields }) {
+    const can = useCan();
     const form = useForm({
         name: customer?.name ?? '',
         mobile_number: customer?.mobile_number ?? '',
@@ -61,7 +63,7 @@ export function CustomerForm({ customer }: { customer?: CustomerFields }) {
                     aria-describedby="mobile_number-error"
                 />
             </Field>
-            {!customer && (
+            {!customer && can('record-deposit') && (
                 <Field
                     id="flour_balance_kg"
                     label="رصيد طحين ابتدائي له (اختياري)"
@@ -89,9 +91,11 @@ export function CustomerForm({ customer }: { customer?: CustomerFields }) {
                 />
             </Field>
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button type="button" variant="outline" className="h-11 px-6" asChild>
-                    <Link href={route('panel.customers.index')}>إلغاء</Link>
-                </Button>
+                {can('view-customers') && (
+                    <Button type="button" variant="outline" className="h-11 px-6" asChild>
+                        <Link href={route('panel.customers.index')}>إلغاء</Link>
+                    </Button>
+                )}
                 <Button type="submit" className="h-11 px-6" disabled={form.processing}>
                     {form.processing && <LoaderCircle className="animate-spin" />}
                     {customer ? 'حفظ التعديلات' : 'حفظ العميل'}

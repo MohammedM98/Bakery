@@ -80,6 +80,9 @@ export function StaffForm({ user, groups }: { user?: StaffFields; groups: Permis
                 <p className="-mt-2 text-sm text-muted-foreground">
                     لا يرى الموظف ولا يفعل إلا ما تحدّده هنا. حذف الزبائن والبنوك وإدارة المستخدمين والأسعار تبقى لك وحدك.
                 </p>
+                <p className="-mt-2 text-sm text-muted-foreground">
+                    الإيداع والتسليم والدفعة والتسوية والكشوف تتم من صفحة الزبون، فتحتاج معها «عرض الزبائن». وإضافة البنوك تحتاج «عرض البنوك».
+                </p>
                 {/* Columns, not a grid: groups of 1–3 items keep their own height instead of stretching to the row. */}
                 <div className="gap-3 sm:columns-2">
                     {groups.map((group) => (

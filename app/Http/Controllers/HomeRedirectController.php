@@ -39,6 +39,7 @@ class HomeRedirectController extends Controller
         'view-customers' => 'panel.customers.index',
         'view-sales' => 'panel.sales.index',
         'record-sale' => 'panel.sales.create',
+        'create-customers' => 'panel.customers.create',
         'view-sales-log' => 'panel.sales-log',
         'view-banks' => 'panel.banks.index',
     ];
