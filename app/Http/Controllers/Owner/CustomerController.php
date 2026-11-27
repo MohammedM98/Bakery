@@ -29,7 +29,8 @@ class CustomerController extends Controller
                 });
             })
             ->orderBy('name')
-            ->paginate(15, ['id', 'name', 'mobile_number', 'notes', 'flour_balance_kg'])
+            // Notes only for the edit dialog.
+            ->paginate(15, ['id', 'name', 'mobile_number', ...($request->user()->can('edit-customers') ? ['notes'] : []), 'flour_balance_kg'])
             ->withQueryString();
 
         return Inertia::render('Owner/Customers/Index', [
@@ -107,7 +108,12 @@ class CustomerController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
-        // Back to where the edit dialog was opened: the customers list or the customer's page.
+        // The full edit page returns to the list, as before; the edit dialog stays where it was opened.
+        $fromEditPage = url()->previous() === route('panel.customers.edit', $customer);
+        if ($fromEditPage && $request->user()->can('view-customers')) {
+            return redirect()->route('panel.customers.index')->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
+        }
+
         return back()->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
     }
 

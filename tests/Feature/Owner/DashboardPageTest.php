@@ -180,6 +180,10 @@ class DashboardPageTest extends TestCase
 
         $this->actingAs($owner)->get(route('panel.dashboard'))->assertInertia(fn (Assert $page) => $page->has('customers', 1));
         $this->actingAs($staff)->get(route('panel.dashboard'))->assertInertia(fn (Assert $page) => $page->has('customers', 0));
+        $staff->update(['permissions' => ['view-dashboard', 'record-deposit']]);
+        $this->actingAs($staff)->get(route('panel.dashboard'))->assertInertia(fn (Assert $page) => $page->has('customers', 0));
+        $staff->update(['permissions' => ['view-dashboard', 'record-deposit', 'view-customers']]);
+        $this->actingAs($staff)->get(route('panel.dashboard'))->assertInertia(fn (Assert $page) => $page->has('customers', 1));
         $staff->update(['permissions' => ['record-deposit']]);
         $this->actingAs($staff)->get(route('panel.dashboard'))->assertForbidden();
     }

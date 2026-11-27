@@ -30,7 +30,7 @@ export function GuestFrame({ children, appName: name }: { children: ReactNode; /
                         <div className="w-full max-w-sm">{children}</div>
                     </div>
                 </div>
-                <aside className="relative m-3 hidden flex-col justify-between overflow-hidden rounded-[1.5rem] bg-sidebar p-10 text-sidebar-foreground after:pointer-events-none after:absolute after:-start-16 after:-bottom-20 after:size-[360px] after:rounded-full after:border-[44px] after:border-white/[0.035] lg:flex">
+                <aside className="relative m-3 hidden flex-col justify-between overflow-hidden rounded-[1.5rem] bg-sidebar p-10 text-sidebar-foreground after:pointer-events-none after:absolute after:-start-16 after:-bottom-20 after:size-[360px] after:rounded-full after:border-[44px] after:border-sidebar-accent-foreground/[0.035] lg:flex">
                     <div className="flex items-center gap-3 text-lg font-semibold text-sidebar-accent-foreground">
                         <AppLogoIcon className="bg-sidebar-accent" />
                         <span>{appName}</span>

@@ -173,6 +173,13 @@ class CustomerPagesTest extends TestCase
             ->assertRedirect(route('panel.customers.show', $customer))
             ->assertSessionHas('success');
 
+        // The full edit page still returns to the list.
+        $this->actingAs($owner)
+            ->from(route('panel.customers.edit', $customer))
+            ->put(route('panel.customers.update', $customer), ['name' => 'أحمد علي', 'mobile_number' => '0593333333', 'notes' => 'جديد'])
+            ->assertRedirect(route('panel.customers.index'))
+            ->assertSessionHas('success');
+
         $customer->refresh();
         $this->assertSame('أحمد علي', $customer->name);
         $this->assertSame('0593333333', $customer->mobile_number);

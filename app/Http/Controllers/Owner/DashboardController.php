@@ -58,8 +58,8 @@ class DashboardController extends Controller
             'recent' => $this->recent($bakery, $from, $to),
             'chart' => $this->chart($bakery, $period, $start),
             'pricePerKg' => $bakery->regular_price_per_kg,
-            // For the dashboard's flour-deposit dialog.
-            'customers' => Gate::allows('record-deposit') ? $bakery->customers()->orderBy('name')->get(['id', 'name']) : [],
+            // For the flour-deposit dialog; deposits elsewhere also need the customers list.
+            'customers' => Gate::allows('record-deposit') && Gate::allows('view-customers') ? $bakery->customers()->orderBy('name')->get(['id', 'name']) : [],
         ]);
     }
 
