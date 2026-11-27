@@ -38,6 +38,8 @@ function Shell() {
   // The navigator stays mounted (router calls keep working); a group layout that renders a plain screen
   // instead of its navigator loops in expo-router, so the gate is not inside (bakery)/_layout.
   const bakeryUser = user && user.role !== 'super_admin';
+  // The saved copy and token are read first, so a signed-in phone never flashes the login screen.
+  if (!state.ready) return null;
   return (
     <>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />

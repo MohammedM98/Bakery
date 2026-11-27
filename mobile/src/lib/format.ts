@@ -46,9 +46,19 @@ export function formatShortDate(date: string | null | undefined): string {
   return formatDate(date).slice(0, 5);
 }
 
-/** "2026-11-26T08:31:00" → "08:31". */
+const localParts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Hebron', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+
+/** A server time (ISO, UTC) as "2026-11-26T10:31" in Asia/Hebron, the website's local time (docs/api.md). */
+export function localTime(iso: string | null | undefined): string {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return iso ?? '';
+  const p = Object.fromEntries(localParts.formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+
+/** A server time → "10:31" in Asia/Hebron. */
 export function formatTime(iso: string | null | undefined): string {
-  return iso ? iso.slice(11, 16) : '';
+  return localTime(iso).slice(11, 16);
 }
 
 /** Arabic count of days with Latin digits: "يوم واحد", "يومان", "5 أيام", "12 يومًا". */

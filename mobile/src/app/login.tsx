@@ -1,40 +1,35 @@
-import { Redirect, router } from 'expo-router';
+import { Redirect } from 'expo-router';
 import { Eye, EyeOff, Mail, Wheat } from 'lucide-react-native';
 import * as React from 'react';
-import { Pressable, View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
+
+import { API_URL } from '@/api/client';
 
 import { Field, Notice, TextField, LTR_INPUT } from '@/components/common';
 import { Surface } from '@/components/glass';
 import { Screen } from '@/components/screen';
-import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { homeFor } from '@/lib/access';
-import { MOCK_USERS } from '@/mock/data';
 import { useApp } from '@/state/app';
 
 /** Login (frosted prototype): one glass card, the one orange button. No self sign-up. */
 export default function Login() {
   const app = useApp();
-  const toast = useToast();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
-  const [remember, setRemember] = React.useState(true);
   const [show, setShow] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   if (app.user) return <Redirect href={homeFor(app.user)} />;
 
-  const submit = () => {
+  const submit = async () => {
     if (busy) return;
     setBusy(true);
-    const r = app.login(email, password);
+    const r = await app.login(email, password);
     setBusy(false);
     if (!r.ok) return setError(r.error);
-    const key = Object.values(MOCK_USERS).find((u) => u.email === email.trim().toLowerCase());
-    router.replace(homeFor(key ?? null));
   };
 
   return (
@@ -49,7 +44,7 @@ export default function Login() {
         </Text>
       </View>
       <Surface level="l1" radius={24} className="p-5">
-        {error ? <Notice tone="danger" body={error} /> : null}
+        {error ? <Notice tone="danger" body={error} /> : app.state.signedOutReason ? <Notice tone="warning" body={app.state.signedOutReason} /> : null}
         <Field label="البريد الإلكتروني">
           <View className="relative">
             <TextField
@@ -88,25 +83,26 @@ export default function Login() {
             </View>
           </View>
         </Field>
-        <View className="mb-5 mt-1 flex-row items-center justify-between">
-          <Pressable onPress={() => setRemember((r) => !r)} accessibilityRole="checkbox" accessibilityState={{ checked: remember }} className="h-11 flex-row items-center gap-2">
-            <Checkbox checked={remember} onCheckedChange={setRemember} accessibilityLabel="تذكّرني" />
-            <Text className="text-[14px]">تذكّرني</Text>
-          </Pressable>
-          <Text onPress={() => toast({ kind: 'success', title: 'إن كان البريد مسجّلًا فستصلك رسالة', body: 'استعادة كلمة المرور تحتاج إنترنت' })} accessibilityRole="link" className="text-muted-foreground py-3 text-[14px]">
+        <View className="mb-5 mt-1 flex-row items-center justify-end">
+          <Text onPress={() => Linking.openURL(`${API_URL.replace(/\/api\/v1$/, '')}/forgot-password`).catch(() => {})} accessibilityRole="link" className="text-muted-foreground py-3 text-[14px]">
             نسيت كلمة المرور؟
           </Text>
         </View>
-        <Button onPress={submit} disabled={busy || !email || !password} className="w-full">
+        <Button onPress={submit} disabled={busy || !email || !password || !app.state.online} className="w-full">
           <Text>{busy ? 'جارٍ الدخول' : 'دخول'}</Text>
         </Button>
+        {!app.state.online ? (
+          <Text variant="muted" className="mt-3 text-center">
+            الدخول أول مرة يحتاج إنترنت، ثم يعمل التطبيق دون اتصال
+          </Text>
+        ) : null}
       </Surface>
       <Text variant="muted" className="mt-5 text-center">
         الحسابات ينشئها مالك المنصة. تواصل معه إن لم يكن لديك حساب
       </Text>
       {__DEV__ || process.env.EXPO_PUBLIC_DEV_MENU === '1' ? (
         <Text variant="muted" className="mt-3 text-center text-[12px] leading-[20px]">
-          {'حسابات التجربة، وكلمة المرور password\nowner@bakery.test\nsamer@alnoor.ps\nadmin@bakery.test'}
+          {'حسابات بيانات التجربة في الخادم، وكلمة المرور password\nowner@bakery.test\nadmin@bakery.test'}
         </Text>
       ) : null}
     </Screen>

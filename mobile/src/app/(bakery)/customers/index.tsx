@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
 import { ltr } from '@/lib/format';
-import type { ApiCustomer } from '@/mock/types';
+import type { ApiCustomer } from '@/api/types';
 import { useApp } from '@/state/app';
 
 type Filter = 'all' | 'owe' | 'flour';
@@ -33,7 +33,7 @@ export default function Customers() {
     if (filter === 'owe' && !(b && b.money > 0)) return false;
     if (filter === 'flour' && !(b && b.flour < 0)) return false;
     const t = q.trim();
-    return !t || c.name.includes(t) || (c.phone ?? '').includes(t);
+    return !t || c.name.includes(t) || (c.mobile_number ?? '').includes(t);
   });
   const count = app.state.customers.length;
 
@@ -79,9 +79,9 @@ export default function Customers() {
               onPress={() => router.push(`/customers/${c.id}`)}
               start={<Avatar name={c.name} />}
               title={c.name}
-              subtitle={c.phone ? ltr(c.phone) : 'بلا رقم'}
-              end={<MoneyText cents={b?.money ?? 0} />}
-              endSub={<FlourText hundredths={b?.flour ?? 0} className="text-[13px]" />}
+              subtitle={c.mobile_number ? ltr(c.mobile_number) : 'بلا رقم'}
+              end={<MoneyText cents={b?.money ?? 0} text={b?.moneyText} />}
+              endSub={<FlourText hundredths={b?.flour ?? 0} text={b?.flourText} className="text-[13px]" />}
             />
           </ListItemFrame>
         );
@@ -110,9 +110,9 @@ function NoLocalData() {
         body="اتصل بالإنترنت مرة واحدة لتحميل الزبائن والأرصدة، ثم يعمل التطبيق دون اتصال"
         action="إعادة المحاولة"
         actionIcon={RefreshCw}
-        onAction={() => {
-          const r = app.syncNow();
-          if (!r.ok) toast({ kind: 'error', title: 'ما زال الجهاز دون إنترنت', body: 'يمكنك تسجيل بيع لمشترٍ عابر الآن' });
+        onAction={async () => {
+          const r = await app.syncNow();
+          if (!r.ok) toast({ kind: 'error', title: app.state.online ? 'تعذّر الوصول إلى الخادم' : 'ما زال الجهاز دون إنترنت', body: 'يمكنك تسجيل بيع لمشترٍ عابر الآن' });
         }}
       />
       <Notice tone="warning" icon={WifiOff} title="بانتظار أول مزامنة" body="يمكنك تسجيل بيع لمشترٍ عابر الآن" />

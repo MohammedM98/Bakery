@@ -48,9 +48,9 @@ export default function Banks() {
                           body: 'الحذف نهائي. الدفعات المسجّلة تبقى بالاسم في الكشوف.',
                           action: 'حذف',
                           destructive: true,
-                          onConfirm: () => {
-                            app.deleteBank(b.id);
-                            toast({ kind: 'success', title: 'تم حذف البنك' });
+                          onConfirm: async () => {
+                            const r = await app.online('DELETE', `banks/${b.id}`);
+                            toast(r.ok ? { kind: 'success', title: 'تم حذف البنك' } : { kind: 'error', title: 'تعذّر حذف البنك', body: r.error });
                           },
                         })
                       }

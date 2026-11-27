@@ -11,15 +11,18 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { subscriptionStatus } from '@/lib/subscription';
-import { TODAY, useApp } from '@/state/app';
+import type { ApiBakery, Paged } from '@/api/types';
+import { useApp, useRemote } from '@/state/app';
 
 /** Platform owner: bakeries with their subscription state (option A). */
 export default function Bakeries() {
   const app = useApp();
   const sheets = useSheets();
   const [q, setQ] = React.useState('');
-  const list = app.state.bakeries.filter((b) => !q.trim() || b.name.includes(q.trim()));
-  const n = app.state.bakeries.length;
+  const remote = useRemote<Paged<ApiBakery>>('admin/bakeries');
+  const all = remote.data?.data ?? [];
+  const list = all.filter((b) => !q.trim() || b.name.includes(q.trim()));
+  const n = remote.data?.meta.total ?? 0;
   return (
     <Screen net={false}>
       <PageHeader
@@ -40,7 +43,7 @@ export default function Bakeries() {
       {list.length ? (
         <ListCard>
           {list.map((b, i) => {
-            const s = subscriptionStatus(b, TODAY);
+            const s = subscriptionStatus(b.subscription);
             return (
               <Row
                 key={b.id}
@@ -54,6 +57,8 @@ export default function Bakeries() {
             );
           })}
         </ListCard>
+      ) : !remote.data ? (
+        <EmptyState icon={WifiOff} title={remote.error ?? (app.state.online ? 'جارٍ التحميل' : 'المخابز تحتاج إنترنت')} />
       ) : n ? (
         <EmptyState icon={SearchX} title="لا نتائج" action="مسح البحث" onAction={() => setQ('')} />
       ) : (

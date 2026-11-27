@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Printer, Scale, Trash2 } from 'lucide-react-native';
 import * as React from 'react';
+import * as Print from 'expo-print';
 import { Platform, ScrollView, View } from 'react-native';
 
 import { Chip, Field, InfoList, Notice, PendingMark, RoundIcon, Segmented, TextField, TYPE_ICONS, UnitInput, LTR_INPUT } from '@/components/common';
@@ -13,9 +14,11 @@ import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
 import { formatDate, formatDays, formatFlourBalance, formatKg, formatMoney, formatTime, fromCents, ltr, toCents } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import type { Ledger } from '@/mock/types';
-import { TODAY, useApp } from '@/state/app';
-import { statement } from '@/state/selectors';
+import type { ApiBakery, CustomerDetail, Ledger, OperationResult } from '@/api/types';
+import { fromMovement, fromResult, receiptHtml, type Receipt } from '@/lib/receipt';
+import { today, useApp, useRemote, type OpResult } from '@/state/app';
+import { statement } from '@/state/statement';
+import { movementKey } from '@/sync/engine';
 
 /**
  * Every form and detail view is a bottom sheet (CLAUDE.md section 13). One host renders the open
@@ -23,15 +26,16 @@ import { statement } from '@/state/selectors';
  * movement|customer|bank|renew|bakery (with &customer=1, &movement=N, &bakery=2) opens one for screenshots.
  */
 export type SheetRequest =
-  | { kind: 'sale'; customerId?: number | null }
+  | { kind: 'sale' }
   | { kind: 'payment'; customerId: number; saleId?: number | null }
   | { kind: 'deposit'; customerId: number | null }
   | { kind: 'flour'; customerId: number }
   | { kind: 'adjustment'; customerId: number; corrects?: number | null; ledger?: Ledger }
-  | { kind: 'movement'; movementId: number }
+  | { kind: 'movement'; movementKey: string }
   | { kind: 'customer'; customerId?: number | null }
   | { kind: 'bank'; bankId?: number | null }
-  | { kind: 'renew'; bakeryId: number }
+  | { kind: 'renew'; bakery: ApiBakery }
+  | { kind: 'print'; receipt: Receipt }
   | { kind: 'bakery' };
 
 const SheetContext = React.createContext<{ open: (r: SheetRequest) => void; close: () => void }>({ open: () => {}, close: () => {} });
@@ -44,7 +48,7 @@ function fromUrl(): SheetRequest | null {
   const customerId = Number(q.get('customer') ?? 1);
   switch (kind) {
     case 'sale':
-      return { kind, customerId: q.get('customer') ? customerId : null };
+      return { kind };
     case 'payment':
     case 'flour':
     case 'adjustment':
@@ -52,13 +56,11 @@ function fromUrl(): SheetRequest | null {
     case 'deposit':
       return { kind, customerId: q.get('customer') ? customerId : null };
     case 'movement':
-      return { kind, movementId: Number(q.get('movement') ?? 0) };
+      return { kind, movementKey: `n${q.get('movement') ?? 0}` };
     case 'customer':
       return { kind, customerId: q.get('customer') ? customerId : null };
     case 'bank':
       return { kind, bankId: q.get('bank') ? Number(q.get('bank')) : null };
-    case 'renew':
-      return { kind, bakeryId: Number(q.get('bakery') ?? 2) };
     case 'bakery':
       return { kind };
     default:
@@ -73,34 +75,86 @@ export function SheetHost({ children }: { children: React.ReactNode }) {
   return (
     <SheetContext.Provider value={api}>
       {children}
-      {req?.kind === 'sale' ? <SaleSheet key="sale" initialCustomer={req.customerId ?? null} onClose={close} /> : null}
+      {req?.kind === 'sale' ? <SaleSheet key="sale" onClose={close} /> : null}
       {req?.kind === 'payment' ? <PaymentSheet customerId={req.customerId} saleId={req.saleId ?? null} onClose={close} /> : null}
       {req?.kind === 'deposit' ? <DepositSheet initialCustomer={req.customerId} onClose={close} /> : null}
       {req?.kind === 'flour' ? <FlourSaleSheet customerId={req.customerId} onClose={close} /> : null}
       {req?.kind === 'adjustment' ? <AdjustmentSheet customerId={req.customerId} corrects={req.corrects ?? null} initialLedger={req.ledger ?? 'money'} onClose={close} /> : null}
-      {req?.kind === 'movement' ? <MovementSheet movementId={req.movementId} onClose={close} open={api.open} /> : null}
+      {req?.kind === 'movement' ? <MovementSheet movementKey={req.movementKey} onClose={close} open={api.open} /> : null}
       {req?.kind === 'customer' ? <CustomerSheet customerId={req.customerId ?? null} onClose={close} /> : null}
       {req?.kind === 'bank' ? <BankSheet bankId={req.bankId ?? null} onClose={close} /> : null}
-      {req?.kind === 'renew' ? <RenewSheet bakeryId={req.bakeryId} onClose={close} /> : null}
+      {req?.kind === 'renew' ? <RenewSheet bakery={req.bakery} onClose={close} /> : null}
+      {req?.kind === 'print' ? <PrintSheet receipt={req.receipt} onClose={close} /> : null}
       {req?.kind === 'bakery' ? <BakerySheet onClose={close} /> : null}
     </SheetContext.Provider>
   );
 }
 
-/** After a save: a toast that says whether it reached the server or waits for the next sync. */
+/** After a save: a toast that says whether the server confirmed it (with its receipt) or it waits for the next sync. */
 function useSaved() {
   const toast = useToast();
-  const { state } = useApp();
-  return (title: string, body?: string) =>
-    state.online
-      ? toast({ kind: 'success', title, body })
-      : toast({ kind: 'offline', title: 'حُفظ دون إنترنت', body: `${title}. سيُرسل عند الاتصال`, action: { label: 'المزامنة', onPress: () => router.push('/more/sync') } });
+  const print = usePrint();
+  return (r: OpResult & { ok: true }, title: string, body?: string) =>
+    r.queued
+      ? toast({ kind: 'offline', title: 'حُفظ دون إنترنت', body: `${title}. سيُرسل عند الاتصال`, action: { label: 'المزامنة', onPress: () => router.push('/more/sync') } })
+      : toast({ kind: 'success', title, body, ...(r.result?.movements?.length ? { action: { label: 'طباعة', onPress: () => print(r.result!) } } : {}) });
 }
 
-function SaveButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {
+/** Print a confirmed operation: choose the small receipt or A4. */
+export function usePrint() {
+  const { open } = useSheets();
+  const { me } = useApp();
+  return (result: OperationResult) => {
+    const receipt = fromResult(result, me?.bakery?.name ?? '');
+    if (receipt) open({ kind: 'print', receipt });
+  };
+}
+
+function PrintSheet({ receipt, onClose }: { receipt: Receipt; onClose: () => void }) {
+  const app = useApp();
+  const toast = useToast();
+  const go = async (size: 'small' | 'a4') => {
+    try {
+      await Print.printAsync({ html: receiptHtml(receipt, size) });
+      onClose();
+    } catch {
+      toast({ kind: 'error', title: 'تعذّرت الطباعة', body: 'تحقق من الطابعة وحاول مرة أخرى' });
+    }
+  };
   return (
-    <Button onPress={onPress} disabled={disabled} className="mt-2 w-full">
-      <Text>{label}</Text>
+    <BottomSheet open onClose={onClose} title="طباعة الإيصال" aside={<Text variant="muted">حركة رقم {receipt.numbers.join('، ')}</Text>}>
+      <InfoList items={[['الزبون', receipt.who], ...receipt.lines.slice(0, 3)]} />
+      {!app.state.online ? <Notice tone="warning" body="الطباعة تحتاج إنترنت" /> : null}
+      <View className="mt-2 flex-row gap-2">
+        <Button className="flex-1" disabled={!app.state.online} onPress={() => go('small')}>
+          <Icon as={Printer} size={18} />
+          <Text>إيصال صغير</Text>
+        </Button>
+        <Button variant="glass" className="flex-1" disabled={!app.state.online} onPress={() => go('a4')}>
+          <Text>صفحة A4</Text>
+        </Button>
+      </View>
+    </BottomSheet>
+  );
+}
+
+/** The sheet's one primary button; disabled while saving so a double tap never records twice. */
+function SaveButton({ label, onPress, disabled }: { label: string; onPress: () => unknown; disabled?: boolean }) {
+  const [busy, setBusy] = React.useState(false);
+  return (
+    <Button
+      onPress={async () => {
+        if (busy) return;
+        setBusy(true);
+        try {
+          await onPress();
+        } finally {
+          setBusy(false);
+        }
+      }}
+      disabled={disabled || busy}
+      className="mt-2 w-full">
+      <Text>{busy ? 'جارٍ الحفظ' : label}</Text>
     </Button>
   );
 }
@@ -120,48 +174,38 @@ function CustomerPicker({ value, onChange, allowWalkIn }: { value: number | null
 
 // ---------------------------------------------------------------------------------------------
 
-function SaleSheet({ initialCustomer, onClose }: { initialCustomer: number | null; onClose: () => void }) {
+function SaleSheet({ onClose }: { onClose: () => void }) {
   const app = useApp();
   const saved = useSaved();
   const [qty, setQty] = React.useState(Platform.OS === 'web' && typeof window !== 'undefined' && window.location.search.includes('sheet=sale') ? '12' : '');
   const [paid, setPaid] = React.useState<'paid' | 'unpaid'>('paid');
-  const [customer, setCustomer] = React.useState<number | null>(initialCustomer);
-  const [picking, setPicking] = React.useState(false);
+  const [buyer, setBuyer] = React.useState('');
+  const [naming, setNaming] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const price = app.state.bakery.price_per_kg;
+  const price = app.me?.prices?.regular_price_per_kg ?? '0.00';
   const kg = Number(qty) || 0;
   const total = Math.round(toCents(price) * kg);
-  const name = app.state.customers.find((c) => c.id === customer)?.name ?? 'مشترٍ عابر';
 
-  const save = () => {
-    const r = app.recordSale({ customerId: customer, buyerName: '', kg, paid: paid === 'paid' });
+  const save = async () => {
+    const r = await app.recordSale({ buyerName: buyer, kg, paid: paid === 'paid' });
     if (!r.ok) return setError(r.error);
-    saved('تم تسجيل البيع', `${formatKg(kg)}، ${formatMoney(total / 100)}`);
+    saved(r, 'تم تسجيل البيع', `${formatKg(kg)}، ${formatMoney(total / 100)}`);
     onClose();
   };
 
   return (
-    <BottomSheet
-      open
-      onClose={onClose}
-      title="تسجيل عملية بيع"
-      aside={app.can('view-customers') ? <Chip label={name} onPress={() => setPicking((p) => !p)} /> : null}>
-      {picking ? (
-        <CustomerPicker
-          value={customer}
-          allowWalkIn
-          onChange={(id) => {
-            setCustomer(id);
-            setPicking(false);
-          }}
-        />
+    <BottomSheet open onClose={onClose} title="تسجيل عملية بيع" aside={<Chip label={buyer.trim() || 'مشترٍ عابر'} onPress={() => setNaming((p) => !p)} />}>
+      {naming ? (
+        <Field label="اسم المشتري (اختياري)">
+          <TextField value={buyer} onChangeText={setBuyer} placeholder="مشترٍ عابر" autoFocus={Platform.OS !== 'web'} onSubmitEditing={() => setNaming(false)} />
+        </Field>
       ) : null}
       <View className="my-1 flex-row items-baseline justify-center gap-1.5" accessible accessibilityLabel={`الكمية ${kg} كغ`}>
         <Text className={cn('font-plex-semi text-[48px] leading-[58px]', !qty && 'text-muted-foreground')}>{qty || '0'}</Text>
         <Text className="text-muted-foreground text-[18px]">كغ</Text>
       </View>
       <Text variant="muted" className="mb-4 text-center text-[14px]">
-        {kg} كغ × {price} شيكل = <Text className="font-plex-semi text-[14px]">{formatMoney(total / 100)}</Text>
+        {kg} كغ × {formatMoney(price)} = <Text className="font-plex-semi text-[14px]">{formatMoney(total / 100)}</Text>
       </Text>
       <Segmented
         label="حالة الدفع"
@@ -180,8 +224,12 @@ function SaleSheet({ initialCustomer, onClose }: { initialCustomer: number | nul
           setError(null);
         }}
       />
-      {error ? <Text className="text-destructive mb-2 text-center text-[13px]">{error}</Text> : null}
-      {paid === 'unpaid' && customer == null ? <Notice body="البيع غير المدفوع لمشترٍ عابر يبقى في قائمة غير المدفوع حتى تأكيد دفعه" /> : null}
+      {error ? (
+        <Text accessibilityRole="alert" className="text-destructive mb-2 text-center text-[13px]">
+          {error}
+        </Text>
+      ) : null}
+      {paid === 'unpaid' ? <Notice body="البيع غير المدفوع لمشترٍ عابر يبقى في قائمة غير المدفوع حتى تأكيد دفعه" /> : null}
       <SaveButton label="حفظ العملية" onPress={save} disabled={!kg} />
     </BottomSheet>
   );
@@ -194,18 +242,30 @@ function PaymentSheet({ customerId, saleId, onClose }: { customerId: number; sal
   const saved = useSaved();
   const balance = app.balances.get(customerId)?.money ?? 0;
   const [amount, setAmount] = React.useState(Platform.OS === 'web' && typeof window !== 'undefined' && window.location.search.includes('sheet=payment') ? '90.00' : '');
-  const [method, setMethod] = React.useState<'cash' | 'transfer'>('transfer');
-  const [from, setFrom] = React.useState<string | null>(app.state.banks[0]?.name ?? null);
-  const [to, setTo] = React.useState<string | null>(app.state.banks[1]?.name ?? null);
+  const [method, setMethod] = React.useState<'cash' | 'transfer'>('cash');
+  const banks = app.state.banks;
+  const [from, setFrom] = React.useState<number | null>(banks[0]?.id ?? null);
+  const [to, setTo] = React.useState<number | null>(banks[1]?.id ?? banks[0]?.id ?? null);
   const [reference, setReference] = React.useState('');
   const [forSale, setForSale] = React.useState<number | null>(saleId);
   const [error, setError] = React.useState<string | null>(null);
-  const unpaid = app.state.sales.filter((s) => s.customer_id === customerId && toCents(s.paid_amount) < toCents(s.total_amount)).slice(0, 6);
+  // The customer's unpaid sales come from the server (the last answer offline); a customer added offline has none.
+  const detail = useRemote<CustomerDetail>(customerId > 0 ? `customers/${customerId}` : null);
+  const unpaid = (detail.data?.unpaid_sales ?? []).slice(0, 6);
 
-  const save = () => {
-    const r = app.recordPayment({ customerId, amount: Number(amount), method, fromBank: from, toBank: to, reference, saleId: forSale });
+  const save = async () => {
+    const sale = unpaid.find((x) => x.id === forSale);
+    const r = await app.recordPayment({
+      customerId,
+      amount: Number(amount),
+      method,
+      fromBank: banks.find((b) => b.id === from) ?? null,
+      toBank: banks.find((b) => b.id === to) ?? null,
+      reference,
+      sale: sale ? { id: sale.id, sale_date: sale.sale_date } : null,
+    });
     if (!r.ok) return setError(r.error);
-    saved('تم تسجيل الدفعة', formatMoney(amount));
+    saved(r, 'تم تسجيل الدفعة', formatMoney(amount));
     onClose();
   };
 
@@ -229,7 +289,8 @@ function PaymentSheet({ customerId, saleId, onClose }: { customerId: number; sal
           ['transfer', 'تحويل'],
         ]}
       />
-      {method === 'transfer' ? (
+      {method === 'transfer' && !banks.length ? <Notice tone="warning" body="لا بنوك بعد. أضفها من «البنوك والمحافظ» بالإنترنت" /> : null}
+      {method === 'transfer' && banks.length ? (
         <>
           <Text variant="label" className="mb-1.5">
             من ← إلى
@@ -238,16 +299,16 @@ function PaymentSheet({ customerId, saleId, onClose }: { customerId: number; sal
             <Text variant="muted" className="w-6">
               من
             </Text>
-            {app.state.banks.map((b) => (
-              <Chip key={b.id} label={b.name} on={from === b.name} onPress={() => setFrom(b.name)} />
+            {banks.map((b) => (
+              <Chip key={b.id} label={b.name} on={from === b.id} onPress={() => setFrom(b.id)} />
             ))}
           </View>
           <View className="mb-4 flex-row flex-wrap items-center gap-2">
             <Text variant="muted" className="w-6">
               إلى
             </Text>
-            {app.state.banks.map((b) => (
-              <Chip key={b.id} label={b.name} on={to === b.name} onPress={() => setTo(b.name)} />
+            {banks.map((b) => (
+              <Chip key={b.id} label={b.name} on={to === b.id} onPress={() => setTo(b.id)} />
             ))}
           </View>
           <Field label="رقم الحوالة (اختياري)">
@@ -261,7 +322,7 @@ function PaymentSheet({ customerId, saleId, onClose }: { customerId: number; sal
       <View className="mb-4 flex-row flex-wrap gap-2">
         <Chip label="على الحساب" on={forSale == null} onPress={() => setForSale(null)} />
         {unpaid.map((s) => (
-          <Chip key={s.id} label={`بيع ${formatDate(s.sale_date).slice(0, 5)}، ${fromCents(toCents(s.total_amount) - toCents(s.paid_amount))}`} on={forSale === s.id} onPress={() => setForSale(s.id)} />
+          <Chip key={s.id} label={`بيع ${formatDate(s.sale_date).slice(0, 5)}، ${s.remaining_amount}`} on={forSale === s.id} onPress={() => setForSale(s.id)} />
         ))}
       </View>
       <SaveButton label="حفظ الدفعة" onPress={save} />
@@ -281,11 +342,11 @@ function DepositSheet({ initialCustomer, onClose }: { initialCustomer: number | 
   const bal = customer ? (app.balances.get(customer)?.flour ?? 0) : 0;
   const after = bal - Math.round(Number(kg) * 100);
 
-  const save = () => {
+  const save = async () => {
     if (!customer) return setError('اختر الزبون');
-    const r = app.recordDeposit({ customerId: customer, kg: Number(kg), note });
+    const r = await app.recordDeposit({ customerId: customer, kg: Number(kg), note });
     if (!r.ok) return setError(r.error);
-    saved('تم تسجيل الإيداع', formatKg(kg));
+    saved(r, 'تم تسجيل الإيداع', formatKg(kg));
     onClose();
   };
 
@@ -321,13 +382,13 @@ function FlourSaleSheet({ customerId, onClose }: { customerId: number; onClose: 
   const bal = app.balances.get(customerId)?.flour ?? 0; // − = له
   const n = Math.round(Number(kg) * 100);
   const after = bal + n;
-  const fee = app.state.bakery.flour_exchange_fee_per_kg;
+  const fee = app.me?.prices?.flour_exchange_fee_per_kg ?? '0.00';
   const feeTotal = Math.round(toCents(fee) * (Number(kg) || 0));
 
-  const save = () => {
-    const r = app.recordFlourSale({ customerId, kg: Number(kg), paid: paid === 'paid' });
+  const save = async () => {
+    const r = await app.recordFlourSale({ customerId, kg: Number(kg), paid: paid === 'paid' });
     if (!r.ok) return setError(r.error);
-    saved('تم تسجيل البيع مقابل الطحين', formatKg(kg));
+    saved(r, 'تم تسجيل البيع مقابل الطحين', formatKg(kg));
     onClose();
   };
 
@@ -337,7 +398,7 @@ function FlourSaleSheet({ customerId, onClose }: { customerId: number; onClose: 
         <UnitInput label="الكمية" unit="كغ" value={kg} onChangeText={(v) => (setKg(v), setError(null))} invalid={!!error} />
       </Field>
       {n > 0 && after > 0 ? <Notice tone="warning" body={`الرصيد لا يكفي. سيُسجَّل البيع ويصبح ${formatFlourBalance(after / 100)}`} /> : null}
-      <Notice body={`رسم التبديل ${kg || 0} × ${fee} شيكل = ${formatMoney(feeTotal / 100)} على حسابه المالي`} />
+      <Notice body={`رسم التبديل ${kg || 0} × ${formatMoney(fee)} = ${formatMoney(feeTotal / 100)} على حسابه المالي`} />
       <Segmented
         label="حالة دفع الرسم"
         className="mb-4"
@@ -365,10 +426,10 @@ function AdjustmentSheet({ customerId, corrects, initialLedger, onClose }: { cus
   const [number, setNumber] = React.useState(corrects ? String(corrects) : '');
   const [error, setError] = React.useState<{ field: 'amount' | 'reason'; text: string } | null>(null);
 
-  const save = () => {
-    const r = app.recordAdjustment({ customerId, ledger, direction, amount: Number(amount), reason, corrects: Number(number) || null });
+  const save = async () => {
+    const r = await app.recordAdjustment({ customerId, ledger, direction, amount: Number(amount), reason, corrects: Number(number) || null });
     if (!r.ok) return setError({ field: r.error.includes('سبب') ? 'reason' : 'amount', text: r.error });
-    saved('تم تسجيل قيد التسوية');
+    saved(r, 'تم تسجيل قيد التسوية');
     onClose();
   };
 
@@ -412,29 +473,31 @@ function AdjustmentSheet({ customerId, corrects, initialLedger, onClose }: { cus
 
 // ---------------------------------------------------------------------------------------------
 
-function MovementSheet({ movementId, onClose, open }: { movementId: number; onClose: () => void; open: (r: SheetRequest) => void }) {
+function MovementSheet({ movementKey: key, onClose, open }: { movementKey: string; onClose: () => void; open: (r: SheetRequest) => void }) {
   const app = useApp();
-  const toast = useToast();
-  const m = app.state.movements.find((x) => x.id === movementId) ?? app.state.movements.filter((x) => x.type === 'payment' && x.from_bank).at(-1);
+  const m = app.state.movements.find((x) => movementKey(x) === key);
   if (!m) return null;
   const isMoney = m.ledger === 'money';
   const a = toCents(m.amount);
-  const st = m.customer_id ? statement(app.state.movements, m.customer_id, m.ledger, null, null) : null;
-  const after = st?.rows.find((r) => r.movement.id === m.id)?.balance;
-  const tone = a < 0 ? 'success' : 'neutral';
+  const customer = m.customer_id != null ? app.customer(m.customer_id) : undefined;
+  const balance = m.customer_id != null ? app.balances.get(m.customer_id) : undefined;
+  const st = m.customer_id != null && balance ? statement(app.state.movements, m.customer_id, m.ledger, isMoney ? balance.money : balance.flour, null, null) : null;
+  const after = st?.rows.find((r) => r.movement === m)?.balance;
+  const afterText = after == null ? null : isMoney ? formatMoney(after / 100) : formatFlourBalance(after / 100);
   const canPrint = app.state.online && m.number != null;
+  const who = customer?.name ?? 'مشترٍ عابر';
 
   return (
     <BottomSheet open onClose={onClose} title={m.description}>
       <View className="mb-4 flex-row items-center gap-3">
-        <RoundIcon icon={TYPE_ICONS[m.type]} tone={tone} />
+        <RoundIcon icon={TYPE_ICONS[m.type]} tone={a < 0 ? 'success' : 'neutral'} />
         <Text variant="muted" className="flex-1">
-          {m.customer_name ?? 'مشترٍ عابر'}، {formatDate(m.movement_date)} الساعة {formatTime(m.created_at)}
+          {who}، {formatDate(m.date)} الساعة {formatTime(m.created_at)}
         </Text>
       </View>
       <Text className={cn('font-plex-semi mb-4 text-[32px] leading-[42px]', a < 0 && 'text-success')}>
-        {isMoney ? formatMoney(Math.abs(a) / 100) : formatKg(Math.abs(a) / 100)}
-        <Text className="text-muted-foreground text-[15px]"> {a > 0 ? 'عليه' : 'له'}</Text>
+        {m.amount_text}
+        <Text className="text-muted-foreground text-[15px]"> {m.direction_label}</Text>
       </Text>
       <InfoList
         items={[
@@ -445,15 +508,15 @@ function MovementSheet({ movementId, onClose, open }: { movementId: number; onCl
       {m.type === 'payment' ? (
         <InfoList
           items={[
-            ['طريقة الدفع', m.from_bank ? `${m.from_bank} ← ${m.to_bank}` : 'نقدًا'],
+            ['طريقة الدفع', m.transfer ?? 'نقدًا'],
             ...(m.transfer_reference ? ([['رقم الحوالة', ltr(m.transfer_reference)]] as [string, string][]) : []),
           ]}
         />
       ) : null}
       <InfoList
         items={[
-          ...(after != null ? ([['الرصيد بعد الحركة', isMoney ? formatMoney(after / 100) : formatFlourBalance(after / 100)]] as [string, string][]) : []),
-          ['سجّلها', m.recorded_by_name],
+          ...(afterText ? ([['الرصيد بعد الحركة', afterText]] as [string, string][]) : []),
+          ['سجّلها', m.recorded_by],
           ...(m.note ? ([['ملاحظة', m.note]] as [string, string][]) : []),
         ]}
       />
@@ -468,7 +531,7 @@ function MovementSheet({ movementId, onClose, open }: { movementId: number; onCl
           variant="pill"
           className="flex-1"
           disabled={!canPrint}
-          onPress={() => toast({ kind: 'success', title: 'أُرسل الإيصال للطابعة', body: `الحركة رقم ${m.number}` })}>
+          onPress={() => open({ kind: 'print', receipt: fromMovement(m, app.me?.bakery?.name ?? '', who, isMoney ? { money: afterText ?? '' } : { flour: afterText ?? '' }) })}>
           <Icon as={Printer} size={18} />
           <Text>طباعة الإيصال</Text>
         </Button>
@@ -489,24 +552,26 @@ function CustomerSheet({ customerId, onClose }: { customerId: number | null; onC
   const toast = useToast();
   const confirm = useConfirm();
   const saved = useSaved();
-  const existing = app.state.customers.find((c) => c.id === customerId);
+  const existing = customerId != null ? app.customer(customerId) : undefined;
   const [name, setName] = React.useState(existing?.name ?? '');
-  const [phone, setPhone] = React.useState(existing?.phone ?? '');
+  const [phone, setPhone] = React.useState(existing?.mobile_number ?? '');
   const [notes, setNotes] = React.useState(existing?.notes ?? '');
   const [flour, setFlour] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
   const editing = !!existing;
-  const offlineEdit = editing && !app.state.online;
+  // Editing and deleting are online only; a customer still waiting for the server cannot be edited yet.
+  const offlineEdit = editing && (!app.state.online || existing.id < 0);
 
-  const save = () => {
+  const save = async () => {
+    if (!phone.trim()) return setError('اكتب رقم الجوال');
     if (editing) {
-      const r = app.updateCustomer(existing.id, { name, phone, notes });
+      const r = await app.online('PUT', `customers/${existing.id}`, { name, mobile_number: phone, notes: notes || null });
       if (!r.ok) return setError(r.error);
       toast({ kind: 'success', title: 'تم حفظ بيانات الزبون' });
     } else {
-      const r = app.addCustomer({ name, phone, notes, openingFlour: Number(flour) || 0 });
+      const r = await app.addCustomer({ name, phone, notes, openingFlour: Number(flour) || 0 });
       if (!r.ok) return setError(r.error);
-      saved('تمت إضافة الزبون', name);
+      saved(r, 'تمت إضافة الزبون', name);
     }
     onClose();
   };
@@ -517,7 +582,7 @@ function CustomerSheet({ customerId, onClose }: { customerId: number | null; onC
       <Field label="الاسم" error={error}>
         <TextField value={name} onChangeText={(v) => (setName(v), setError(null))} invalid={!!error} autoFocus={Platform.OS !== 'web'} />
       </Field>
-      <Field label="رقم الجوال (اختياري)">
+      <Field label="رقم الجوال">
         <TextField value={phone} onChangeText={setPhone} keyboardType="phone-pad" inputMode="tel" style={LTR_INPUT} />
       </Field>
       <Field label="ملاحظات (اختياري)">
@@ -533,15 +598,16 @@ function CustomerSheet({ customerId, onClose }: { customerId: number | null; onC
         <Button
           variant="danger"
           className="mt-2 w-full"
-          disabled={!app.state.online}
+          disabled={offlineEdit}
           onPress={() =>
             confirm({
               title: `حذف الزبون «${existing.name}»؟`,
               body: 'تُحذف معه كل مبيعاته وحركاته نهائيًا، ولا يمكن التراجع.',
               action: 'حذف',
               destructive: true,
-              onConfirm: () => {
-                app.deleteCustomer(existing.id);
+              onConfirm: async () => {
+                const r = await app.online('DELETE', `customers/${existing.id}`);
+                if (!r.ok) return toast({ kind: 'error', title: 'تعذّر حذف الزبون', body: r.error });
                 onClose();
                 router.replace('/customers');
                 toast({ kind: 'success', title: 'تم حذف الزبون' });
@@ -570,8 +636,8 @@ function BankSheet({ bankId, onClose }: { bankId: number | null; onClose: () => 
       {existing ? <Notice body="تغيير الاسم لا يغيّر الدفعات المسجّلة؛ تبقى بالاسم القديم" /> : null}
       <SaveButton
         label="حفظ"
-        onPress={() => {
-          const r = app.saveBank(existing?.id ?? null, name);
+        onPress={async () => {
+          const r = existing ? await app.online('PUT', `banks/${existing.id}`, { name }) : await app.online('POST', 'banks', { name });
           if (!r.ok) return setError(r.error);
           toast({ kind: 'success', title: existing ? 'تم تعديل البنك' : 'تمت إضافة البنك' });
           onClose();
@@ -583,18 +649,18 @@ function BankSheet({ bankId, onClose }: { bankId: number | null; onClose: () => 
 
 // ---------------------------------------------------------------------------------------------
 
-function RenewSheet({ bakeryId, onClose }: { bakeryId: number; onClose: () => void }) {
+function RenewSheet({ bakery: b, onClose }: { bakery: ApiBakery; onClose: () => void }) {
   const app = useApp();
   const toast = useToast();
-  const b = app.state.bakeries.find((x) => x.id === bakeryId);
   const [months, setMonths] = React.useState(3);
-  if (!b) return null;
-  const from = b.subscription_ends_at > TODAY ? b.subscription_ends_at : TODAY;
+  const [error, setError] = React.useState<string | null>(null);
+  const ends = b.subscription.expires_at;
+  const from = ends && ends > today() ? ends : today();
   const end = new Date(`${from}T12:00:00Z`);
   end.setUTCMonth(end.getUTCMonth() + months);
-  const left = Math.round((Date.parse(b.subscription_ends_at) - Date.parse(TODAY)) / 86400000);
+  const left = b.subscription.days_left;
   return (
-    <BottomSheet open onClose={onClose} title="تجديد الاشتراك" aside={left >= 0 ? <Text className="text-warning text-[13px]">متبقٍ {formatDays(left)}</Text> : null}>
+    <BottomSheet open onClose={onClose} title="تجديد الاشتراك" aside={left != null && left >= 0 ? <Text className="text-warning text-[13px]">متبقٍ {formatDays(left)}</Text> : null}>
       <Text variant="muted" className="mb-2">
         {b.name}
       </Text>
@@ -609,10 +675,13 @@ function RenewSheet({ bakeryId, onClose }: { bakeryId: number; onClose: () => vo
         أشهر
       </Text>
       <Notice body={`ينتهي الاشتراك الجديد في ${formatDate(end.toISOString())}`} />
+      {error ? <Notice tone="danger" body={error} /> : null}
       <SaveButton
         label={`تجديد ${months === 1 ? 'شهر' : months === 12 ? '12 شهرًا' : `${months} أشهر`}`}
-        onPress={() => {
-          app.renewBakery(b.id, months);
+        disabled={!app.state.online}
+        onPress={async () => {
+          const r = await app.online('POST', `admin/bakeries/${b.id}/renew`, { months });
+          if (!r.ok) return setError(r.error);
           toast({ kind: 'success', title: 'تم تجديد الاشتراك', body: b.name });
           onClose();
         }}
@@ -656,8 +725,16 @@ function BakerySheet({ onClose }: { onClose: () => void }) {
       </Field>
       <SaveButton
         label="إضافة المخبز"
-        onPress={() => {
-          const r = app.addBakery(f);
+        disabled={!app.state.online}
+        onPress={async () => {
+          const r = await app.online('POST', 'admin/bakeries', {
+            name: f.name,
+            address: f.address || null,
+            subscription_months: f.months,
+            owner_name: f.ownerName,
+            owner_email: f.ownerEmail.trim().toLowerCase(),
+            owner_password: f.password,
+          });
           if (!r.ok) return setError(r.error);
           toast({ kind: 'success', title: 'تمت إضافة المخبز', body: f.name });
           onClose();

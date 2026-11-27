@@ -4,7 +4,8 @@ import * as React from 'react';
 
 import { Avatar, Badge, EmptyState, ListCard, Notice, Row } from '@/components/common';
 import { IconButton, NotAllowed, PageHeader, Screen } from '@/components/screen';
-import { useApp } from '@/state/app';
+import type { ApiStaff } from '@/api/types';
+import { useApp, useRemote } from '@/state/app';
 
 function permissionCount(n: number) {
   if (n === 0) return 'بلا صلاحيات';
@@ -16,15 +17,17 @@ function permissionCount(n: number) {
 /** The owner's staff: add, edit permissions, stop. Online only. */
 export default function Users() {
   const app = useApp();
+  const remote = useRemote<{ users: ApiStaff[] }>(app.can('manage-users') ? 'users' : null);
   if (!app.can('manage-users')) return <NotAllowed />;
   const online = app.state.online;
+  const staff = remote.data?.users ?? [];
   return (
     <Screen>
       <PageHeader back title="المستخدمون" end={online ? <IconButton icon={Plus} label="إضافة موظف" onPress={() => router.push('/more/staff/new')} /> : null} />
       {!online ? <Notice tone="warning" icon={WifiOff} title="يحتاج إنترنت" body="إدارة الموظفين وصلاحياتهم تتم بالإنترنت فقط" /> : null}
-      {app.state.staff.length ? (
+      {staff.length ? (
         <ListCard>
-          {app.state.staff.map((s, i) => (
+          {staff.map((s, i) => (
             <Row
               key={s.id}
               first={i === 0}

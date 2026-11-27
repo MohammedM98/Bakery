@@ -5,7 +5,7 @@ import { NotAllowed, PageHeader, Screen } from '@/components/screen';
 import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { formatTime } from '@/lib/format';
+import { formatDate, formatTime, localTime } from '@/lib/format';
 import { useApp } from '@/state/app';
 import { useTheme, type SchemePreference } from '@/state/theme';
 
@@ -14,8 +14,8 @@ export default function Settings() {
   const app = useApp();
   const toast = useToast();
   const { preference, setPreference } = useTheme();
-  const [price, setPrice] = React.useState(app.state.bakery.price_per_kg);
-  const [fee, setFee] = React.useState(app.state.bakery.flour_exchange_fee_per_kg);
+  const [price, setPrice] = React.useState(app.me?.prices?.regular_price_per_kg ?? '');
+  const [fee, setFee] = React.useState(app.me?.prices?.flour_exchange_fee_per_kg ?? '');
   const [error, setError] = React.useState<string | null>(null);
   if (!app.can('manage-settings')) return <NotAllowed />;
   const online = app.state.online;
@@ -34,8 +34,8 @@ export default function Settings() {
       <Button
         className="mb-6 w-full"
         disabled={!online}
-        onPress={() => {
-          const r = app.saveSettings(price, fee);
+        onPress={async () => {
+          const r = await app.online('PUT', 'settings', { regular_price_per_kg: price, flour_exchange_fee_per_kg: fee });
           if (!r.ok) return setError(r.error);
           toast({ kind: 'success', title: 'تم حفظ الإعدادات' });
         }}>
@@ -57,7 +57,7 @@ export default function Settings() {
           ]}
         />
       </Field>
-      <InfoList items={[['آخر مزامنة', formatTime(app.state.lastSyncAt)]]} />
+      <InfoList items={[['آخر مزامنة', app.state.lastSyncAt ? `${formatDate(localTime(app.state.lastSyncAt))} ${formatTime(app.state.lastSyncAt)}` : 'لم تتم بعد']]} />
     </Screen>
   );
 }

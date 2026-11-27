@@ -1,9 +1,9 @@
 import { useLocalSearchParams } from 'expo-router';
-import { Plus, ShoppingBag } from 'lucide-react-native';
+import { Plus, ShoppingBag, WifiOff } from 'lucide-react-native';
 import * as React from 'react';
 import { View } from 'react-native';
 
-import { Badge, Chip, EmptyState, ListItemFrame, PendingMark, RoundIcon, Row, Segmented, TYPE_ICONS } from '@/components/common';
+import { Badge, Chip, EmptyState, ListItemFrame, Notice, RoundIcon, Row, Segmented, TYPE_ICONS } from '@/components/common';
 import { useConfirm } from '@/components/confirm';
 import { ListScreen, NotAllowed, PageHeader } from '@/components/screen';
 import { useSheets } from '@/components/sheets';
@@ -11,36 +11,34 @@ import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { formatDate, formatKg, formatMoney, formatTime, fromCents, toCents } from '@/lib/format';
-import type { ApiSale, SaleType } from '@/mock/types';
-import { useApp } from '@/state/app';
+import { formatDate, formatShortDate, formatTime, localTime } from '@/lib/format';
+import type { ApiSale, Paged } from '@/api/types';
+import { useApp, useRemote } from '@/state/app';
 
-/** Sales (website: المبيعات): two tabs, regular and for flour, with payment status and "confirm payment". */
+/** Sales (website: المبيعات, GET /sales): two tabs, regular and for flour, with payment status and "confirm payment" (online). */
 export default function Sales() {
   const app = useApp();
   const sheets = useSheets();
   const confirm = useConfirm();
   const toast = useToast();
   const params = useLocalSearchParams<{ unpaid?: string }>();
-  const [type, setType] = React.useState<SaleType>('cash');
+  const [type, setType] = React.useState<ApiSale['sale_type']>('cash');
   const [unpaidOnly, setUnpaidOnly] = React.useState(params.unpaid === '1');
+  const remote = useRemote<{ sales: Paged<ApiSale> }>(app.can('view-sales') ? `sales?type=${type}${unpaidOnly ? '&status=unpaid' : ''}` : null);
   if (!app.can('view-sales')) return <NotAllowed />;
 
-  const list = app.state.sales
-    .filter((s) => s.sale_type === type && (!unpaidOnly || toCents(s.paid_amount) < toCents(s.total_amount)))
-    .slice()
-    .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
-    .slice(0, 200);
-  const pendingIds = new Set(app.state.movements.filter((m) => m.number == null && m.sale_id).map((m) => m.sale_id));
+  const list = remote.data?.sales.data ?? [];
+  const online = app.state.online;
 
   const markPaid = (s: ApiSale) =>
     confirm({
       title: 'تأكيد دفع العملية؟',
-      body: `يُسجَّل دفع ${formatMoney(fromCents(toCents(s.total_amount) - toCents(s.paid_amount)))} نقدًا بتاريخ اليوم`,
+      body: `يُسجَّل دفع ${s.remaining_text} نقدًا بتاريخ اليوم`,
       action: 'تأكيد الدفع',
-      onConfirm: () => {
-        const r = app.markSalePaid(s.id);
+      onConfirm: async () => {
+        const r = await app.online('POST', `sales/${s.id}/mark-paid`, {});
         toast(r.ok ? { kind: 'success', title: 'تم تأكيد الدفع' } : { kind: 'error', title: r.error });
+        if (r.ok) remote.reload();
       },
     });
 
@@ -65,13 +63,14 @@ export default function Sales() {
         onChange={setType}
         options={[
           ['cash', 'بيع عادي'],
-          ['flour', 'مقابل طحين'],
+          ['flour_exchange', 'مقابل طحين'],
         ]}
       />
       <View className="mb-4 flex-row gap-2">
         <Chip label="الكل" on={!unpaidOnly} onPress={() => setUnpaidOnly(false)} />
         <Chip label="غير مدفوع" on={unpaidOnly} onPress={() => setUnpaidOnly(true)} />
       </View>
+      {remote.stale ? <Notice tone="warning" icon={WifiOff} body={`القائمة كما كانت عند آخر اتصال، ${formatDate(localTime(remote.at))} ${formatTime(remote.at)}. تأكيد الدفع يحتاج إنترنت`} /> : null}
     </>
   );
 
@@ -81,31 +80,40 @@ export default function Sales() {
       data={list}
       keyExtractor={(s) => String(s.id)}
       renderItem={(s, i) => {
-        const rest = toCents(s.total_amount) - toCents(s.paid_amount);
-        const pending = pendingIds.has(s.id);
+        const unpaid = s.payment_status === 'unpaid';
         return (
           <ListItemFrame first={i === 0} last={i === list.length - 1}>
             <Row
               first={i === 0}
-              start={<RoundIcon icon={TYPE_ICONS[s.sale_type === 'flour' ? 'flour_withdrawal' : 'sale']} />}
-              title={s.customer_name ?? s.buyer_name ?? 'مشترٍ عابر'}
-              subtitle={pending ? <PendingMark label={`${formatKg(s.kg_amount)}، ينتظر المزامنة`} /> : `${formatKg(s.kg_amount)}، ${formatDate(s.sale_date).slice(0, 5)} ${formatTime(s.created_at)}`}
-              end={<Text className="font-plex-medium">{formatMoney(s.total_amount)}</Text>}
-              endSub={rest > 0 ? <Badge label="غير مدفوع" tone="danger" /> : <Badge label="مدفوع" tone="success" />}
-              onPress={rest > 0 && app.can('record-payment') ? () => markPaid(s) : undefined}
-              accessibilityLabel={rest > 0 ? 'تأكيد الدفع' : undefined}
+              start={<RoundIcon icon={TYPE_ICONS[s.sale_type === 'flour_exchange' ? 'flour_withdrawal' : 'sale']} />}
+              title={s.buyer}
+              subtitle={`${s.kg_text}، ${formatShortDate(s.sale_date)}`}
+              end={<Text className="font-plex-medium">{s.total_text}</Text>}
+              endSub={<Badge label={s.payment_status_label} tone={unpaid ? 'danger' : 'success'} />}
+              onPress={unpaid && online && app.can('record-payment') ? () => markPaid(s) : undefined}
+              accessibilityLabel={unpaid ? `${s.buyer}، ${s.total_text}، تأكيد الدفع` : undefined}
             />
           </ListItemFrame>
         );
       }}
       footer={
-        list.some((s) => toCents(s.paid_amount) < toCents(s.total_amount)) && app.can('record-payment') ? (
+        list.some((s) => s.payment_status === 'unpaid') && online && app.can('record-payment') ? (
           <Text variant="muted" className="mt-3 text-center">
             المس أي عملية غير مدفوعة لتأكيد دفعها
           </Text>
+        ) : remote.data && remote.data.sales.meta.total > list.length ? (
+          <Text variant="muted" className="mt-3 text-center">
+            تظهر آخر {list.length} عملية من {remote.data.sales.meta.total}
+          </Text>
         ) : undefined
       }
-      empty={<EmptyState icon={ShoppingBag} title={unpaidOnly ? 'لا عمليات غير مدفوعة' : 'لا مبيعات بعد'} action={app.can('record-sale') ? 'تسجيل عملية بيع' : undefined} actionIcon={Plus} onAction={() => sheets.open({ kind: 'sale' })} />}
+      empty={
+        !remote.data ? (
+          <EmptyState icon={WifiOff} title={online ? (remote.error ?? 'جارٍ التحميل') : 'المبيعات تحتاج إنترنت'} action={online && remote.error ? 'إعادة المحاولة' : undefined} onAction={remote.reload} />
+        ) : (
+          <EmptyState icon={ShoppingBag} title={unpaidOnly ? 'لا عمليات غير مدفوعة' : 'لا مبيعات بعد'} action={app.can('record-sale') ? 'تسجيل عملية بيع' : undefined} actionIcon={Plus} onAction={() => sheets.open({ kind: 'sale' })} />
+        )
+      }
     />
   );
 }

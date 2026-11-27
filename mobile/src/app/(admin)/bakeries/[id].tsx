@@ -11,9 +11,10 @@ import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { formatDate, formatMoney, ltr } from '@/lib/format';
+import { formatDate, ltr } from '@/lib/format';
 import { subscriptionStatus } from '@/lib/subscription';
-import { TODAY, useApp } from '@/state/app';
+import type { ApiBakery } from '@/api/types';
+import { useApp, useRemote } from '@/state/app';
 
 /** One bakery: subscription in the hero, owner details, renew (sheet) and stop (confirm). */
 export default function BakeryPage() {
@@ -22,15 +23,24 @@ export default function BakeryPage() {
   const sheets = useSheets();
   const confirm = useConfirm();
   const toast = useToast();
-  const b = app.state.bakeries.find((x) => String(x.id) === id);
+  const remote = useRemote<{ bakery: ApiBakery }>(`admin/bakeries/${id}`);
+  const b = remote.data?.bakery;
   if (!b)
     return (
       <Screen net={false}>
         <PageHeader back title="المخبز" />
-        <EmptyState icon={Store} title="المخبز غير موجود" />
+        <EmptyState icon={Store} title={remote.error ?? (app.state.online ? 'جارٍ التحميل' : 'يحتاج إنترنت')} />
       </Screen>
     );
-  const s = subscriptionStatus(b, TODAY);
+  const s = subscriptionStatus(b.subscription);
+  const active = b.subscription.status === 'active';
+  const ends = b.subscription.expires_at;
+  const setStatus = async (status: 'active' | 'inactive') => {
+    const r = await app.online('POST', `admin/bakeries/${b.id}/status`, { status });
+    if (!r.ok) return toast({ kind: 'error', title: r.error });
+    remote.reload();
+    toast({ kind: 'success', title: status === 'active' ? 'تم تفعيل الاشتراك' : 'تم إيقاف الاشتراك' });
+  };
   const online = app.state.online;
   return (
     <Screen net={false}>
@@ -38,42 +48,38 @@ export default function BakeryPage() {
       <Hero className="mb-4 p-5">
         <Text className="text-hero-muted text-[13px]">الاشتراك</Text>
         <Text className="font-plex-semi text-[22px] leading-[32px] text-hero-foreground">
-          {s.label === 'فعّال' || s.label === 'ينتهي قريبًا' ? `فعّال حتى ${formatDate(b.subscription_ends_at)}` : s.label === 'منتهٍ' ? `انتهى في ${formatDate(b.subscription_ends_at)}` : 'موقوف'}
+          {s.label === 'فعّال' || s.label === 'ينتهي قريبًا' ? (ends ? `فعّال حتى ${formatDate(ends)}` : 'فعّال') : s.label === 'منتهٍ' ? `انتهى في ${formatDate(ends)}` : 'موقوف'}
         </Text>
         <Text className="text-hero-muted text-[13px]">{s.detail}</Text>
       </Hero>
       <InfoList
         items={[
-          ['صاحب المخبز', b.owner_name],
-          ['البريد', ltr(b.owner_email)],
+          ['صاحب المخبز', b.owner?.name ?? '—'],
+          ['البريد', b.owner ? ltr(b.owner.email) : '—'],
+          ['الهاتف', b.phone ? ltr(b.phone) : '—'],
           ['العنوان', b.address ?? '—'],
-          ['الموظفون', String(b.staff_count)],
-          ['سعر الكيلو', formatMoney(b.price_per_kg)],
         ]}
       />
-      <Button className="mt-4 w-full" disabled={!online} onPress={() => sheets.open({ kind: 'renew', bakeryId: b.id })}>
+      <Button className="mt-4 w-full" disabled={!online} onPress={() => sheets.open({ kind: 'renew', bakery: b })}>
         <Icon as={RefreshCw} size={18} />
         <Text>تجديد الاشتراك</Text>
       </Button>
       <Button
-        variant={b.is_active ? 'danger' : 'glass'}
+        variant={active ? 'danger' : 'glass'}
         className="mt-2 w-full"
         disabled={!online}
         onPress={() =>
-          b.is_active
+          active
             ? confirm({
                 title: `إيقاف اشتراك ${b.name}؟`,
                 body: 'لن يستطيع صاحب المخبز وموظفوه الدخول حتى تعيد التفعيل.',
                 action: 'إيقاف',
                 destructive: true,
-                onConfirm: () => {
-                  app.setBakeryActive(b.id, false);
-                  toast({ kind: 'success', title: 'تم إيقاف الاشتراك' });
-                },
+                onConfirm: () => setStatus('inactive'),
               })
-            : (app.setBakeryActive(b.id, true), toast({ kind: 'success', title: 'تم تفعيل الاشتراك' }))
+            : setStatus('active')
         }>
-        <Text>{b.is_active ? 'إيقاف الاشتراك' : 'تفعيل الاشتراك'}</Text>
+        <Text>{active ? 'إيقاف الاشتراك' : 'تفعيل الاشتراك'}</Text>
       </Button>
       {!online ? (
         <Text variant="muted" className="mt-2 text-center">

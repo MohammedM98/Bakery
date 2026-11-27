@@ -11,18 +11,31 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { PERMISSION_GROUPS, type StaffPermission } from '@/mock/types';
-import { useApp } from '@/state/app';
+import { PERMISSION_GROUPS, type ApiStaff, type StaffPermission } from '@/api/types';
+import { useApp, useRemote } from '@/state/app';
 import { useTheme } from '@/state/theme';
 
 /** Staff form (option A): name, email, password and the permission checkboxes in their groups. */
 export default function StaffForm() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const app = useApp();
+  const remote = useRemote<{ users: ApiStaff[] }>(id !== 'new' && app.can('manage-users') ? 'users' : null);
+  const existing = remote.data?.users.find((s) => String(s.id) === id);
+  if (id !== 'new' && !existing)
+    return (
+      <Screen>
+        <PageHeader back title="الموظف" />
+        <Text variant="muted">{remote.error ?? (app.state.online ? 'جارٍ التحميل' : 'يحتاج إنترنت')}</Text>
+      </Screen>
+    );
+  return <Body key={existing?.id ?? 'new'} existing={existing} reload={remote.reload} />;
+}
+
+function Body({ existing, reload }: { existing?: ApiStaff; reload: () => void }) {
+  const app = useApp();
   const toast = useToast();
   const confirm = useConfirm();
   const { theme } = useTheme();
-  const existing = app.state.staff.find((s) => String(s.id) === id);
   const [name, setName] = React.useState(existing?.name ?? '');
   const [email, setEmail] = React.useState(existing?.email ?? '');
   const [password, setPassword] = React.useState('');
@@ -31,11 +44,18 @@ export default function StaffForm() {
   const [error, setError] = React.useState<string | null>(null);
   if (!app.can('manage-users')) return <NotAllowed />;
   const online = app.state.online;
+  const setActive = async (active: boolean) => {
+    const r = await app.online('POST', `users/${existing!.id}/status`, { active });
+    if (!r.ok) return toast({ kind: 'error', title: r.error });
+    reload();
+    toast({ kind: 'success', title: active ? 'تم تفعيل الحساب' : 'تم إيقاف الحساب' });
+  };
   const toggle = (k: StaffPermission) => setPerms((p) => (p.includes(k) ? p.filter((x) => x !== k) : [...p, k]));
   const actionsOnly = perms.length > 0 && !perms.includes('view-customers') && perms.some((p) => ['record-payment', 'record-deposit', 'record-flour-sale', 'record-adjustment'].includes(p));
 
-  const save = () => {
-    const r = app.saveStaff(existing?.id ?? null, { name, email, password, permissions: perms });
+  const save = async () => {
+    const body = { name, email: email.trim().toLowerCase(), password, permissions: perms };
+    const r = existing ? await app.online('PUT', `users/${existing.id}`, body) : await app.online('POST', 'users', body);
     if (!r.ok) return setError(r.error);
     toast({ kind: 'success', title: existing ? 'تم حفظ الموظف' : 'تمت إضافة الموظف', body: name });
     router.back();
@@ -108,12 +128,9 @@ export default function StaffForm() {
                   body: 'لن يستطيع الدخول، وتبقى حركاته السابقة باسمه.',
                   action: 'إيقاف',
                   destructive: true,
-                  onConfirm: () => {
-                    app.setStaffActive(existing.id, false);
-                    toast({ kind: 'success', title: 'تم إيقاف الحساب' });
-                  },
+                  onConfirm: () => setActive(false),
                 })
-              : (app.setStaffActive(existing.id, true), toast({ kind: 'success', title: 'تم تفعيل الحساب' }))
+              : setActive(true)
           }>
           <Text>{existing.is_active ? 'إيقاف الحساب' : 'تفعيل الحساب'}</Text>
         </Button>

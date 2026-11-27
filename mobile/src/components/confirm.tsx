@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Text } from '@/components/ui/text';
+import { useApp } from '@/state/app';
 
 /** Every delete (and stopping a subscription) asks first: a centred card over the scrim. */
 interface Ask {
@@ -72,4 +73,22 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
       </AlertDialog>
     </ConfirmContext.Provider>
   );
+}
+
+/** Signing out sends the queue first; what could not be sent would be lost, so it asks before dropping it. */
+export function useLogout() {
+  const confirm = useConfirm();
+  const app = useApp();
+  const go = async (force: boolean, after?: () => void) => {
+    const r = await app.logout(force);
+    if (r.ok) return after?.();
+    confirm({
+      title: 'عمليات لم تُرسل بعد',
+      body: `${r.pending} عمليات لم تصل إلى الخادم وستُحذف من هذا الهاتف إن خرجت الآن. اتصل بالإنترنت وأرسلها أولًا.`,
+      action: 'خروج وحذفها',
+      destructive: true,
+      onConfirm: () => go(true, after),
+    });
+  };
+  return (after?: () => void) => void go(false, after);
 }

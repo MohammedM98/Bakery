@@ -1,10 +1,11 @@
 import { router, type Href } from 'expo-router';
 import { ChevronLeft, Landmark, LogOut, RefreshCw, Settings, Shield, ShoppingBag, User, type LucideIcon } from 'lucide-react-native';
 import * as React from 'react';
+
+import { useLogout } from '@/components/confirm';
 import { View } from 'react-native';
 
 import { Avatar, ListCard, RoundIcon, Row } from '@/components/common';
-import { DevTools } from '@/components/dev-tools';
 import { Screen } from '@/components/screen';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
@@ -24,17 +25,18 @@ interface Item {
 /** Permissions-aware menu (option A): what needs the internet is shown disabled while offline. */
 export default function More() {
   const app = useApp();
+  const logout = useLogout();
   const { theme } = useTheme();
   const work: Item[] = [
     ...(app.can('view-sales') ? [{ label: 'المبيعات', icon: ShoppingBag, href: '/more/sales' as Href }] : []),
-    { label: 'المزامنة', icon: RefreshCw, href: '/more/sync', badge: app.pendingCount },
+    { label: 'المزامنة', icon: RefreshCw, href: '/more/sync', badge: app.pendingCount + app.rejectedCount },
     ...(app.can('view-banks') ? [{ label: 'البنوك والمحافظ', icon: Landmark, href: '/more/banks' as Href }] : []),
   ];
   const admin: Item[] = [
     ...(app.can('manage-users') ? [{ label: 'المستخدمون', icon: Shield, href: '/more/users' as Href, online: true }] : []),
     ...(app.can('manage-settings') ? [{ label: 'الإعدادات والأسعار', icon: Settings, href: '/more/settings' as Href }] : []),
     { label: 'الملف الشخصي', icon: User, href: '/more/profile' },
-    { label: 'تسجيل الخروج', icon: LogOut, danger: true, onPress: () => (app.logout(), router.replace('/login')) },
+    { label: 'تسجيل الخروج', icon: LogOut, danger: true, onPress: () => logout(() => router.replace('/login')) },
   ];
 
   const group = (title: string, items: Item[]) => (
@@ -77,13 +79,12 @@ export default function More() {
         <View className="flex-1">
           <Text variant="title">{app.user?.name}</Text>
           <Text variant="muted">
-            {app.user?.role === 'bakery_owner' ? 'صاحب' : 'موظف في'} {app.state.bakery.name}
+            {app.user?.role === 'bakery_owner' ? 'صاحب' : 'موظف في'} {app.me?.bakery?.name}
           </Text>
         </View>
       </View>
       {group('العمل', work)}
       {group('الحساب', admin)}
-      {__DEV__ || process.env.EXPO_PUBLIC_DEV_MENU === '1' ? <DevTools /> : null}
     </Screen>
   );
 }

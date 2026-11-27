@@ -20,7 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
 import { formatFlourBalance, formatMoney } from '@/lib/format';
 import { cn } from '@/lib/utils';
-import type { MovementType } from '@/mock/types';
+import type { MovementType } from '@/api/types';
 import { useTheme } from '@/state/theme';
 
 // ---------------------------------------------------------------------------------------------
@@ -194,18 +194,19 @@ export function Row({
 // ---------------------------------------------------------------------------------------------
 // Balances: money with its sign (+ = عليه, red; − = له, green), flour in words with the same colours.
 
-export function MoneyText({ cents, className, plus }: { cents: number; className?: string; plus?: boolean }) {
+/** `text`: the server's ready text (money_balance_text...) when there is one; the colour still comes from the number. */
+export function MoneyText({ cents, className, plus, text }: { cents: number; className?: string; plus?: boolean; text?: string }) {
   return (
     <Text className={cn('font-plex-medium', cents > 0 && !plus ? 'text-destructive' : cents < 0 || plus ? 'text-success' : '', className)}>
-      {formatMoney(cents / 100, { plus })}
+      {text ?? formatMoney(cents / 100, { plus })}
     </Text>
   );
 }
 
-export function FlourText({ hundredths, className }: { hundredths: number; className?: string }) {
+export function FlourText({ hundredths, className, text }: { hundredths: number; className?: string; text?: string }) {
   return (
     <Text className={cn(hundredths > 0 ? 'text-destructive' : hundredths < 0 ? 'text-success' : 'text-muted-foreground', className)}>
-      {formatFlourBalance(hundredths / 100)}
+      {text ?? formatFlourBalance(hundredths / 100)}
     </Text>
   );
 }
