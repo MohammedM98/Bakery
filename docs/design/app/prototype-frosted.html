@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نظام الأسطح الزجاجية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ================= الرموز (Tokens) ================= */
+:root {
+  /* الخلفية L0 */
+  --bg: #eef0f3; --bg-glow-1: #ffffff; --bg-glow-2: #e1e6ed; --bg-glow-3: rgba(255, 255, 255, .55);
+  /* الزجاج: لون التعبئة ونسبته لكل مستوى */
+  --glass-rgb: 255, 255, 255;
+  --l1-a: .62; --l2-a: .74; --l3-a: .84; --l4-a: .88;
+  --l1-blur: 16px; --l2-blur: 20px; --l3-blur: 28px; --l4-blur: 32px;
+  --edge: rgba(255, 255, 255, .75);          /* الحافة الفاتحة الرفيعة */
+  --edge-top: rgba(255, 255, 255, .95);      /* لمعة الحافة العليا */
+  --hairline: rgba(20, 26, 34, .07);         /* فواصل داخلية */
+  --shadow-1: 0 1px 2px rgba(20, 26, 34, .04), 0 8px 24px -12px rgba(20, 26, 34, .12);
+  --shadow-2: 0 2px 4px rgba(20, 26, 34, .05), 0 16px 32px -16px rgba(20, 26, 34, .18);
+  --shadow-3: 0 -2px 6px rgba(20, 26, 34, .04), 0 -16px 48px -16px rgba(20, 26, 34, .26);
+  --shadow-4: 0 2px 6px rgba(20, 26, 34, .06), 0 16px 36px -14px rgba(20, 26, 34, .30);
+  --well: rgba(20, 26, 34, .045);
+  --well-inset: inset 0 1px 2px rgba(20, 26, 34, .07);
+  /* النص */
+  --ink: #141a22; --muted: #566170; --faint: #8a94a2;
+  /* البطاقة البارزة الوحيدة */
+  --hero-1: #1b222c; --hero-2: #0f141a; --hero-ink: #ffffff; --hero-muted: #aeb8c6; --wheat: #e3b35c;
+  /* الزر الداكن */
+  --pill: #141a22; --pill-ink: #ffffff;
+  /* البرتقالي: لمسة فقط */
+  --orange: #ee7a3a; --on-orange: #1f1206; --orange-text: #b8561c;
+  /* له / عليه */
+  --success: #13794a; --success-soft: rgba(19, 121, 74, .10);
+  --danger: #b3261e; --danger-soft: rgba(179, 38, 30, .08);
+  --scrim: rgba(15, 20, 27, .34);
+  --chart-line: rgba(20, 26, 34, .38);
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #0b0e13; --bg-glow-1: #1a2230; --bg-glow-2: #141b26; --bg-glow-3: rgba(255, 255, 255, .03);
+  --glass-rgb: 28, 36, 48;
+  --l1-a: .66; --l2-a: .76; --l3-a: .86; --l4-a: .88;
+  --edge: rgba(255, 255, 255, .07);
+  --edge-top: rgba(255, 255, 255, .10);
+  --hairline: rgba(255, 255, 255, .07);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -12px rgba(0, 0, 0, .5);
+  --shadow-2: 0 2px 4px rgba(0, 0, 0, .3), 0 16px 32px -16px rgba(0, 0, 0, .6);
+  --shadow-3: 0 -16px 48px -16px rgba(0, 0, 0, .7);
+  --shadow-4: 0 2px 6px rgba(0, 0, 0, .35), 0 16px 36px -14px rgba(0, 0, 0, .7);
+  --well: rgba(255, 255, 255, .05);
+  --well-inset: inset 0 1px 2px rgba(0, 0, 0, .35);
+  --ink: #eaeef3; --muted: #a3adba; --faint: #7c8796;
+  --hero-1: #263040; --hero-2: #19202b; --hero-muted: #aeb8c6;
+  --pill: #eaeef3; --pill-ink: #141a22;
+  --orange: #f08a4e; --on-orange: #1f1206; --orange-text: #f5a06c;
+  --success: #4cc38a; --success-soft: rgba(76, 195, 138, .12);
+  --danger: #ff8a7a; --danger-soft: rgba(255, 138, 122, .10);
+  --scrim: rgba(0, 0, 0, .55);
+  --chart-line: rgba(234, 238, 243, .42);
+  color-scheme: dark;
+}
+
+/* ================= الأساس ================= */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+body {
+  margin: 0; font-family: "IBM Plex Sans Arabic", system-ui, sans-serif; font-size: 15px; line-height: 1.6; color: var(--ink);
+  background:
+    radial-gradient(900px 520px at 85% -10%, var(--bg-glow-1), transparent 60%),
+    radial-gradient(800px 600px at 0% 40%, var(--bg-glow-2), transparent 60%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+.num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.35; font-weight: 600; }
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+/* مستويات الأسطح */
+.s1, .s2, .s3, .s4 { border: 1px solid var(--edge); }
+.s1 { background: rgba(var(--glass-rgb), var(--l1-a)); backdrop-filter: blur(var(--l1-blur)) saturate(140%); -webkit-backdrop-filter: blur(var(--l1-blur)) saturate(140%); box-shadow: inset 0 1px 0 var(--edge-top), var(--shadow-1); }
+.s2 { background: rgba(var(--glass-rgb), var(--l2-a)); backdrop-filter: blur(var(--l2-blur)) saturate(150%); -webkit-backdrop-filter: blur(var(--l2-blur)) saturate(150%); box-shadow: inset 0 1px 0 var(--edge-top), var(--shadow-2); }
+.s3 { background: rgba(var(--glass-rgb), var(--l3-a)); backdrop-filter: blur(var(--l3-blur)) saturate(160%); -webkit-backdrop-filter: blur(var(--l3-blur)) saturate(160%); box-shadow: inset 0 1px 0 var(--edge-top), var(--shadow-3); }
+.s4 { background: rgba(var(--glass-rgb), var(--l4-a)); backdrop-filter: blur(var(--l4-blur)) saturate(170%); -webkit-backdrop-filter: blur(var(--l4-blur)) saturate(170%); box-shadow: inset 0 1px 0 var(--edge-top), var(--shadow-4); }
+.well { background: var(--well); box-shadow: var(--well-inset); border: 0; }
+/* سطح صلب داخل سطح زجاجي: لا طبقة ثالثة شفافة */
+.solid { background: rgb(var(--glass-rgb)); border: 1px solid var(--edge); box-shadow: inset 0 1px 0 var(--edge-top), 0 1px 2px rgba(20, 26, 34, .06); }
+:root[data-theme="dark"] .solid { background: #273140; }
+
+.hero {
+  color: var(--hero-ink); border: 1px solid rgba(255, 255, 255, .06);
+  background:
+    radial-gradient(rgba(255, 255, 255, .05) 1px, transparent 1.3px) 0 0 / 10px 10px,
+    radial-gradient(140% 120% at 90% 0%, rgba(255, 255, 255, .10), transparent 55%),
+    linear-gradient(135deg, var(--hero-1), var(--hero-2));
+  box-shadow: 0 2px 4px rgba(20, 26, 34, .10), 0 18px 36px -16px rgba(20, 26, 34, .45);
+}
+
+/* الأزرار */
+.btn { white-space: nowrap; font: inherit; font-size: 15px; font-weight: 500; height: 48px; padding: 0 20px; border-radius: 16px; border: 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; color: var(--ink); }
+.btn.primary { background: linear-gradient(180deg, #f3925c, var(--orange)); color: var(--on-orange); font-weight: 600; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 1px 2px rgba(20, 26, 34, .10), 0 8px 16px -10px rgba(20, 26, 34, .35); }
+.btn.primary:active { transform: translateY(1px); filter: brightness(.96); }
+.btn.glass { border: 1px solid var(--edge); }
+.btn.dark { background: var(--pill); color: var(--pill-ink); border-radius: 999px; }
+.btn.danger { background: var(--danger-soft); color: var(--danger); }
+.btn.block { width: 100%; }
+.btn.sm { height: 40px; font-size: 14px; padding: 0 16px; }
+.icon-btn { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--ink); position: relative; flex: none; }
+.badge-dot { position: absolute; top: 10px; inset-inline-end: 11px; width: 8px; height: 8px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 2px rgb(var(--glass-rgb)); }
+
+/* ================= الصفحة ================= */
+.topbar { position: sticky; top: 0; z-index: 20; margin: 16px auto 0; max-width: 1240px; width: calc(100% - 32px); border-radius: 22px; padding: 12px 16px; display: flex; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+.topbar h1 { font-size: 17px; }
+.topbar nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.topbar nav a { font-size: 14px; color: var(--muted); padding: 6px 12px; border-radius: 999px; }
+.topbar nav a:hover { color: var(--ink); background: var(--well); }
+.seg { display: inline-flex; padding: 4px; border-radius: 999px; gap: 2px; }
+.seg button, .seg span { font: inherit; font-size: 14px; border: 0; background: none; color: var(--muted); padding: 6px 16px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.seg .on, .seg button[aria-pressed="true"] { color: var(--ink); font-weight: 600; }
+.seg .on.solid, .seg button[aria-pressed="true"] { background: rgb(var(--glass-rgb)); box-shadow: 0 1px 2px rgba(20, 26, 34, .08), 0 4px 10px -6px rgba(20, 26, 34, .18); }
+:root[data-theme="dark"] .seg .on.solid, :root[data-theme="dark"] .seg button[aria-pressed="true"] { background: #2b3544; }
+.topbar .seg { margin-inline-start: auto; }
+
+main.page { max-width: 1240px; margin: 0 auto; padding: 32px 16px 80px; }
+.sec-head { margin: 48px 0 20px; max-width: 72ch; }
+.sec-head h2 { font-size: 24px; }
+.sec-head p { color: var(--muted); margin-top: 6px; }
+
+/* المواصفات */
+.levels { position: relative; border-radius: 32px; padding: 32px 24px; overflow: hidden; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; }
+.levels::before { content: ""; position: absolute; inset: 0; z-index: 0;
+  background:
+    radial-gradient(260px 200px at 18% 30%, var(--bg-glow-1), transparent 70%),
+    radial-gradient(320px 220px at 75% 80%, var(--bg-glow-2), transparent 70%),
+    radial-gradient(240px 200px at 55% 10%, var(--bg-glow-3), transparent 70%),
+    var(--bg); }
+.levels > * { position: relative; z-index: 1; }
+.lv { border-radius: 24px; padding: 20px; min-height: 232px; display: flex; flex-direction: column; gap: 8px; }
+.lv .tag { font-size: 13px; color: var(--muted); }
+.lv h3 { font-size: 17px; }
+.lv dl { margin: 8px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+.lv dt { color: var(--muted); }
+.lv dd { margin: 0; }
+.lv.l0 { border: 1px dashed var(--hairline); background: transparent; }
+.lv.hero { min-height: 230px; }
+.lv.hero .tag, .lv.hero dt { color: var(--hero-muted); }
+.rules { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card { border-radius: 24px; padding: 20px; }
+.card h3 { font-size: 17px; margin-bottom: 12px; }
+.card ul { margin: 0; padding-inline-start: 20px; color: var(--ink); font-size: 14px; display: grid; gap: 6px; }
+.card ul li::marker { color: var(--faint); }
+table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.t th, table.t td { text-align: start; padding: 8px 6px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+table.t th { color: var(--muted); font-weight: 500; }
+table.t tr:last-child td { border-bottom: 0; }
+.sw { display: inline-block; width: 14px; height: 14px; border-radius: 5px; vertical-align: -2px; margin-inline-end: 6px; border: 1px solid var(--hairline); }
+.ok { color: var(--success); font-weight: 500; }
+.scale { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.scale span { display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+.typo div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--hairline); }
+.typo div:last-child { border-bottom: 0; }
+.typo small { color: var(--muted); font-size: 13px; white-space: nowrap; }
+
+/* ================= الهاتف ================= */
+.phones { display: flex; flex-wrap: wrap; gap: 40px 32px; justify-content: center; }
+figure { margin: 0; }
+figcaption { margin-top: 12px; text-align: center; font-size: 15px; font-weight: 500; }
+figcaption span { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+.phone { width: 360px; height: 760px; border-radius: 48px; position: relative; overflow: hidden; border: 10px solid #0d1117; box-shadow: 0 40px 80px -40px rgba(20, 26, 34, .5);
+  background:
+    radial-gradient(320px 260px at 90% 0%, var(--bg-glow-1), transparent 70%),
+    radial-gradient(300px 300px at 0% 55%, var(--bg-glow-2), transparent 70%),
+    radial-gradient(260px 220px at 70% 100%, var(--bg-glow-3), transparent 70%),
+    var(--bg); }
+.screen { position: absolute; inset: 0; overflow-y: auto; padding: 52px 20px 124px; scrollbar-width: none; }
+.screen::-webkit-scrollbar { display: none; }
+.status { position: absolute; top: 0; inset-inline: 0; height: 44px; z-index: 6; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-size: 14px; font-weight: 600; }
+.status .sys { display: flex; gap: 6px; align-items: center; }
+.status .sys i { display: block; width: 18px; height: 10px; border-radius: 3px; border: 1.5px solid currentColor; position: relative; }
+.status .sys i::after { content: ""; position: absolute; inset: 1.5px; inset-inline-end: 5px; background: currentColor; border-radius: 1px; }
+
+.hdr { display: flex; align-items: center; gap: 12px; margin: 8px 0 20px; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 16px; flex: none; }
+.hdr .who small { display: block; font-size: 13px; color: var(--muted); line-height: 1.3; }
+.hdr .who b { font-size: 17px; font-weight: 600; }
+.hdr .end { margin-inline-start: auto; display: flex; gap: 8px; }
+.title { font-size: 24px; font-weight: 600; }
+
+.banner { border-radius: 24px; padding: 20px; display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.banner .ico { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: var(--wheat); background: rgba(255, 255, 255, .06); flex: none; }
+.banner .ico svg { width: 24px; height: 24px; }
+.banner .txt { flex: 1; min-width: 0; }
+.banner .txt small { display: block; color: var(--hero-muted); font-size: 13px; }
+.banner .txt b { font-size: 26px; font-weight: 600; line-height: 1.3; }
+.banner .txt b span { font-size: 15px; font-weight: 500; color: var(--hero-muted); margin-inline-start: 4px; }
+.banner .txt p { color: var(--hero-muted); font-size: 13px; }
+.banner .go { width: 40px; height: 40px; border-radius: 50%; background: #fff; color: #141a22; display: grid; place-items: center; flex: none; }
+
+.sec-t { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
+.sec-t h3 { font-size: 20px; font-weight: 500; }
+.sec-t a { font-size: 14px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.tile { border-radius: 22px; padding: 16px; min-height: 168px; display: flex; flex-direction: column; }
+.tile .th { display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 500; }
+.tile .th svg { color: var(--faint); width: 18px; height: 18px; }
+.tile .v { margin-top: 8px; font-size: 18px; font-weight: 600; line-height: 1.3; }
+.tile .v small { font-size: 13px; font-weight: 400; color: var(--muted); }
+.tile .sub { white-space: nowrap; display: flex; gap: 12px; margin-top: 4px; font-size: 13px; color: var(--muted); }
+.tile .sub b { color: var(--ink); font-weight: 500; }
+.tile .sub span + span { border-inline-start: 1px solid var(--hairline); padding-inline-start: 12px; }
+.tile .vs { margin-top: auto; font-size: 13px; color: var(--muted); }
+.minibars { margin-top: auto; display: flex; gap: 6px; align-items: flex-end; height: 44px; }
+.minibars i { flex: 1; border-radius: 6px; background: var(--well); box-shadow: var(--well-inset); }
+.minibars i.cur { background: var(--ink); opacity: .85; box-shadow: none; }
+.tile svg.spark { margin-top: auto; width: 100%; height: 72px; overflow: visible; }
+
+.list { border-radius: 22px; padding: 4px 16px; }
+.row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+.row + .row { border-top: 1px solid var(--hairline); }
+.ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; color: var(--muted); }
+.ic svg { width: 18px; height: 18px; }
+.row .who { flex: 1; min-width: 0; }
+.row .who b { display: block; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .who span { font-size: 13px; color: var(--muted); }
+.row .amt { text-align: end; font-size: 15px; font-weight: 500; white-space: nowrap; }
+.row .amt small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); }
+.in { color: var(--success); }
+.out { color: var(--danger); }
+
+.search { display: flex; align-items: center; gap: 8px; height: 48px; border-radius: 16px; padding: 0 16px; color: var(--muted); margin-bottom: 12px; font-size: 15px; }
+.chips { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.chip { font-size: 14px; padding: 6px 16px; border-radius: 999px; color: var(--muted); }
+.chip.on { background: var(--pill); color: var(--pill-ink); }
+
+.balances { border-radius: 24px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.balances small { display: block; font-size: 13px; color: var(--hero-muted); }
+.balances b { font-size: 22px; font-weight: 600; line-height: 1.35; }
+.balances b span { font-size: 14px; font-weight: 500; color: var(--hero-muted); margin-inline-start: 4px; }
+.balances .div { border-inline-start: 1px solid rgba(255, 255, 255, .10); padding-inline-start: 16px; }
+.actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+.act { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 13px; text-align: center; line-height: 1.35; }
+.act .b { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; color: var(--ink); }
+.stmt-row { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 12px 0; }
+.stmt-row + .stmt-row { border-top: 1px solid var(--hairline); }
+.stmt-row b { font-size: 15px; font-weight: 500; }
+.stmt-row span { font-size: 13px; color: var(--muted); }
+.stmt-row .r { text-align: end; }
+.stmt-row.edge { color: var(--muted); }
+.pend { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
+.pend::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--orange); }
+
+/* النافذة السفلية والشريط والرسائل */
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 7; }
+.sheet { position: absolute; inset-inline: 0; bottom: 0; z-index: 8; border-radius: 28px 28px 0 0; padding: 8px 20px 28px; border-bottom: 0; }
+.grab { width: 40px; height: 5px; border-radius: 99px; background: var(--hairline); margin: 0 auto 16px; }
+:root[data-theme="dark"] .grab { background: rgba(255, 255, 255, .16); }
+.sheet-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.sheet-h h3 { font-size: 17px; }
+.qty { text-align: center; margin: 4px 0; }
+.qty b { font-size: 48px; font-weight: 600; line-height: 1.2; }
+.qty span { font-size: 18px; color: var(--muted); margin-inline-start: 6px; }
+.calc { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+.calc b { color: var(--ink); font-weight: 600; }
+.two { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 16px; gap: 4px; margin-bottom: 16px; }
+.two span { text-align: center; padding: 8px 0; border-radius: 12px; font-size: 14px; color: var(--muted); }
+.two span.on { color: var(--ink); font-weight: 600; background: rgb(var(--glass-rgb)); box-shadow: 0 1px 2px rgba(20, 26, 34, .08), 0 4px 10px -6px rgba(20, 26, 34, .18); }
+:root[data-theme="dark"] .two span.on { background: #2b3544; }
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; direction: ltr; margin-bottom: 16px; }
+.keys span { height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 22px; font-weight: 500; }
+.info { border-radius: 16px; padding: 4px 16px; margin-bottom: 8px; }
+.info div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; font-size: 14px; }
+.info div + div { border-top: 1px solid var(--hairline); }
+.info dt { color: var(--muted); }
+.info dd { margin: 0; font-weight: 500; text-align: end; }
+.btns { display: flex; gap: 8px; margin-top: 16px; }
+.btns .btn { flex: 1; }
+
+.nav { position: absolute; inset-inline: 16px; bottom: 16px; height: 68px; z-index: 6; border-radius: 26px; display: flex; align-items: center; justify-content: space-around; padding: 0 6px; }
+.nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 12px; font-weight: 500; color: var(--muted); position: relative; }
+.nav a.on { color: var(--orange-text); }
+.nav a.on::after { content: ""; position: absolute; bottom: -8px; width: 5px; height: 5px; border-radius: 50%; background: var(--orange); }
+.nav .fab { width: 56px; height: 56px; margin-top: -32px; border-radius: 20px; display: grid; place-items: center; background: linear-gradient(180deg, #f3925c, var(--orange)); color: var(--on-orange); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 10px 20px -10px rgba(20, 26, 34, .45); border: 4px solid var(--bg); }
+.nav .fab svg { width: 26px; height: 26px; stroke-width: 2; }
+.nav .fab-l { color: var(--ink); }
+
+.toast { position: absolute; top: 52px; inset-inline: 16px; z-index: 9; border-radius: 20px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+.toast b { display: block; font-size: 15px; font-weight: 600; }
+.toast span { font-size: 13px; color: var(--muted); }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.field .inp { height: 50px; border-radius: 16px; display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 15px; }
+.field .inp .ph { color: var(--ink); direction: ltr; flex: 1; text-align: end; }
+.field .inp svg { color: var(--faint); }
+
+/* ================= الموقع ================= */
+.desk { width: 100%; max-width: 1180px; margin: 0 auto; border-radius: 32px; overflow: hidden; position: relative; display: grid; grid-template-columns: 84px 1fr; min-height: 640px; border: 1px solid var(--edge);
+  background:
+    radial-gradient(600px 400px at 85% 0%, var(--bg-glow-1), transparent 65%),
+    radial-gradient(600px 500px at 0% 70%, var(--bg-glow-2), transparent 65%),
+    radial-gradient(500px 300px at 60% 100%, var(--bg-glow-3), transparent 70%),
+    var(--bg);
+  box-shadow: 0 40px 80px -40px rgba(20, 26, 34, .4); }
+.rail { margin: 16px; margin-inline-end: 0; border-radius: 26px; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 0; }
+.rail .logo { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; margin-bottom: 12px; }
+.rail a { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; color: var(--muted); position: relative; }
+.rail a.on { color: var(--orange-text); background: rgb(var(--glass-rgb)); box-shadow: 0 1px 2px rgba(20, 26, 34, .08); }
+:root[data-theme="dark"] .rail a.on { background: #2b3544; }
+.rail .spacer { flex: 1; }
+.dmain { padding: 28px; padding-inline-start: 20px; min-width: 0; }
+.dhead { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.dhead h3 { font-size: 24px; }
+.dhead small { display: block; color: var(--muted); font-size: 14px; font-weight: 400; }
+.dhead .seg { margin-inline-start: 24px; }
+.dhead .end { margin-inline-start: auto; display: flex; gap: 8px; align-items: center; }
+.dgrid { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 20px; }
+.dgrid .banner { margin: 0; grid-column: 1; }
+.dgrid .tile { min-height: 0; }
+.dchart { grid-column: 1 / span 2; border-radius: 24px; padding: 20px; }
+.dlist { grid-column: 3; grid-row: 2 / span 2; }
+
+@media (max-width: 980px) { .desk { grid-template-columns: 76px 1fr; } .dgrid { grid-template-columns: 1fr 1fr; } .dgrid .banner, .dchart, .dlist { grid-column: 1 / -1; grid-row: auto; } }
+@media (max-width: 560px) {
+  .topbar { border-radius: 0; width: 100%; margin: 0; position: static; }
+  .topbar .seg { margin-inline-start: 0; }
+  main.page { padding-top: 20px; }
+  .phone { width: 100%; max-width: 360px; }
+  .desk { grid-template-columns: 1fr; border-radius: 24px; }
+  .rail { flex-direction: row; margin: 12px 12px 0; padding: 8px; justify-content: space-between; }
+  .rail .logo { margin: 0; } .rail .spacer { display: none; }
+  .dmain { padding: 20px 12px; }
+  .dhead .seg { margin-inline-start: 0; }
+  .dgrid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header class="topbar s4">
+  <h1>نظام الأسطح الزجاجية</h1>
+  <nav aria-label="أقسام المعاينة">
+    <a href="#spec">المواصفات</a>
+    <a href="#app">شاشات التطبيق</a>
+    <a href="#web">الموقع</a>
+  </nav>
+  <div class="seg well" role="group" aria-label="الوضع">
+    <button type="button" data-theme-btn="light" aria-pressed="true">فاتح</button>
+    <button type="button" data-theme-btn="dark" aria-pressed="false">داكن</button>
+  </div>
+</header>
+
+<main class="page">
+  <!-- ===================== المواصفات ===================== -->
+  <section id="spec">
+    <div class="sec-head" style="margin-top:8px">
+      <h2>الأسطح والعمق</h2>
+      <p>خمسة مستويات فقط. كلما ارتفع السطح زاد تغبيشه وظله وكثافته. النص يقع دائمًا على المستوى 1 أو أعلى، ولا تتراكب أكثر من طبقتين شفافتين: ما يوضع داخل بطاقة زجاجية يكون بئرًا غائرًا أو سطحًا صلبًا</p>
+    </div>
+
+    <div class="levels" id="levels">
+      <div class="lv l0">
+        <span class="tag">المستوى 0</span><h3>الخلفية</h3>
+        <dl><dt>التعبئة</dt><dd>رمادي بارد فاتح مع وهج أبيض وأردوازي محايد</dd><dt>الاستخدام</dt><dd>خلف كل شيء، لا نص عليها مباشرة</dd></dl>
+      </div>
+      <div class="lv s1">
+        <span class="tag">المستوى 1</span><h3>بطاقة زجاجية</h3>
+        <dl><dt>التعبئة</dt><dd>أبيض 62٪ (الداكن 66٪)</dd><dt>التغبيش</dt><dd>16px</dd><dt>الحافة</dt><dd>1px فاتحة + لمعة عليا</dd><dt>الظل</dt><dd>محيطي 2px + رئيسي 24px ناعم</dd><dt>الانحناء</dt><dd>22–24px</dd><dt>الاستخدام</dt><dd>البطاقات والقوائم والمربعات</dd></dl>
+      </div>
+      <div class="lv s2">
+        <span class="tag">المستوى 2</span><h3>سطح مرفوع</h3>
+        <dl><dt>التعبئة</dt><dd>74٪ (الداكن 76٪)</dd><dt>التغبيش</dt><dd>20px</dd><dt>الظل</dt><dd>محيطي 4px + رئيسي 32px</dd><dt>الانحناء</dt><dd>16–20px</dd><dt>الاستخدام</dt><dd>الأزرار الزجاجية، الشريط العلوي، أزرار الإجراءات</dd></dl>
+        <div class="well" style="margin-top:auto;border-radius:12px;padding:8px 12px;font-size:13px;color:var(--muted)">بئر غائر: خلفية الحقول وحاوية الأزرار المتبادلة</div>
+      </div>
+      <div class="lv s3">
+        <span class="tag">المستوى 3</span><h3>نافذة سفلية</h3>
+        <dl><dt>التعبئة</dt><dd>84٪ (الداكن 86٪)</dd><dt>التغبيش</dt><dd>28px</dd><dt>الظل</dt><dd>للأعلى 48px</dd><dt>الانحناء</dt><dd>28px من الأعلى</dd><dt>الاستخدام</dt><dd>النماذج والتفاصيل والقوائم المنبثقة، فوق ستار 34٪</dd></dl>
+      </div>
+      <div class="lv s4">
+        <span class="tag">المستوى 4</span><h3>عائم</h3>
+        <dl><dt>التعبئة</dt><dd>88٪</dd><dt>التغبيش</dt><dd>32px</dd><dt>الظل</dt><dd>محيطي 6px + رئيسي 36px</dd><dt>الانحناء</dt><dd>20–26px</dd><dt>الاستخدام</dt><dd>شريط التنقل، الرسائل العائمة</dd></dl>
+      </div>
+      <div class="lv hero">
+        <span class="tag">استثناء واحد</span><h3>البطاقة البارزة</h3>
+        <dl><dt>التعبئة</dt><dd>تدرّج أردوازي داكن مع حبيبات نقطية خافتة</dd><dt>العدد</dt><dd>واحدة في الشاشة على الأكثر</dd><dt>الأيقونة</dt><dd>قمحية، لا برتقالية</dd><dt>الزر</dt><dd>دائرة بيضاء بسهم</dd></dl>
+      </div>
+    </div>
+
+    <div class="rules">
+      <div class="card s1">
+        <h3>البرتقالي لمسة فقط</h3>
+        <ul>
+          <li>الزر الأساسي الواحد في الشاشة: «حفظ العملية»، «دخول»</li>
+          <li>زر البيع البارز في شريط التنقل</li>
+          <li>العنصر النشط في التنقل: الأيقونة والاسم والنقطة</li>
+          <li>نقطة القيمة الحالية في الرسم</li>
+          <li>شارات صغيرة: نقطة التنبيه، ينتظر المزامنة</li>
+          <li>حلقة التركيز عند التنقل بلوحة المفاتيح</li>
+        </ul>
+        <p style="margin-top:12px;font-size:13px;color:var(--muted)">ممنوع: الخلفيات، البطاقات، أزرار الفترة، الفلاتر، الأيقونات العادية، العناوين</p>
+      </div>
+      <div class="card s1">
+        <h3>الأزرار</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+          <span class="btn primary sm">حفظ العملية</span>
+          <span class="btn dark sm">عرض الكل</span>
+          <span class="btn glass s2 sm">قيد تسوية</span>
+          <span class="btn danger sm">حذف الزبون</span>
+        </div>
+        <ul>
+          <li>أساسي: برتقالي بتدرّج خفيف ولمعة عليا، والنص داكن</li>
+          <li>داكن: حبّة أردوازية للإجراءات المحايدة القوية</li>
+          <li>زجاجي: المستوى 2 للإجراءات الثانوية</li>
+          <li>ارتفاع 48px (الصغير 40px)، انحناء 16px، والحبّة كاملة الاستدارة</li>
+          <li>الضغط: نزول 1px وتعتيم 4٪ خلال 120ms</li>
+        </ul>
+      </div>
+      <div class="card s1">
+        <h3>المقاسات</h3>
+        <table class="t">
+          <tr><th>الانحناء</th><td>8 شارات، 12 مفاتيح صغيرة، 16 أزرار وحقول وآبار، 20 مربعات صغيرة، 24 بطاقات، 28 نوافذ، 32 إطار الموقع، كامل للحبّات</td></tr>
+          <tr><th>المسافات</th><td>شبكة 4px: 4، 8، 12، 16، 20، 24، 32، 40، 48. حافة الشاشة 20px، وبين البطاقات 12px، وبين الأقسام 20–24px</td></tr>
+          <tr><th>الأيقونات</th><td>مجموعة خطية واحدة، 20px وخط 1.5، ومساحة لمس 44px على الأقل. الأسهم الاتجاهية معكوسة</td></tr>
+        </table>
+      </div>
+      <div class="card s1 typo">
+        <h3>الخط</h3>
+        <div><span style="font-size:40px;font-weight:600;line-height:1.2" class="num">89</span><small>40 / 600 الرقم البارز</small></div>
+        <div><span style="font-size:24px;font-weight:600">عنوان الشاشة</span><small>24 / 600</small></div>
+        <div><span style="font-size:20px;font-weight:500">عنوان القسم</span><small>20 / 500</small></div>
+        <div><span style="font-size:17px;font-weight:600">عنوان البطاقة</span><small>17 / 600</small></div>
+        <div><span style="font-size:15px">نص أساسي بارتفاع سطر 1.6</span><small>15 / 400</small></div>
+        <div><span style="font-size:13px;color:var(--muted)">نص ثانوي وتسميات</span><small>13 / 400</small></div>
+        <p style="font-size:13px;color:var(--muted);margin-top:8px">IBM Plex Sans Arabic بأوزان 400 و 500 و 600 فقط، والأرقام لاتينية بعرض ثابت</p>
+      </div>
+    </div>
+
+    <div class="rules">
+      <div class="card s1">
+        <h3>الألوان</h3>
+        <table class="t">
+          <tr><th>الرمز</th><th>فاتح</th><th>داكن</th></tr>
+          <tr><td>الخلفية</td><td><i class="sw" style="background:#eef0f3"></i>#eef0f3</td><td><i class="sw" style="background:#0b0e13"></i>#0b0e13</td></tr>
+          <tr><td>الزجاج</td><td><i class="sw" style="background:#fff"></i>أبيض 62–88٪</td><td><i class="sw" style="background:#1c2430"></i>#1c2430 بنسبة 66–88٪</td></tr>
+          <tr><td>النص</td><td><i class="sw" style="background:#141a22"></i>#141a22</td><td><i class="sw" style="background:#eaeef3"></i>#eaeef3</td></tr>
+          <tr><td>النص الثانوي</td><td><i class="sw" style="background:#566170"></i>#566170</td><td><i class="sw" style="background:#a3adba"></i>#a3adba</td></tr>
+          <tr><td>البطاقة البارزة</td><td><i class="sw" style="background:#1b222c"></i>#1b222c ← #0f141a</td><td><i class="sw" style="background:#263040"></i>#263040 ← #19202b</td></tr>
+          <tr><td>الزر الداكن</td><td><i class="sw" style="background:#141a22"></i>#141a22 بنص أبيض</td><td><i class="sw" style="background:#eaeef3"></i>#eaeef3 بنص داكن</td></tr>
+          <tr><td>البرتقالي</td><td><i class="sw" style="background:#ee7a3a"></i>#ee7a3a (نصه #b8561c)</td><td><i class="sw" style="background:#f08a4e"></i>#f08a4e (نصه #f5a06c)</td></tr>
+          <tr><td>له / مدفوع</td><td><i class="sw" style="background:#13794a"></i>#13794a</td><td><i class="sw" style="background:#4cc38a"></i>#4cc38a</td></tr>
+          <tr><td>عليه / حذف</td><td><i class="sw" style="background:#b3261e"></i>#b3261e</td><td><i class="sw" style="background:#ff8a7a"></i>#ff8a7a</td></tr>
+          <tr><td>القمحي</td><td><i class="sw" style="background:#e3b35c"></i>#e3b35c أيقونة البطاقة البارزة</td><td>نفسه</td></tr>
+        </table>
+      </div>
+      <div class="card s1">
+        <h3>التباين المقاس</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:8px">بعد دمج الزجاج فوق أفتح وأغمق نقطة في الخلفية، وتُذكر أسوأ قيمة. المطلوب 4.5 للنص العادي</p>
+        <table class="t">
+          <tr><th>السطح</th><th>النص</th><th>الثانوي</th><th>له</th><th>عليه</th></tr>
+          <tr><td>فاتح، المستوى 1</td><td class="ok">16.2</td><td class="ok">5.8</td><td class="ok">5.0</td><td class="ok">6.0</td></tr>
+          <tr><td>فاتح، المستوى 2</td><td class="ok">16.5</td><td class="ok">5.9</td><td class="ok">5.1</td><td class="ok">6.2</td></tr>
+          <tr><td>فاتح، المستوى 3</td><td class="ok">16.9</td><td class="ok">6.1</td><td class="ok">5.3</td><td class="ok">6.3</td></tr>
+          <tr><td>فاتح، المستوى 4</td><td class="ok">17.0</td><td class="ok">6.1</td><td class="ok">5.3</td><td class="ok">6.4</td></tr>
+          <tr><td>داكن، المستوى 1</td><td class="ok">13.6</td><td class="ok">7.0</td><td class="ok">7.1</td><td class="ok">6.9</td></tr>
+          <tr><td>داكن، المستويات 2–4</td><td class="ok">13.4</td><td class="ok">6.9</td><td class="ok">7.1</td><td class="ok">6.8</td></tr>
+          <tr><td>البطاقة البارزة</td><td class="ok">17.5</td><td class="ok">8.7</td><td colspan="2">الداكن 14.5 و 7.2</td></tr>
+        </table>
+        <table class="t" style="margin-top:8px">
+          <tr><td>الزر الأساسي: نص داكن على البرتقالي</td><td class="ok">6.5 (الداكن 7.4)</td></tr>
+          <tr><td>نص أبيض على البرتقالي (مرفوض)</td><td style="color:var(--danger)">2.8</td></tr>
+          <tr><td>اسم العنصر النشط في التنقل</td><td class="ok">4.7 (الداكن 7.5)</td></tr>
+          <tr><td>الزر الداكن</td><td class="ok">17.5 (الداكن 15.0)</td></tr>
+        </table>
+      </div>
+      <div class="card s1">
+        <h3>البناء في React Native</h3>
+        <table class="t">
+          <tr><th>السطح</th><th>في Expo</th><th>أندرويد ضعيف</th></tr>
+          <tr><td>0</td><td>صورة خلفية ثابتة أو <span class="num">LinearGradient</span></td><td>نفسها</td></tr>
+          <tr><td>1</td><td>لون شبه شفاف وظل، بلا تغبيش في القوائم الطويلة</td><td>أبيض 92٪ بلا تغبيش</td></tr>
+          <tr><td>2</td><td><span class="num">BlurView</span> للأزرار والشريط العلوي فقط</td><td>أبيض 94٪</td></tr>
+          <tr><td>3</td><td><span class="num">BlurView</span> شدة 60 فوق ستار</td><td>أبيض صلب فوق ستار</td></tr>
+          <tr><td>4</td><td><span class="num">BlurView</span> شدة 80 للشريط والرسائل</td><td>أبيض 96٪ مع الظل</td></tr>
+          <tr><td>البارزة</td><td><span class="num">LinearGradient</span> وحبيبات كصورة صغيرة متكررة</td><td>نفسها</td></tr>
+        </table>
+        <p style="font-size:13px;color:var(--muted);margin-top:8px">الظل على أندرويد بخاصية <span class="num">elevation</span> لا يأخذ لونًا ولا انتشارًا ناعمًا؛ يُقرَّب بـ <span class="num">boxShadow</span> في الإصدارات الحديثة أو بصورة ظل جاهزة. التغبيش مكلف، فلا يزيد عن 3 أسطح مغبّشة ظاهرة في الشاشة الواحدة، ويُطفأ تلقائيًا عند تفعيل «تقليل الشفافية»</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== التطبيق ===================== -->
+  <section id="app">
+    <div class="sec-head">
+      <h2>شاشات التطبيق</h2>
+      <p>نفس الأسطح الخمسة في كل شاشة. مرّر المحتوى داخل الهاتف لترى الشريط العائم يغبّش ما تحته</p>
+    </div>
+    <div class="phones" id="phones"></div>
+  </section>
+
+  <!-- ===================== الموقع ===================== -->
+  <section id="web">
+    <div class="sec-head">
+      <h2>الموقع بنفس النظام</h2>
+      <p>شريط أيقونات نحيف زجاجي على اليمين، ونفس البطاقات والبطاقة البارزة والرسم</p>
+    </div>
+    <div class="desk" id="desk"></div>
+  </section>
+</main>
+
+<script>
+const I = {
+  bell: '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  home: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.8c1.6.8 2.7 2.6 3 5.2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  log: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/>',
+  more: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  wheat: '<path d="M12 22V10"/><path d="M12 10c0-3 2-5 5-5 0 3-2 5-5 5Z"/><path d="M12 10c0-3-2-5-5-5 0 3 2 5 5 5Z"/><path d="M12 15c0-2.5 2-4 4.5-4 0 2.5-2 4-4.5 4Z"/><path d="M12 15c0-2.5-2-4-4.5-4 0 2.5 2 4 4.5 4Z"/>',
+  bag: '<path d="M4 9h16l-1.5 10.5a2 2 0 0 1-2 1.5h-9a2 2 0 0 1-2-1.5Z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/>',
+  cash: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+  swap: '<path d="M7 4 3 8l4 4"/><path d="M3 8h14"/><path d="m17 20 4-4-4-4"/><path d="M21 16H7"/>',
+  scale: '<path d="M12 3v18M5 7h14M7 7l-3 7a3 3 0 0 0 6 0Zm10 0-3 7a3 3 0 0 0 6 0Z"/>',
+  back: '<path d="m9 6 6 6-6 6"/>',
+  fwd: '<path d="m15 6-6 6 6 6"/>',
+  edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  del: '<path d="M21 5H9l-6 7 6 7h12Z"/><path d="m16 9-6 6M10 9l6 6"/>',
+  check: '<path d="m5 12 5 5L20 7"/>',
+  cloud: '<path d="M17.5 19H8a5 5 0 1 1 1-9.9A6 6 0 0 1 20.6 12 3.5 3.5 0 0 1 17.5 19Z"/><path d="m3 3 18 18"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  printer: '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7Z"/>',
+  bank: '<path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18"/>',
+  shield: '<path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6Z"/>',
+  cog: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  grid: '<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+};
+const ic = (k, extra = '') => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true" ${extra}>${I[k]}</svg>`;
+const status = `<div class="status"><span class="num">9:41</span><span class="sys">${ic('cloud', 'style="display:none"')}<i></i></span></div>`;
+const nav = active => `<nav class="nav s4" aria-label="التنقل">
+  <a href="#" class="${active === 'home' ? 'on' : ''}">${ic('home')}الرئيسية</a>
+  <a href="#" class="${active === 'customers' ? 'on' : ''}">${ic('users')}الزبائن</a>
+  <a href="#" aria-label="تسجيل بيع"><span class="fab">${ic('plus')}</span><span class="fab-l">بيع</span></a>
+  <a href="#" class="${active === 'log' ? 'on' : ''}">${ic('log')}السجل</a>
+  <a href="#" class="${active === 'more' ? 'on' : ''}">${ic('more')}المزيد</a>
+</nav>`;
+const money = (v, cls = '') => `<span class="${cls}"><span class="num">${v}</span> شيكل</span>`;
+
+/* الرسم الخطي الهادئ: الأحدث على اليسار */
+function spark(vals, w, h, tag, pad = 8) {
+  const max = Math.max(...vals) * 1.08, min = Math.min(...vals) * .85;
+  const X = vals.map((_, i) => w - pad - i * ((w - 2 * pad) / (vals.length - 1)));
+  const Y = vals.map(v => 32 + (1 - (v - min) / (max - min)) * (h - 40));
+  let d = `M${X[0]},${Y[0]}`;
+  for (let i = 0; i < X.length - 1; i++) { const c = (X[i] + X[i + 1]) / 2; d += ` C${c},${Y[i]} ${c},${Y[i + 1]} ${X[i + 1]},${Y[i + 1]}`; }
+  const lx = X[X.length - 1], ly = Y[Y.length - 1], tw = tag.length * 7 + 18;
+  return `<path d="${d}" fill="none" stroke="var(--chart-line)" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="${lx}" x2="${lx}" y1="${ly}" y2="${h}" stroke="var(--hairline)" stroke-width="1.5"/>
+    <rect x="${Math.max(lx - 6, 0)}" y="${ly - 30}" width="${tw}" height="22" rx="8" fill="rgb(var(--glass-rgb))" stroke="var(--hairline)"/>
+    <text x="${Math.max(lx - 6, 0) + tw / 2}" y="${ly - 15}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)" font-family="IBM Plex Sans Arabic">${tag}</text>
+    <circle cx="${lx}" cy="${ly}" r="4.5" fill="var(--orange)" stroke="rgb(var(--glass-rgb))" stroke-width="2"/>`;
+}
+
+/* ---------- الشاشات ---------- */
+const home = `
+  <div class="hdr">
+    <span class="avatar s2">م</span>
+    <div class="who"><small>الجمعة 27/11</small><b>مخبز النور</b></div>
+    <div class="end"><a href="#" class="icon-btn s2" aria-label="التنبيهات، عمليتان تنتظران">${ic('bell')}<span class="badge-dot"></span></a></div>
+  </div>
+  <div class="seg well" style="display:flex;margin-bottom:16px" role="group" aria-label="الفترة">
+    <span class="on solid" style="flex:1;text-align:center">يوم</span><span style="flex:1;text-align:center">أسبوع</span><span style="flex:1;text-align:center">شهر</span><span style="flex:1;text-align:center">سنة</span>
+  </div>
+  <a href="#" class="banner hero">
+    <span class="ico">${ic('wheat')}</span>
+    <span class="txt"><small>خبز مباع اليوم</small><b><span class="num" style="font-size:inherit;color:inherit;margin:0">89</span><span>كغ</span></b><p>عادي 72 كغ، طحين 17 كغ</p></span>
+    <span class="go" aria-hidden="true">${ic('fwd')}</span>
+  </a>
+  <div class="sec-t"><h3>نظرة سريعة</h3></div>
+  <div class="tiles">
+    <a href="#" class="tile s1">
+      <span class="th">المقبوضات${ic('fwd')}</span>
+      <span class="v">${money('342.00')}</span>
+      <span class="sub"><span>نقدًا <b class="num">252</b></span><span>تحويل <b class="num">90</b></span></span>
+      <span class="vs">مقابل <span class="num">298.00</span> أمس</span>
+    </a>
+    <a href="#" class="tile s1">
+      <span class="th">المبيعات${ic('fwd')}</span>
+      <span class="sub" style="margin-top:8px"><span><b class="num" style="font-size:18px;font-weight:600">89</b> كغ</span><span><b class="num" style="font-size:18px;font-weight:600">14</b> عملية</span></span>
+      <svg class="spark" viewBox="0 0 140 72" preserveAspectRatio="none" aria-label="الخبز المباع آخر 7 أيام، اليوم 89 كغ">${spark([60, 52, 77, 58, 70, 64, 89], 140, 72, '89 كغ', 6)}</svg>
+    </a>
+  </div>
+  <div class="sec-t"><h3>آخر الحركات</h3><a href="#">عرض الكل</a></div>
+  <div class="list s1">
+    <div class="row"><span class="ic well">${ic('bag')}</span><span class="who"><b>مشترٍ عابر</b><span>بيع عادي، 12 كغ</span></span><span class="amt">${money('72.00')}</span></div>
+    <div class="row"><span class="ic well">${ic('cash')}</span><span class="who"><b>مطعم الأصدقاء</b><span>دفعة، جوال باي ← بنك فلسطين</span></span><span class="amt in">${money('90.00')}</span></div>
+    <div class="row"><span class="ic well">${ic('wheat')}</span><span class="who"><b>كافتيريا الجامعة</b><span>إيداع طحين 40 كغ</span></span><span class="amt">له 142 كغ</span></div>
+    <div class="row"><span class="ic well">${ic('swap')}</span><span class="who"><b>أبو محمد الشريف</b><span>خبز مقابل طحين، 17 كغ</span></span><span class="amt">${money('34.00')}</span></div>
+  </div>`;
+
+const customersList = [
+  ['أبو محمد الشريف', '0599123456', '16.00', 'out', 'له 12 كغ', 'in'],
+  ['مطعم الأصدقاء', '0598765432', '-30.00', 'in', 'عليه 8 كغ', 'out'],
+  ['كافتيريا الجامعة', '0594555666', '0.00', '', 'له 142 كغ', 'in'],
+  ['أم خالد', '0592333444', '42.50', 'out', '0 كغ', ''],
+  ['سوبرماركت النور', '0597111222', '120.00', 'out', 'له 60 كغ', 'in'],
+  ['مدرسة النجاح', '0595888777', '0.00', '', '0 كغ', ''],
+];
+const customers = `
+  <div class="hdr"><div class="who"><b class="title">الزبائن</b><small>6 زبائن</small></div>
+    <div class="end"><a href="#" class="btn dark sm">${ic('plus')}إضافة</a></div></div>
+  <div class="search well">${ic('search')}بحث بالاسم أو رقم الجوال</div>
+  <div class="chips"><span class="chip on">الكل</span><span class="chip s2">عليهم مال</span><span class="chip s2">لهم طحين</span></div>
+  <div class="list s1">
+    ${customersList.map(([n, m, b, bc, f, fc]) => `<a href="#" class="row"><span class="avatar well" style="width:40px;height:40px;font-size:15px">${n[0]}</span><span class="who"><b>${n}</b><span class="num">${m}</span></span><span class="amt"><span class="${bc}">${money(b)}</span><small class="${fc}">${f}</small></span></a>`).join('')}
+  </div>`;
+
+const stmtRows = `
+  <div class="stmt-row edge"><span>رصيد سابق، 01/11</span><span class="r">${money('0.00')}</span></div>
+  <div class="stmt-row"><b>رسم تبديل طحين 10 كغ</b><b class="r out">${money('20.00')}</b><span>رقم 3، 25/11</span><span class="r">الرصيد ${money('20.00')}</span></div>
+  <div class="stmt-row"><b>دفعة عن بيع 25/11</b><b class="r in">${money('-20.00')}</b><span>رقم 4، نقدًا</span><span class="r">الرصيد ${money('0.00')}</span></div>
+  <div class="stmt-row"><b>رسم تبديل طحين 8 كغ</b><b class="r out">${money('16.00')}</b><span class="pend">رقم 6، ينتظر المزامنة</span><span class="r">الرصيد ${money('16.00')}</span></div>`;
+const customer = `
+  <div class="hdr">
+    <a href="#" class="icon-btn s2" aria-label="رجوع">${ic('back')}</a>
+    <div class="who"><b>أبو محمد الشريف</b><small class="num" style="text-align:start">0599123456</small></div>
+    <div class="end"><a href="#" class="icon-btn s2" aria-label="تعديل">${ic('edit')}</a></div>
+  </div>
+  <div class="balances hero">
+    <div><small>الرصيد المالي</small><b><span class="num" style="font-size:inherit;color:inherit;margin:0">16.00</span><span>شيكل عليه</span></b></div>
+    <div class="div"><small>رصيد الطحين</small><b>له 12<span>كغ</span></b></div>
+  </div>
+  <div class="actions">
+    <a href="#" class="act"><span class="b s2">${ic('swap')}</span>خبز مقابل طحين</a>
+    <a href="#" class="act"><span class="b s2">${ic('wheat')}</span>إيداع طحين</a>
+    <a href="#" class="act"><span class="b s2">${ic('cash')}</span>دفعة</a>
+    <a href="#" class="act"><span class="b s2">${ic('scale')}</span>تسوية</a>
+  </div>
+  <div class="two well" role="tablist"><span class="on">الحساب المالي</span><span>الطحين</span></div>
+  <div class="list s1">${stmtRows}</div>`;
+
+const sale = `
+  <div class="screen" aria-hidden="true">${home}</div>
+  <div class="scrim"></div>
+  <div class="sheet s3" role="dialog" aria-label="تسجيل عملية بيع">
+    <div class="grab"></div>
+    <div class="sheet-h"><h3>تسجيل عملية بيع</h3><span class="chip s2" style="font-size:13px">مشترٍ عابر</span></div>
+    <div class="qty"><b class="num">12</b><span>كغ</span></div>
+    <div class="calc"><span class="num">12</span> كغ × <span class="num">6.00</span> شيكل = <b>${money('72.00')}</b></div>
+    <div class="two well"><span class="on">مدفوع</span><span>غير مدفوع</span></div>
+    <div class="keys">${['1','2','3','4','5','6','7','8','9','.','0'].map(k => `<span class="solid">${k}</span>`).join('')}<span class="solid" aria-label="حذف">${ic('del')}</span></div>
+    <span class="btn primary block">حفظ العملية</span>
+  </div>`;
+
+const movement = `
+  <div class="screen" aria-hidden="true">${customer}</div>
+  <div class="scrim"></div>
+  <div class="sheet s3" role="dialog" aria-label="تفاصيل الحركة">
+    <div class="grab"></div>
+    <div class="sheet-h">
+      <span class="ic well" style="color:var(--success)">${ic('cash')}</span>
+      <div style="flex:1"><h3>دفعة عن بيع 25/11</h3><span style="font-size:13px;color:var(--muted)">أبو محمد الشريف، 25/11/2026 الساعة 17:40</span></div>
+    </div>
+    <div style="font-size:32px;font-weight:600;margin:4px 0 16px" class="in">${money('20.00')}</div>
+    <dl class="info well" style="margin:0 0 8px"><div><dt>الحالة</dt><dd class="in">مُزامَنة</dd></div><div><dt>رقم الحركة</dt><dd class="num">4</dd></div></dl>
+    <dl class="info well" style="margin:0 0 8px"><div><dt>طريقة الدفع</dt><dd>جوال باي ← بنك فلسطين</dd></div><div><dt>رقم الحوالة</dt><dd class="num">TR-90210</dd></div></dl>
+    <dl class="info well" style="margin:0"><div><dt>الرصيد بعد الحركة</dt><dd>${money('0.00')}</dd></div><div><dt>سجّلها</dt><dd>صاحب المخبز</dd></div></dl>
+    <div class="btns"><span class="btn glass s2">قيد تسوية</span><span class="btn dark">${ic('printer')}طباعة الإيصال</span></div>
+  </div>`;
+
+const sync = `
+  <div class="toast s4" role="status"><span class="ic" style="background:var(--success-soft);color:var(--success)">${ic('check')}</span><span><b>تمت مزامنة 3 عمليات</b><span>آخر مزامنة الآن</span></span></div>
+  <div class="hdr" style="margin-top:72px"><a href="#" class="icon-btn s2" aria-label="رجوع">${ic('back')}</a><div class="who"><b class="title" style="font-size:20px">المزامنة</b></div></div>
+  <div class="card s1" style="text-align:center;margin-bottom:16px">
+    <div style="font-size:13px;color:var(--muted)">عمليات تنتظر الإرسال</div>
+    <div class="num" style="font-size:40px;font-weight:600;line-height:1.3">2</div>
+    <div style="font-size:13px;color:var(--muted)">تُرسل تلقائيًا عند الاتصال</div>
+  </div>
+  <div class="sec-t"><h3 style="font-size:17px;font-weight:600">تنتظر</h3></div>
+  <div class="list s1" style="margin-bottom:16px">
+    <div class="row"><span class="ic well">${ic('bag')}</span><span class="who"><b>بيع عادي، 12 كغ</b><span>مشترٍ عابر، 08:31</span></span><span class="pend">ينتظر</span></div>
+    <div class="row"><span class="ic well">${ic('swap')}</span><span class="who"><b>خبز مقابل طحين، 8 كغ</b><span>أبو محمد الشريف، 08:12</span></span><span class="pend">ينتظر</span></div>
+  </div>
+  <div class="sec-t"><h3 style="font-size:17px;font-weight:600">رفضها الخادم</h3></div>
+  <div class="list s1">
+    <div class="row"><span class="ic" style="background:var(--danger-soft);color:var(--danger)">${ic('swap')}</span><span class="who"><b>بيع مقابل طحين، 5 كغ</b><span>الزبون حُذف من جهاز آخر</span></span><span class="amt out" style="font-size:13px">مرفوضة</span></div>
+  </div>`;
+
+const login = `
+  <div style="text-align:center;margin:40px 0 28px">
+    <span class="avatar s2" style="width:64px;height:64px;margin:0 auto 16px;border-radius:22px;color:var(--wheat)">${ic('wheat', 'style="width:30px;height:30px"')}</span>
+    <h2 style="font-size:24px">تسجيل الدخول</h2>
+    <p style="color:var(--muted);font-size:14px;margin-top:4px">ادخل ببريدك وكلمة المرور لإدارة مخبزك</p>
+  </div>
+  <div class="card s1" style="padding:20px">
+    <div class="field"><label>البريد الإلكتروني</label><div class="inp well">${ic('mail')}<span class="ph">owner@bakery.ps</span></div></div>
+    <div class="field"><label>كلمة المرور</label><div class="inp well">${ic('eye')}<span class="ph">••••••••</span></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;font-size:14px;margin:4px 0 20px">
+      <span style="display:flex;align-items:center;gap:8px"><span class="solid" style="width:20px;height:20px;border-radius:6px"></span>تذكّرني</span>
+      <a href="#" style="color:var(--muted)">نسيت كلمة المرور؟</a>
+    </div>
+    <span class="btn primary block">دخول</span>
+  </div>
+  <p style="text-align:center;font-size:13px;color:var(--muted);margin-top:20px">الحسابات ينشئها مالك المنصة. تواصل معه إن لم يكن لديك حساب</p>`;
+
+const phones = [
+  ['الرئيسية', 'بطاقة بارزة واحدة، مربعان زجاجيان، ورسم هادئ', `<div class="screen">${home}</div>${nav('home')}`],
+  ['الزبائن', 'بحث في بئر غائر، فلاتر، وقائمة على سطح واحد', `<div class="screen">${customers}</div>${nav('customers')}`],
+  ['صفحة الزبون', 'الرصيدان في البطاقة البارزة، والإجراءات أزرار زجاجية', `<div class="screen">${customer}</div>${nav('customers')}`],
+  ['تسجيل بيع', 'نافذة من المستوى 3، ومفاتيح صلبة لا زجاجية', `${sale}`],
+  ['تفاصيل حركة', 'معلومات في آبار غائرة، والطباعة زر داكن', `${movement}`],
+  ['المزامنة', 'رسالة عائمة من المستوى 4 أعلى الشاشة', `<div class="screen">${sync}</div>${nav('more')}`],
+  ['الدخول', 'نموذج على بطاقة زجاجية، والزر البرتقالي الوحيد', `<div class="screen">${login}</div>`],
+];
+document.getElementById('phones').innerHTML = phones.map(([t, s, body]) =>
+  `<figure><div class="phone">${status}${body}</div><figcaption>${t}<span>${s}</span></figcaption></figure>`).join('');
+
+/* ---------- الموقع ---------- */
+document.getElementById('desk').innerHTML = `
+  <aside class="rail s2" aria-label="القائمة">
+    <span class="logo" style="color:var(--wheat);background:#1b222c">${ic('wheat')}</span>
+    <a href="#" class="on" aria-label="لوحة التحكم">${ic('grid')}</a>
+    <a href="#" aria-label="الزبائن">${ic('users')}</a>
+    <a href="#" aria-label="المبيعات">${ic('bag')}</a>
+    <a href="#" aria-label="سجل المبيعات">${ic('log')}</a>
+    <a href="#" aria-label="البنوك">${ic('bank')}</a>
+    <a href="#" aria-label="المستخدمون">${ic('shield')}</a>
+    <span class="spacer"></span>
+    <a href="#" aria-label="الإعدادات">${ic('cog')}</a>
+  </aside>
+  <div class="dmain">
+    <div class="dhead">
+      <h3>لوحة التحكم<small>مخبز النور</small></h3>
+      <div class="seg well"><span class="on solid">يوم</span><span>أسبوع</span><span>شهر</span><span>سنة</span></div>
+      <div class="end"><span class="btn primary sm">${ic('plus')}تسجيل بيع</span><a href="#" class="icon-btn s2" aria-label="التنبيهات">${ic('bell')}<span class="badge-dot"></span></a><span class="avatar s2">م</span></div>
+    </div>
+    <div class="dgrid">
+      <a href="#" class="banner hero" style="min-height:150px">
+        <span class="ico">${ic('wheat')}</span>
+        <span class="txt"><small>خبز مباع اليوم</small><b><span class="num" style="font-size:inherit;color:inherit;margin:0">89</span><span>كغ</span></b><p>عادي 72 كغ، طحين 17 كغ</p></span>
+        <span class="go" aria-hidden="true">${ic('fwd')}</span>
+      </a>
+      <div class="tile s1">
+        <span class="th">المقبوضات${ic('fwd')}</span>
+        <span class="v">${money('342.00')}</span>
+        <span class="sub"><span>نقدًا <b class="num">252</b></span><span>تحويل <b class="num">90</b></span></span>
+        <span class="vs">مقابل <span class="num">298.00</span> أمس</span>
+      </div>
+      <div class="tile s1">
+        <span class="th">غير مدفوع${ic('fwd')}</span>
+        <span class="v out">${money('124.00')}</span>
+        <span class="sub"><span><b class="num">4</b> عمليات</span><span><b class="num">69%</b> مدفوع</span></span>
+        <span class="btn dark sm" style="margin-top:auto;align-self:flex-start">عرض غير المدفوع</span>
+      </div>
+      <div class="dchart s1">
+        <div class="sec-t" style="margin:0 0 8px"><h3 style="font-size:17px;font-weight:600">الخبز المباع</h3><span class="chip well" style="font-size:13px">آخر 7 أيام</span></div>
+        <svg viewBox="0 0 620 180" style="width:100%;height:180px;overflow:visible" aria-label="الخبز المباع آخر 7 أيام">${spark([60, 52, 77, 58, 70, 64, 89], 620, 170, '89 كغ', 16)}</svg>
+      </div>
+      <div class="list s1 dlist" style="padding:8px 16px">
+        <div class="sec-t" style="margin:8px 0 4px"><h3 style="font-size:17px;font-weight:600">آخر الحركات</h3><a href="#">عرض الكل</a></div>
+        <div class="row"><span class="ic well">${ic('bag')}</span><span class="who"><b>مشترٍ عابر</b><span>بيع عادي، 12 كغ</span></span><span class="amt">${money('72.00')}</span></div>
+        <div class="row"><span class="ic well">${ic('cash')}</span><span class="who"><b>مطعم الأصدقاء</b><span>دفعة، تحويل</span></span><span class="amt in">${money('90.00')}</span></div>
+        <div class="row"><span class="ic well">${ic('wheat')}</span><span class="who"><b>كافتيريا الجامعة</b><span>إيداع طحين</span></span><span class="amt">له 142 كغ</span></div>
+        <div class="row"><span class="ic well">${ic('swap')}</span><span class="who"><b>أبو محمد الشريف</b><span>مقابل طحين</span></span><span class="amt">${money('34.00')}</span></div>
+        <div class="row"><span class="ic well">${ic('cash')}</span><span class="who"><b>أم خالد</b><span>دفعة نقدًا</span></span><span class="amt in">${money('50.00')}</span></div>
+      </div>
+    </div>
+  </div>`;
+
+/* الوضع */
+const btns = document.querySelectorAll('[data-theme-btn]');
+function setTheme(t) { document.documentElement.dataset.theme = t; btns.forEach(b => b.setAttribute('aria-pressed', b.dataset.themeBtn === t)); }
+btns.forEach(b => b.addEventListener('click', () => setTheme(b.dataset.themeBtn)));
+if (new URLSearchParams(location.search).get('theme') === 'dark') setTheme('dark');
+</script>
+</body>
+</html>

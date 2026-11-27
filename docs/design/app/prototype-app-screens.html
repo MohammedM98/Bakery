@@ -1,0 +1,794 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>شاشات تطبيق المخبز</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@400;500;600&family=Noto+Sans+Arabic:wght@400;500;600&family=Almarai:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font: "IBM Plex Sans Arabic";
+    --page: #f4f6f9; --outer: #e3e8ee; --card: #ffffff; --muted-bg: #eef1f5; --ink: #18202b; --muted: #5f6b7a;
+    --border: #e3e8ee; --orange: #ee7a3a; --orange-ink: #c2561b; --orange-soft: #fdeee4; --slate: #6f7f97; --slate-soft: #e9eef5;
+    --hero: #1c2532; --hero-muted: #aeb8c6; --success: #1b8a5a; --success-soft: #e2f3ea; --danger: #c8412f; --danger-soft: #fbe8e4;
+    --wheat: #a8731a; --wheat-soft: #f8eedb; --bar: #e1e6ed; --warn: #9a6414; --warn-soft: #fbf0dc;
+    --glass: rgba(255,255,255,.7); --glass-border: rgba(255,255,255,.85); --scrim: rgba(20,28,40,.38);
+    --shadow: 0 1px 2px rgba(20,30,45,.04), 0 10px 28px -16px rgba(20,30,45,.16);
+    --focus: 0 0 0 3px color-mix(in oklab, var(--orange) 45%, transparent);
+    --on-accent: #1a1d22; --on-danger: #ffffff;
+  }
+  :root[data-theme="dark"] {
+    --page: #0f141b; --outer: #070a0e; --card: #171d26; --muted-bg: #1e2631; --ink: #e8edf3; --muted: #95a0ae;
+    --border: #252e3a; --orange: #f08a4e; --orange-ink: #f5a676; --orange-soft: #33241b; --slate: #93a3ba; --slate-soft: #222b37;
+    --hero: #1f2935; --hero-muted: #aeb8c6; --success: #4cc58f; --success-soft: #14291f; --danger: #f07a6b; --danger-soft: #361a1a;
+    --wheat: #e6bb69; --wheat-soft: #2e2617; --bar: #263040; --warn: #e6b25c; --warn-soft: #2e2617;
+    --glass: rgba(30,38,50,.72); --glass-border: rgba(255,255,255,.08); --scrim: rgba(0,0,0,.55);
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px -16px rgba(0,0,0,.6);
+    --on-danger: #1a1d22;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; font-family: var(--font), system-ui, sans-serif; color: var(--ink); background: var(--outer); -webkit-font-smoothing: antialiased; line-height: 1.6; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  .num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+  svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+  /* رأس الصفحة وجدول المحتويات */
+  .bar-top { position: sticky; top: 0; z-index: 20; background: color-mix(in oklab, var(--outer) 88%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+  .bar-in { max-width: 1240px; margin: 0 auto; padding: 12px 16px 10px; }
+  .bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+  .bar-row h1 { font-size: 19px; font-weight: 600; margin: 0; }
+  .ctrls { margin-inline-start: auto; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .ctl { display: inline-flex; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 3px; }
+  .ctl button, .ctl select { font: inherit; font-size: 13px; border: 0; background: transparent; color: var(--muted); border-radius: 9px; padding: 0 12px; height: 32px; cursor: pointer; }
+  .ctl button[aria-pressed="true"] { background: var(--muted-bg); color: var(--ink); font-weight: 600; }
+  .ctl select { color: var(--ink); padding-inline-end: 6px; }
+  .ctl button:focus-visible, .ctl select:focus-visible, .toc a:focus-visible { outline: none; box-shadow: var(--focus); }
+  .toc { display: flex; gap: 6px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; scrollbar-width: thin; }
+  .toc a { flex: none; font-size: 13px; color: var(--muted); text-decoration: none; padding: 4px 11px; border-radius: 99px; background: var(--card); border: 1px solid var(--border); }
+  .toc a:hover { color: var(--ink); }
+
+  main { max-width: 1240px; margin: 0 auto; padding: 8px 16px 64px; }
+  .lead { color: var(--muted); font-size: 14px; max-width: 72ch; margin: 18px 0 8px; }
+  section.s { padding-top: 36px; scroll-margin-top: 110px; }
+  section.s > h2 { font-size: 22px; font-weight: 600; margin: 0 0 4px; }
+  section.s > p { margin: 0 0 18px; color: var(--muted); font-size: 14px; max-width: 72ch; }
+  .pair { display: flex; flex-wrap: wrap; gap: 28px 32px; }
+  figure { margin: 0; width: 340px; max-width: 100%; }
+  figcaption { margin-top: 10px; font-size: 14px; }
+  figcaption b { font-weight: 600; }
+  figcaption span { color: var(--muted); }
+
+  /* الهاتف */
+  .phone { width: 340px; max-width: 100%; height: 700px; border-radius: 42px; background: var(--page); border: 8px solid #0d1117; position: relative; overflow: hidden; box-shadow: 0 30px 60px -36px rgba(20,30,45,.5); font-size: 15px; }
+  .screen { position: absolute; inset: 0; overflow-y: auto; padding: 52px 16px 116px; scrollbar-width: none; }
+  .screen::-webkit-scrollbar { display: none; }
+  .screen.nonav { padding-bottom: 28px; }
+  .status { position: absolute; top: 0; inset-inline: 0; height: 42px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 13px; font-weight: 600; z-index: 3; background: color-mix(in oklab, var(--page) 86%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .status.on-dark { background: transparent; color: #fff; backdrop-filter: none; }
+  .net { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); background: var(--card); border: 1px solid var(--border); padding: 2px 10px; border-radius: 99px; }
+  .net i { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+  .net.off { color: var(--warn); background: var(--warn-soft); border-color: transparent; }
+  .net.off i { background: var(--warn); }
+
+  /* عناصر عامة */
+  .head { display: flex; align-items: center; gap: 8px; margin: 8px 0 16px; min-height: 40px; }
+  .head h3 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.35; }
+  .head h3.sm { font-size: 20px; }
+  .head small { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+  .iconbtn { width: 40px; height: 40px; border-radius: 13px; display: grid; place-items: center; color: var(--ink); background: var(--card); border: 1px solid var(--border); flex: none; }
+  .iconbtn.plain { background: transparent; border: 0; }
+  .end { margin-inline-start: auto; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; border: 1px solid var(--border); background: var(--card); border-radius: 12px; padding: 5px 10px; color: var(--ink); white-space: nowrap; }
+  .chip svg.i { width: 15px; height: 15px; color: var(--muted); }
+  .chip.on { background: var(--ink); color: var(--page); border-color: transparent; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .seg { display: flex; gap: 4px; margin-bottom: 14px; }
+  .seg span { font-size: 13px; padding: 7px 13px; border-radius: 11px; color: var(--muted); }
+  .seg span.on { background: var(--muted-bg); color: var(--ink); font-weight: 500; }
+  .pills { display: flex; background: var(--muted-bg); padding: 4px; border-radius: 99px; margin-bottom: 14px; }
+  .pills span { flex: 1; text-align: center; font-size: 14px; color: var(--muted); padding: 7px 0 4px; border-radius: 99px; }
+  .pills span.on { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(20,30,45,.12); }
+  .pills span.on::after { content: ""; display: block; width: 14px; height: 2px; border-radius: 2px; background: var(--orange); margin: 2px auto 0; }
+  .tabs2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--muted-bg); border-radius: 14px; padding: 4px; margin-bottom: 14px; }
+  .tabs2.three { grid-template-columns: 1fr 1fr 1fr; }
+  .tabs2 span { text-align: center; padding: 8px 0; border-radius: 11px; font-size: 14px; color: var(--muted); }
+  .tabs2 span.on { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(20,30,45,.12); }
+
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
+  .card.flat { box-shadow: none; }
+  .hero { background: var(--hero); border: 0; color: #fff; }
+  .hero .l { color: var(--hero-muted); font-size: 14px; }
+  .hero .big { font-size: 42px; font-weight: 600; line-height: 1.15; margin: 4px 0; }
+  .hero .big small { font-size: 18px; font-weight: 500; color: #c9d2de; margin-inline-start: 4px; }
+  .hero .split { display: flex; gap: 16px; color: var(--hero-muted); font-size: 13px; flex-wrap: wrap; }
+  .hero .split b { color: #fff; font-weight: 600; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .grid2 .card { margin: 0; }
+  .stat .l { color: var(--muted); font-size: 13px; }
+  .stat .v { font-size: 18px; font-weight: 600; margin-top: 4px; white-space: nowrap; }
+  .stat .x { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .unit { font-size: 13px; font-weight: 500; color: var(--muted); }
+
+  .big-num { font-size: 40px; font-weight: 600; line-height: 1.1; }
+  .big-num small { font-size: 17px; color: var(--muted); font-weight: 500; margin-inline-start: 4px; }
+  .label { color: var(--muted); font-size: 14px; }
+  .t-section { display: flex; align-items: center; font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
+  .t-section a { margin-inline-start: auto; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; }
+  .date-h { font-size: 13px; color: var(--muted); margin: 12px 0 2px; }
+
+  .chart { width: 100%; height: 150px; display: block; margin: 6px 0 14px; overflow: visible; }
+  .chart text { fill: var(--muted); font-size: 11px; font-family: var(--font), sans-serif; }
+
+  /* الصفوف */
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .rows li { display: flex; align-items: center; gap: 12px; padding: 8px 0; min-height: 60px; }
+  .rows.lined li + li { border-top: 1px solid var(--border); }
+  .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .ic svg.i { width: 18px; height: 18px; }
+  .ic.sale { background: var(--slate-soft); color: var(--slate); }
+  .ic.pay { background: var(--success-soft); color: var(--success); }
+  .ic.flour { background: var(--wheat-soft); color: var(--wheat); }
+  .ic.adj { background: var(--orange-soft); color: var(--orange-ink); }
+  .ic.bank { background: var(--muted-bg); color: var(--ink); }
+  .ic.bad { background: var(--danger-soft); color: var(--danger); }
+  .ic.sq { border-radius: 14px; }
+  .av { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex: none; background: var(--slate-soft); color: var(--ink); font-weight: 600; font-size: 15px; }
+  .who { flex: 1; min-width: 0; }
+  .who b { display: block; font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet-t .who b { white-space: normal; }
+  .who span { color: var(--muted); font-size: 13px; }
+  .amt { font-size: 15px; font-weight: 500; white-space: nowrap; text-align: end; }
+  .amt small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); }
+  .in { color: var(--success); }
+  .debt { color: var(--danger); }
+  .pend { color: var(--warn) !important; }
+  .chev { color: var(--muted); }
+  .view-all { display: block; width: max-content; margin: 10px auto 0; font-size: 13px; padding: 9px 18px; border-radius: 99px; background: var(--muted-bg); color: var(--ink); }
+
+  .badge { display: inline-block; font-size: 13px; padding: 2px 8px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
+  .badge.wait { background: var(--warn-soft); color: var(--warn); }
+  .badge.ok { background: var(--success-soft); color: var(--success); }
+  .badge.no { background: var(--danger-soft); color: var(--danger); }
+  .badge.mute { background: var(--muted-bg); color: var(--muted); }
+
+  /* النماذج */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .input { height: 48px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); display: flex; align-items: center; gap: 8px; padding: 0 16px; font-size: 15px; color: var(--ink); }
+  .input.focus { border-color: var(--orange); box-shadow: var(--focus); }
+  .input .ph { color: var(--muted); }
+  .input .suf { margin-inline-start: auto; color: var(--muted); font-size: 13px; }
+  .input.err { border-color: var(--danger); }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .hint.err { color: var(--danger); }
+  .pairf { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+  .pairf .input { padding: 0 10px; font-size: 14px; }
+  .pairf .arrow { color: var(--muted); }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .opt { border: 1px solid var(--border); background: var(--card); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 76px; font-size: 14px; }
+  .opt.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .opt svg.i { color: var(--muted); }
+  .opt.on svg.i { color: var(--ink); }
+  .note { font-size: 13px; background: var(--muted-bg); border-radius: 12px; padding: 12px; color: var(--muted); margin-bottom: 12px; }
+  .note b { color: var(--ink); font-weight: 600; }
+  .note.warn { background: var(--warn-soft); color: var(--warn); }
+  .checks { list-style: none; margin: 0; padding: 0; }
+  .checks li { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 14px; }
+  .box { width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid var(--slate); display: grid; place-items: center; flex: none; background: var(--card); }
+  .box.on { background: var(--ink); border-color: var(--ink); color: var(--page); }
+  .box svg.i { width: 14px; height: 14px; stroke-width: 2.6; }
+  .switch { width: 44px; height: 26px; border-radius: 99px; background: var(--bar); position: relative; flex: none; margin-inline-start: auto; }
+  .switch::after { content: ""; position: absolute; top: 3px; inset-inline-start: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .switch.on { background: var(--ink); }
+  .switch.on::after { inset-inline-start: auto; inset-inline-end: 3px; }
+  :root[data-theme="dark"] .switch.on::after { background: var(--page); }
+  .grp-h { font-size: 13px; color: var(--muted); margin: 14px 0 2px; display: flex; }
+  .grp-h span { margin-inline-start: auto; }
+
+  .btns { display: flex; gap: 12px; margin-top: 16px; }
+  .btns.col { flex-direction: column; }
+  .btn { flex: 1; min-height: 50px; border-radius: 16px; border: 0; font-size: 15px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 0 16px; }
+  .btn.sec { background: var(--muted-bg); color: var(--ink); }
+  .btn.pri { background: var(--orange); color: var(--on-accent); font-weight: 600; }
+  .btn.dark { background: var(--ink); color: var(--page); font-weight: 600; }
+  .btn.danger { background: var(--danger); color: var(--on-danger); font-weight: 600; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+  .btn.off { opacity: .45; }
+  .btn svg.i { width: 19px; height: 19px; }
+
+  /* قوائم الإعدادات */
+  .menu { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 0 16px; margin-bottom: 12px; }
+  .menu li { display: flex; align-items: center; gap: 12px; min-height: 54px; font-size: 15px; }
+  .menu li + li { border-top: 1px solid var(--border); }
+  .menu li .v { margin-inline-start: auto; color: var(--muted); font-size: 14px; }
+  .menu li .ic { width: 34px; height: 34px; border-radius: 11px; }
+  .menu li.dim { color: var(--muted); }
+  .menu-t { font-size: 13px; color: var(--muted); margin: 14px 4px 6px; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .tile { background: var(--card); border: 1px solid var(--border); border-radius: 18px; padding: 16px; min-height: 96px; display: flex; flex-direction: column; justify-content: space-between; font-size: 14px; font-weight: 500; }
+  .tile small { color: var(--muted); font-weight: 400; font-size: 13px; }
+  .tile.dim { opacity: .55; }
+
+  /* النافذة السفلية والحوار */
+  .scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 5; }
+  .sheet { position: absolute; inset-inline: 0; bottom: 0; z-index: 6; background: var(--card); border-radius: 28px 28px 0 0; padding: 12px 16px 24px; box-shadow: 0 -20px 40px -20px rgba(0,0,0,.35); max-height: 86%; overflow-y: auto; scrollbar-width: none; }
+  .sheet.tall { max-height: 92%; }
+  .grab { width: 40px; height: 5px; border-radius: 99px; background: var(--bar); margin: 0 auto 14px; }
+  .sheet-t { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .sheet-t b { font-size: 18px; font-weight: 600; }
+  .group { background: var(--muted-bg); border-radius: 16px; padding: 0 16px; margin: 0 0 8px; }
+  .group div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; font-size: 14px; }
+  .group div + div { border-top: 1px solid var(--border); }
+  .group dt { color: var(--muted); margin: 0; }
+  .group dd { margin: 0; font-weight: 500; text-align: end; }
+  .dialog { position: absolute; z-index: 6; inset-inline: 22px; top: 50%; transform: translateY(-50%); background: var(--card); border-radius: 24px; padding: 24px 20px 20px; text-align: center; box-shadow: 0 30px 60px -20px rgba(0,0,0,.45); }
+  .dialog .ic { margin: 0 auto 10px; width: 52px; height: 52px; }
+  .dialog b { display: block; font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .dialog p { margin: 0; color: var(--muted); font-size: 14px; }
+  .receipt { text-align: center; padding: 4px 0 10px; border-bottom: 1.5px dashed var(--border); margin-bottom: 12px; }
+  .receipt .big-num { margin: 8px 0 6px; }
+  .kv { list-style: none; margin: 0 0 8px; padding: 0; }
+  .kv li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: 14px; }
+  .kv li span:first-child { color: var(--muted); }
+
+  /* لوحة الأرقام */
+  .amount-show { text-align: center; margin: 2px 0; }
+  .amount-show b { font-size: 50px; font-weight: 600; }
+  .amount-show small { font-size: 20px; color: var(--muted); margin-inline-start: 6px; }
+  .calc { text-align: center; color: var(--muted); font-size: 14px; margin-bottom: 14px; }
+  .calc b { color: var(--ink); font-weight: 600; }
+  .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; direction: ltr; }
+  .keys span { height: 50px; border-radius: 14px; display: grid; place-items: center; font-size: 21px; font-weight: 500; background: var(--muted-bg); }
+  .presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+  .presets span { height: 48px; border-radius: 14px; border: 1px solid var(--border); background: var(--card); display: grid; place-items: center; font-size: 15px; font-weight: 500; }
+  .presets span.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .stepper { display: flex; align-items: center; gap: 12px; justify-content: center; margin: 8px 0 14px; }
+  .stepper .iconbtn { width: 52px; height: 52px; border-radius: 16px; }
+
+  /* الرسائل العائمة */
+  .toast { position: absolute; inset-inline: 16px; z-index: 7; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 18px;
+    background: var(--glass); border: 1px solid var(--glass-border); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); box-shadow: 0 18px 40px -18px rgba(20,30,45,.5); }
+  .toast.top { top: 50px; }
+  .toast.top2 { top: 118px; }
+  .toast.bottom { bottom: 96px; }
+  .toast.bottom2 { bottom: 164px; }
+  .toast .ic { width: 34px; height: 34px; }
+  .toast b { display: block; font-size: 14px; font-weight: 600; }
+  .toast .s { font-size: 13px; color: var(--muted); }
+  .toast .act { margin-inline-start: auto; font-size: 13px; font-weight: 600; color: var(--ink); padding: 6px 4px; }
+
+  /* حالات */
+  .empty { text-align: center; padding: 40px 10px 10px; }
+  .empty .ic { width: 64px; height: 64px; margin: 0 auto 14px; }
+  .empty .ic svg.i { width: 28px; height: 28px; }
+  .empty b { display: block; font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .empty p { margin: 0 auto; color: var(--muted); font-size: 14px; max-width: 30ch; }
+  .banner { display: flex; gap: 12px; align-items: flex-start; background: var(--warn-soft); color: var(--warn); border-radius: 16px; padding: 12px 16px; font-size: 13px; margin-bottom: 14px; }
+  .banner b { display: block; font-size: 14px; }
+  .skel { height: 14px; border-radius: 8px; background: var(--muted-bg); }
+
+  /* الدخول */
+  .brand { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; background: var(--hero); color: #fff; }
+  .login-top { position: absolute; inset: 0 0 auto; height: 300px; background: var(--hero); color: #fff; padding: 70px 24px 0; }
+  .login-top .brand { background: rgba(255,255,255,.08); }
+  .login-card { position: absolute; inset-inline: 0; bottom: 0; top: 250px; background: var(--page); border-radius: 30px 30px 0 0; padding: 26px 20px; }
+
+  /* شريط التنقل العائم */
+  .nav { position: absolute; inset-inline: 12px; bottom: 16px; height: 66px; z-index: 4; display: flex; align-items: center; justify-content: space-around; padding: 0 6px;
+    background: var(--glass); border: 1px solid var(--glass-border); border-radius: 26px; backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); box-shadow: 0 18px 40px -18px rgba(20,30,45,.45); }
+  .nav a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); text-decoration: none; font-size: 12px; font-weight: 500; position: relative; min-height: 48px; justify-content: center; }
+  .nav a.on { color: var(--orange-ink); }
+  :root[data-theme="dark"] .nav a.on { color: var(--orange); }
+  .nav a.on::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--orange); position: absolute; bottom: -4px; }
+  .nav .fab { display: grid; place-items: center; }
+  body[data-nav="b"] .nav .fab { width: 56px; height: 56px; margin-top: -30px; border-radius: 20px; background: var(--orange); color: var(--on-accent); box-shadow: 0 8px 20px -10px rgba(20,30,45,.45); border: 4px solid var(--page); }
+  body[data-nav="b"] .nav .fab svg.i { width: 26px; height: 26px; }
+  body[data-nav="b"] .nav a.sale { color: var(--ink); }
+</style>
+</head>
+<body data-nav="b">
+  <div class="bar-top">
+    <div class="bar-in">
+      <div class="bar-row">
+        <h1>شاشات تطبيق المخبز</h1>
+        <div class="ctrls">
+          <span class="ctl" role="group" aria-label="شريط التنقل">
+            <button type="button" data-nav-btn="a" aria-pressed="false">الشريط أ</button>
+            <button type="button" data-nav-btn="b" aria-pressed="true">الشريط ب</button>
+          </span>
+          <span class="ctl" role="group" aria-label="الوضع">
+            <button type="button" data-theme-btn="light" aria-pressed="true">فاتح</button>
+            <button type="button" data-theme-btn="dark" aria-pressed="false">داكن</button>
+          </span>
+          <span class="ctl"><label class="sr" for="font" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">الخط</label>
+            <select id="font">
+              <option value="IBM Plex Sans Arabic">الخط: IBM Plex Sans Arabic</option>
+              <option value="Readex Pro">الخط: Readex Pro</option>
+              <option value="Noto Sans Arabic">الخط: Noto Sans Arabic</option>
+              <option value="Almarai">الخط: Almarai</option>
+            </select>
+          </span>
+        </div>
+      </div>
+      <nav class="toc" id="toc" aria-label="الشاشات"></nav>
+    </div>
+  </div>
+
+  <main>
+    <p class="lead">لكل شاشة خياران مختلفان في التخطيط. اختر من كل قسم الخيار الذي تفضّله، وجرّب الخط والوضع الداكن وشكل شريط التنقل من الأعلى. البيانات تجريبية.</p>
+    <div id="sections"></div>
+  </main>
+
+<script>
+/* الأيقونات بأسلوب Lucide */
+const P = {
+  home: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.8c1.6.8 2.7 2.6 3 5.2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  history: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/>',
+  more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>',
+  sale: '<path d="M4 9h16l-1.5 10.5a2 2 0 0 1-2 1.5h-9a2 2 0 0 1-2-1.5Z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/>',
+  pay: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>',
+  flour: '<path d="M12 22V10"/><path d="M12 10c0-3 2-5 5-5 0 3-2 5-5 5Z"/><path d="M12 10c0-3-2-5-5-5 0 3 2 5 5 5Z"/><path d="M12 15c0-2.5 2-4 4.5-4 0 2.5-2 4-4.5 4Z"/><path d="M12 15c0-2.5-2-4-4.5-4 0 2.5 2 4 4.5 4Z"/>',
+  adj: '<path d="M12 3v18M5 7h14"/><path d="M7 7l-3 7a3 3 0 0 0 6 0Z"/><path d="m17 7-3 7a3 3 0 0 0 6 0Z"/>',
+  bank: '<path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18"/>',
+  shield: '<path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6Z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
+  back: '<path d="m9 6 6 6-6 6"/>',
+  chev: '<path d="m15 6-6 6 6 6"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  check: '<path d="m5 12 5 5L20 7"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  alert: '<path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/>',
+  wifiOff: '<path d="M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8"/><path d="M5 12.6a10 10 0 0 1 5.2-2.6M16.8 10.9A10 10 0 0 1 19 12.6"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="m2 2 20 20"/>',
+  sync: '<path d="M21 12a9 9 0 0 1-15.5 6.3L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.3L21 8"/><path d="M21 3v5h-5M3 21v-5h5"/>',
+  print: '<path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16Z"/><path d="m13.5 6.5 4 4"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  logout: '<path d="M15 4h4v16h-4"/><path d="M10 17l-5-5 5-5M5 12h11"/>',
+  store: '<path d="M3 9 5 4h14l2 5"/><path d="M4 9v11h16V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M10 20v-5h4v5"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3"/>',
+  swap: '<path d="M7 7h11l-3-3M17 17H6l3 3"/>',
+  phone: '<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18h2"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+  filter: '<path d="M4 5h16l-6 8v6l-4-2v-4Z"/>',
+  minus: '<path d="M5 12h14"/>',
+  del: '<path d="M21 5H9l-6 7 6 7h12Z"/><path d="m16 9-6 6M10 9l6 6"/>',
+};
+const I = (n, st = '') => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"${st ? ` style="${st}"` : ''}>${P[n]}</svg>`;
+const N = v => `<span class="num">${v}</span>`;
+const SH = v => `${N(v)} شيكل`;
+
+function row(k, t, s, a = '', extra = '') {
+  const ic = k.startsWith('av:') ? `<span class="av">${k.slice(3)}</span>` : `<span class="ic ${k}">${I({ sale: 'sale', pay: 'pay', flour: 'flour', adj: 'adj', bank: 'bank', bad: 'x' }[k] || k)}</span>`;
+  return `<li>${ic}<span class="who"><b>${t}</b><span>${s}</span></span>${a ? `<span class="amt ${extra}">${a}</span>` : ''}</li>`;
+}
+
+/* الرسوم: الأحدث على اليسار */
+function chartLine(vals, labels, ticks, opts = {}) {
+  const W = 300, H = 150, top = 12, bottom = 22, left = opts.left ?? 30, max = opts.max ?? Math.max(...vals) * 1.15;
+  const X = vals.map((_, i) => W - 6 - i * ((W - left - 6) / (vals.length - 1)));
+  const Y = vals.map(v => top + (1 - v / max) * (H - top - bottom));
+  let p = `M${X[0]},${Y[0]}`;
+  for (let i = 0; i < X.length - 1; i++) { const c = (X[i] + X[i + 1]) / 2; p += opts.smooth === false ? ` L${X[i + 1]},${Y[i + 1]}` : ` C${c},${Y[i]} ${c},${Y[i + 1]} ${X[i + 1]},${Y[i + 1]}`; }
+  const L = X.length - 1;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${opts.label || 'رسم'}">` +
+    ticks.map(v => { const y = top + (1 - v / max) * (H - top - bottom); return `<line x1="${left}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--border)"/><text x="${left - 6}" y="${y + 3}" text-anchor="end">${v}</text>`; }).join('') +
+    (opts.fill ? `<path d="${p} L${X[L]},${H - bottom} L${X[0]},${H - bottom} Z" fill="var(--orange)" opacity=".08"/>` : '') +
+    `<path d="${p}" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    `<circle cx="${X[L]}" cy="${Y[L]}" r="4.5" fill="var(--card)" stroke="var(--orange)" stroke-width="2.2"/>` +
+    labels.map((l, i) => `<text x="${X[i]}" y="${H - 5}" text-anchor="middle">${l}</text>`).join('') + `</svg>`;
+}
+function chartBars(vals, labels, label) {
+  const W = 300, H = 140, top = 24, bottom = 22, max = Math.max(...vals) * 1.1, bw = 22;
+  const X = vals.map((_, i) => W - 22 - i * ((W - 44) / (vals.length - 1)));
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}">` + vals.map((v, i) => {
+    const h = v / max * (H - top - bottom), y = H - bottom - h, hot = i === vals.length - 1;
+    return `<rect x="${X[i] - bw / 2}" y="${y}" width="${bw}" height="${h}" rx="7" fill="${hot ? 'var(--orange)' : 'var(--bar)'}"/>` + (hot ? `<text x="${X[i]}" y="${y - 7}" text-anchor="middle" style="fill:var(--ink);font-weight:600;font-size:11px">${v}</text>` : '');
+  }).join('') + labels.map((l, i) => `<text x="${X[i]}" y="${H - 5}" text-anchor="middle">${l}</text>`).join('') + `</svg>`;
+}
+
+/* الهاتف */
+const NAVS = {
+  owner: [['home', 'home', 'الرئيسية'], ['customers', 'users', 'الزبائن'], ['sale', 'plus', 'بيع'], ['log', 'history', 'السجل'], ['more', 'more', 'المزيد']],
+  admin: [['bakeries', 'store', 'المخابز'], ['add', 'plus', 'إضافة'], ['more', 'more', 'المزيد']],
+};
+function phone(o) {
+  const nav = o.nav === false ? '' : `<nav class="nav" aria-label="التنقل">` + NAVS[o.nav || 'owner'].map(([k, ic, t]) =>
+    k === 'sale' || k === 'add' ? `<a href="#" class="sale${o.active === k ? ' on' : ''}"><span class="fab">${I(ic)}</span>${t}</a>` :
+    `<a href="#" class="${o.active === k ? 'on' : ''}"${o.active === k ? ' aria-current="page"' : ''}>${I(ic)}${t}</a>`).join('') + `</nav>`;
+  const net = o.net === 'off' ? `<span class="net off"><i></i>${o.netText || 'دون إنترنت'}</span>` : o.net === 'none' ? '' : `<span class="net"><i></i>متصل</span>`;
+  return `<div class="phone"><div class="status${o.darkTop ? ' on-dark' : ''}"><span class="num">9:41</span>${net}</div>` +
+    (o.raw || `<div class="screen${o.nav === false ? ' nonav' : ''}">${o.body}</div>`) + (o.overlay || '') + nav + `</div>`;
+}
+
+/* المحتوى المشترك */
+const recent = [
+  row('sale', 'مشترٍ عابر', 'بيع عادي، 12 كغ، 08:31', SH('72.00')),
+  row('pay', 'مطعم الأصدقاء', 'دفعة، تحويل جوال باي', SH('+90.00'), 'in'),
+  row('flour', 'كافتيريا الجامعة', 'إيداع طحين، 07:50', 'له 142 كغ'),
+  row('sale', 'أبو محمد الشريف', 'خبز مقابل طحين، 17 كغ', SH('34.00')),
+  row('pay', 'أم خالد', 'دفعة نقدًا، أمس', SH('+50.00'), 'in'),
+];
+
+const S = [];
+const add = (id, title, note, a, b) => S.push({ id, title, note, a, b });
+
+/* 1. الدخول */
+add('login', 'تسجيل الدخول', 'الحسابات ينشئها صاحب المخبز أو مالك المنصة، فلا يوجد تسجيل ذاتي.',
+  { cap: 'نموذج بسيط في وسط الشاشة', html: phone({ nav: false, net: 'none', body: `
+    <div style="padding-top:70px"><div class="brand">${I('flour', 'width:28px;height:28px')}</div>
+    <div class="head" style="margin-top:16px"><h3>تسجيل الدخول<small>المبيعات وأرصدة الطحين لمخبزك</small></h3></div>
+    <div class="field"><label>البريد الإلكتروني</label><div class="input focus"><span class="num">owner@alnoor.ps</span></div></div>
+    <div class="field"><label>كلمة المرور</label><div class="input"><span class="num">••••••••</span><span class="suf">${I('lock', 'width:18px;height:18px')}</span></div></div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:14px;margin:4px 0 6px"><span class="box on">${I('check')}</span>تذكّرني<a class="end" style="color:var(--muted);font-size:13px">نسيت كلمة المرور؟</a></div>
+    <div class="btns"><span class="btn pri">دخول</span></div></div>` }) },
+  { cap: 'رأس داكن بهوية المخبز ونموذج يصعد من الأسفل', html: phone({ nav: false, net: 'none', darkTop: true, raw: `
+    <div class="login-top"><div class="brand">${I('flour', 'width:28px;height:28px')}</div>
+      <div style="font-size:24px;font-weight:600;margin-top:16px">تسجيل الدخول</div>
+      <div style="color:var(--hero-muted);font-size:14px">المبيعات وأرصدة الطحين، تعمل دون إنترنت أيضًا</div></div>
+    <div class="login-card">
+      <div class="field"><label>البريد الإلكتروني</label><div class="input"><span class="ph">name@example.com</span></div></div>
+      <div class="field"><label>كلمة المرور</label><div class="input err"><span class="num">•••••</span></div><div class="hint err">بيانات الدخول غير صحيحة</div></div>
+      <div class="btns col"><span class="btn pri">دخول</span><span class="btn ghost" style="min-height:44px">نسيت كلمة المرور؟</span></div>
+    </div>` }) });
+
+/* 2. الرئيسية */
+add('home', 'الرئيسية', 'أزرار الفترة تغيّر كل الأرقام. الخبز المباع أهم رقم، والبيع زر واحد في الشريط.',
+  { cap: 'بطاقات: بطاقة داكنة للخبز ثم المقبوضات وغير المدفوع', html: phone({ active: 'home', body: `
+    <div class="head"><h3>مخبز النور<small>الجمعة 27/11</small></h3><span class="av end" style="width:40px;height:40px">م</span></div>
+    <div class="pills"><span class="on">يوم</span><span>أسبوع</span><span>شهر</span><span>سنة</span></div>
+    <div class="card hero"><div class="l">خبز مباع اليوم</div><div class="big">${N(89)}<small>كغ</small></div>
+      <div class="split"><span>بيع عادي <b class="num">72</b> كغ</span><span>مقابل طحين <b class="num">17</b> كغ</span></div></div>
+    <div class="grid2"><div class="card stat"><div class="l">المقبوضات</div><div class="v">${SH('342.00')}</div><div class="x">${N('68%')} من المبيعات</div></div>
+      <div class="card stat"><div class="l">غير مدفوع</div><div class="v debt">${SH('124.00')}</div><div class="x">4 عمليات</div></div></div>
+    <div class="card"><div class="t-section">آخر الحركات<a>عرض الكل</a></div><ul class="rows lined">${recent.slice(0, 4).join('')}</ul></div>` }) },
+  { cap: 'مثل مرجعك: رقم كبير ورسم واحد خفيف وقائمة على الخلفية', html: phone({ active: 'home', body: `
+    <div class="head"><h3>اليوم</h3><span class="chip end">مخبز النور${I('down')}</span></div>
+    <div class="pills"><span class="on">يوم</span><span>أسبوع</span><span>شهر</span><span>سنة</span></div>
+    <div class="label">خبز مباع</div><div class="big-num">${N(89)}<small>كغ</small></div>
+    <div style="display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:4px"><span>المقبوضات <b style="color:var(--ink)">${SH('342.00')}</b></span><span>غير مدفوع <b class="debt">${SH('124.00')}</b></span></div>
+    ${chartLine([70, 81, 74, 66, 84, 78, 89], ['21/11', '22', '23', '24', '25', '26', '27/11'], [0, 50, 100], { max: 110, fill: true, label: 'الخبز المباع آخر 7 أيام' })}
+    <div class="t-section">آخر الحركات</div><ul class="rows">${recent.slice(0, 4).join('')}</ul><span class="view-all">عرض الكل</span>` }) });
+
+/* 3. تسجيل بيع */
+add('sale', 'تسجيل بيع', 'أكثر عملية تكرارًا: كمية ثم حفظ. مدفوع واليوم افتراضيان.',
+  { cap: 'نافذة سفلية بلوحة أرقام كبيرة', html: phone({ active: 'sale', body: `<div class="head"><h3>اليوم</h3></div><div class="card hero" style="height:130px"></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet tall" role="dialog" aria-label="تسجيل عملية بيع"><div class="grab"></div>
+      <div class="sheet-t"><b>تسجيل عملية بيع</b><span class="chip end">مشترٍ عابر${I('down')}</span></div>
+      <div class="amount-show"><b class="num">12</b><small>كغ</small></div>
+      <div class="calc">${N(12)} كغ × ${SH('6.00')} = <b>${SH('72.00')}</b></div>
+      <div class="tabs2"><span class="on">مدفوع</span><span>غير مدفوع</span></div>
+      <div class="keys">${[1, 2, 3, 4, 5, 6, 7, 8, 9, '.', 0].map(k => `<span>${k}</span>`).join('')}<span aria-label="حذف">${I('del')}</span></div>
+      <div class="btns"><span class="btn pri">حفظ العملية</span></div></div>` }) },
+  { cap: 'شاشة كاملة بكميات جاهزة وأزرار زيادة ونقصان', html: phone({ active: 'sale', body: `
+    <div class="head"><span class="iconbtn plain">${I('x')}</span><h3 class="sm">تسجيل بيع</h3></div>
+    <div class="field"><label>المشتري</label><div class="input">${I('user', 'width:18px;height:18px;color:var(--muted)')}<span>مشترٍ عابر</span><span class="suf">${I('down', 'width:18px;height:18px')}</span></div></div>
+    <div class="label" style="margin-bottom:6px">الكمية</div>
+    <div class="presets"><span>5</span><span class="on">10</span><span>20</span><span>50</span></div>
+    <div class="stepper"><span class="iconbtn">${I('minus')}</span><div class="amount-show" style="min-width:110px"><b class="num">12</b><small>كغ</small></div><span class="iconbtn">${I('plus')}</span></div>
+    <div class="note">السعر ${SH('6.00')} للكيلو، المجموع <b>${SH('72.00')}</b></div>
+    <div class="tabs2"><span class="on">مدفوع</span><span>غير مدفوع</span></div>
+    <div class="btns"><span class="btn pri">حفظ العملية</span></div>` }) });
+
+/* 4. الزبائن */
+const custs = [['أب', 'أبو محمد الشريف', 'له 12 كغ', '16.00', 'debt'], ['مط', 'مطعم الأصدقاء', 'عليه 20 كغ', '-30.00', 'in'], ['كا', 'كافتيريا الجامعة', 'له 142 كغ', '0.00', ''], ['أم', 'أم خالد', '0 كغ', '45.00', 'debt'], ['سو', 'سوبرماركت النور', 'له 8 كغ', '12.50', 'debt']];
+add('customers', 'الزبائن', 'رصيد الطحين بالكلمات، والرصيد المالي بالإشارة: الموجب عليه والسالب له.',
+  { cap: 'قائمة مع بحث، والرصيدان في كل صف', html: phone({ active: 'customers', body: `
+    <div class="head"><h3>الزبائن</h3><span class="iconbtn end" aria-label="إضافة زبون">${I('plus')}</span></div>
+    <div class="input" style="margin-bottom:10px">${I('search', 'width:18px;height:18px;color:var(--muted)')}<span class="ph">ابحث بالاسم أو الجوال</span></div>
+    <ul class="rows lined">${custs.map(([a, n, f, m, c]) => `<li><span class="av">${a}</span><span class="who"><b>${n}</b><span>${f}</span></span><span class="amt ${c}">${SH(m)}</span></li>`).join('')}</ul>` }) },
+  { cap: 'فلاتر سريعة وبطاقة لكل زبون بالرصيدين', html: phone({ active: 'customers', body: `
+    <div class="head"><h3>الزبائن</h3><span class="iconbtn end" aria-label="بحث">${I('search')}</span><span class="iconbtn" aria-label="إضافة زبون">${I('plus')}</span></div>
+    <div class="chips"><span class="chip on">الكل ${N(38)}</span><span class="chip">عليهم مال</span><span class="chip">لهم طحين</span></div>
+    ${custs.slice(0, 4).map(([a, n, f, m, c]) => `<div class="card flat" style="padding:16px"><div style="display:flex;align-items:center;gap:10px"><span class="av">${a}</span><b style="font-weight:500">${n}</b><span class="chev end">${I('chev', 'width:18px;height:18px')}</span></div>
+      <div style="display:flex;gap:8px;margin-top:10px"><span class="badge mute">الطحين: ${f}</span><span class="badge ${c === 'debt' ? 'no' : c === 'in' ? 'ok' : 'mute'}">المال: ${N(m)} شيكل</span></div></div>`).join('')}` }) });
+
+/* 5. صفحة الزبون */
+add('customer', 'صفحة الزبون', 'كشفان منفصلان: مالي وطحين، والعمليات الأربع في أعلى الصفحة. الحركة غير المتزامنة تظهر بعلامة.',
+  { cap: 'أزرار دائرية ثم كشف برسم خفيف كما في مرجعك', html: phone({ active: 'customers', net: 'off', netText: 'دون إنترنت، عمليتان تنتظران', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">أبو محمد الشريف<small>${N('0599123456')}</small></h3></div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:16px;text-align:center;font-size:12px">
+      ${[['sale', 'خبز مقابل طحين', 1], ['flour', 'إيداع طحين'], ['pay', 'دفعة'], ['adj', 'تسوية']].map(([k, t, m]) => `<span><span class="ic sq" style="margin:0 auto 6px;width:50px;height:50px;${m ? 'background:var(--ink);color:var(--page)' : 'background:var(--card);border:1px solid var(--border);color:var(--ink)'}">${I(k)}</span>${t}</span>`).join('')}</div>
+    <div class="seg"><span class="on">الحساب المالي</span><span>الطحين</span><span>المبيعات</span></div>
+    <div style="display:flex;align-items:baseline;gap:6px"><b class="debt" style="font-size:22px;font-weight:600">${N('16.00')}</b><span class="unit">شيكل عليه</span><span class="chip end" style="align-self:center">${I('cal')}تشرين الثاني</span></div>
+    ${chartLine([0, 20, 0, 16], ['01/11', '25/11', '25/11', '27/11'], [0, 10, 20], { max: 25, smooth: false, label: 'الرصيد المالي' })}
+    <ul class="rows lined">${row('sale', 'رسم تبديل طحين 8 كغ', '27/11، 08:12', `${SH('16.00')}<small class="pend">ينتظر المزامنة</small>`, 'debt')}
+      ${row('pay', 'دفعة عن بيع 25/11', 'رقم 4، نقدًا', SH('-20.00'), 'in')}${row('sale', 'رسم تبديل طحين 10 كغ', 'رقم 3، 25/11', SH('20.00'), 'debt')}</ul>` }) },
+  { cap: 'رأس داكن بالرصيدين، وكشف كجدول مختصر بالرصيد الجاري', html: phone({ active: 'customers', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">أبو محمد الشريف</h3><span class="iconbtn end" aria-label="تعديل">${I('edit')}</span></div>
+    <div class="card hero"><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><div class="l">الرصيد المالي</div><div style="font-size:24px;font-weight:600">${N('16.00')}</div><div class="l" style="font-size:12px">شيكل عليه</div></div>
+      <div><div class="l">رصيد الطحين</div><div style="font-size:24px;font-weight:600">له ${N(12)}</div><div class="l" style="font-size:12px">كغ</div></div></div></div>
+    <div class="chips"><span class="chip on">${I('sale')}خبز مقابل طحين</span><span class="chip">${I('flour')}إيداع</span><span class="chip">${I('pay')}دفعة</span><span class="chip">${I('adj')}تسوية</span></div>
+    <div class="tabs2 three"><span>المالي</span><span class="on">الطحين</span><span>المبيعات</span></div>
+    <div class="date-h">رصيد سابق: 0 كغ</div>
+    <ul class="rows lined">${row('flour', 'إيداع طحين 30 كغ', 'رقم 2، 24/11', `له ${N(30)} كغ<small>الرصيد: له 30 كغ</small>`, 'in')}
+      ${row('sale', 'خبز مقابل طحين 10 كغ', 'رقم 3، 25/11', `عليه ${N(10)} كغ<small>الرصيد: له 20 كغ</small>`)}
+      ${row('sale', 'خبز مقابل طحين 8 كغ', 'رقم 6، 26/11', `عليه ${N(8)} كغ<small>الرصيد: له 12 كغ</small>`)}</ul>
+    <div class="note" style="margin-top:8px">الرصيد الختامي: <b>له 12 كغ</b></div>` }) });
+
+/* 6. تفاصيل حركة */
+add('movement', 'تفاصيل حركة', 'تفتح من أي حركة في الكشف أو السجل. الطباعة تحتاج إنترنت، بإيصال صغير أو صفحة A4.',
+  { cap: 'مجموعات معلومات كما في مرجعك', html: phone({ active: 'customers', body: `<div class="head"><h3 class="sm">أبو محمد الشريف</h3></div><div class="card" style="height:240px"></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet" role="dialog" aria-label="تفاصيل الحركة"><div class="grab"></div>
+      <div class="sheet-t"><span class="ic pay">${I('pay')}</span><span class="who"><b>دفعة عن بيع 25/11</b><span>25/11/2026، 17:40</span></span><span style="font-size:19px;font-weight:600">${SH('20.00')}</span></div>
+      <dl class="group"><div><dt>الحالة</dt><dd class="in">مُزامَنة</dd></div></dl>
+      <dl class="group"><div><dt>رقم الحركة</dt><dd>${N(4)}</dd></div><div><dt>التحويل</dt><dd>جوال باي ← بنك فلسطين</dd></div><div><dt>رقم الحوالة</dt><dd>${N('TR-90210')}</dd></div></dl>
+      <dl class="group"><div><dt>الرصيد بعده</dt><dd>${SH('0.00')}</dd></div><div><dt>سجّلها</dt><dd>صاحب المخبز</dd></div></dl>
+      <div class="btns"><span class="btn sec">قيد تسوية</span><span class="btn pri">${I('print')}طباعة</span></div></div>` }) },
+  { cap: 'شكل إيصال: المبلغ في الوسط، وخياران للطباعة', html: phone({ active: 'log', body: `<div class="head"><h3>السجل</h3></div><div class="card" style="height:240px"></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet" role="dialog" aria-label="تفاصيل الحركة"><div class="grab"></div>
+      <div class="receipt"><span class="ic sale" style="margin:0 auto">${I('sale')}</span><div class="big-num">${N('72.00')}<small>شيكل</small></div><span class="badge ok">مدفوع</span></div>
+      <ul class="kv"><li><span>رقم الحركة</span><span>${N(198)}</span></li><li><span>المشتري</span><span>مشترٍ عابر</span></li><li><span>الكمية</span><span>${N(12)} كغ × ${SH('6.00')}</span></li><li><span>التاريخ</span><span>${N('27/11/2026 08:31')}</span></li><li><span>سجّلها</span><span>سامر</span></li></ul>
+      <div class="btns col"><span class="btn pri">${I('print')}طباعة إيصال صغير</span><span class="btn ghost">طباعة صفحة A4</span></div></div>` }) });
+
+/* 7. نموذج دفعة */
+add('payment', 'تسجيل دفعة', 'نقدًا أو تحويل. في التحويل يُختار البنك المرسل والمستقبل من قائمة واحدة في حقل مزدوج، ورقم الحوالة اختياري.',
+  { cap: 'نموذج قصير بحقل "من ← إلى" مزدوج', html: phone({ active: 'customers', body: `<div class="head"><h3 class="sm">مطعم الأصدقاء</h3></div><div class="card" style="height:200px"></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet tall" role="dialog" aria-label="تسجيل دفعة"><div class="grab"></div>
+      <div class="sheet-t"><b>تسجيل دفعة</b><span class="end label">عليه ${SH('120.00')}</span></div>
+      <div class="field"><label>المبلغ</label><div class="input focus"><span class="num" style="font-size:20px;font-weight:600">90.00</span><span class="suf">شيكل</span></div></div>
+      <div class="tabs2"><span>نقدًا</span><span class="on">تحويل</span></div>
+      <div class="field"><label>من ← إلى</label><div class="pairf"><div class="input">جوال باي</div><span class="arrow">←</span><div class="input">بنك فلسطين</div></div></div>
+      <div class="field"><label>رقم الحوالة (اختياري)</label><div class="input"><span class="ph">مثل TR-90210</span></div></div>
+      <div class="field"><label>الدفعة عن</label><div class="input">دفعة على الحساب<span class="suf">${I('down', 'width:18px;height:18px')}</span></div></div>
+      <div class="btns"><span class="btn pri">حفظ الدفعة</span></div></div>` }) },
+  { cap: 'طريقة الدفع ببطاقتين، والبنوك أزرار اختيار', html: phone({ active: 'customers', body: `<div class="head"><h3 class="sm">مطعم الأصدقاء</h3></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet tall" role="dialog" aria-label="تسجيل دفعة"><div class="grab"></div>
+      <div class="sheet-t"><b>تسجيل دفعة</b></div>
+      <div class="amount-show"><b class="num">90.00</b><small>شيكل</small></div>
+      <div class="calc">الرصيد بعدها: <b>${SH('30.00')}</b> عليه</div>
+      <div class="opts"><span class="opt">${I('pay')}نقدًا</span><span class="opt on">${I('swap')}تحويل</span></div>
+      <div class="label">من</div><div class="chips" style="margin-top:6px"><span class="chip on">جوال باي</span><span class="chip">بال باي</span><span class="chip">بنك فلسطين</span></div>
+      <div class="label">إلى</div><div class="chips" style="margin-top:6px"><span class="chip">جوال باي</span><span class="chip">بال باي</span><span class="chip on">بنك فلسطين</span></div>
+      <div class="field"><label>رقم الحوالة (اختياري)</label><div class="input"><span class="num">TR-90210</span></div></div>
+      <div class="btns"><span class="btn pri">حفظ الدفعة</span></div></div>` }) });
+
+/* 8. إيداع، خبز مقابل طحين، تسوية */
+add('forms', 'إيداع طحين، خبز مقابل طحين، قيد تسوية', 'كلها تعمل دون إنترنت. البيع لا يُمنع إذا نفد رصيد الطحين، والتسوية تحتاج سببًا.',
+  { cap: 'نافذة مستقلة لكل عملية، مع معاينة الرصيد بعدها', html: phone({ active: 'customers', body: `<div class="head"><h3 class="sm">أم خالد</h3></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet" role="dialog" aria-label="خبز مقابل طحين"><div class="grab"></div>
+      <div class="sheet-t"><b>خبز مقابل طحين</b><span class="end label">رصيدها له 5 كغ</span></div>
+      <div class="field"><label>الكمية</label><div class="input focus"><span class="num" style="font-size:20px;font-weight:600">8</span><span class="suf">كغ</span></div></div>
+      <div class="note warn">${I('info', 'width:18px;height:18px;vertical-align:-4px')} الرصيد لا يكفي. سيُسجَّل البيع ويصبح <b style="color:inherit">عليها 3 كغ</b></div>
+      <div class="note">رسم التبديل ${N(8)} × ${SH('2.00')} = <b>${SH('16.00')}</b> على حسابها المالي</div>
+      <div class="tabs2"><span>مدفوع</span><span class="on">غير مدفوع</span></div>
+      <div class="btns"><span class="btn pri">حفظ</span></div></div>` }) },
+  { cap: 'نافذة واحدة بتبويبات للعمليات الثلاث، هنا قيد التسوية', html: phone({ active: 'customers', body: `<div class="head"><h3 class="sm">أم خالد</h3></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet tall" role="dialog" aria-label="قيد تسوية"><div class="grab"></div>
+      <div class="tabs2 three"><span>إيداع</span><span>خبز بطحين</span><span class="on">تسوية</span></div>
+      <div class="field"><label>الكشف</label><div class="tabs2" style="margin:0"><span class="on">المالي</span><span>الطحين</span></div></div>
+      <div class="field"><label>الاتجاه</label><div class="tabs2" style="margin:0"><span>عليه</span><span class="on">له</span></div></div>
+      <div class="field"><label>المبلغ</label><div class="input"><span class="num">10.00</span><span class="suf">شيكل</span></div></div>
+      <div class="field"><label>السبب</label><div class="input err"><span class="ph">مثل: تصحيح الحركة رقم 152</span></div><div class="hint err">اكتب سبب التسوية</div></div>
+      <div class="field"><label>رقم الحركة المصحَّحة (اختياري)</label><div class="input"><span class="num">152</span></div></div>
+      <div class="btns"><span class="btn pri">حفظ التسوية</span></div></div>` }) });
+
+/* 9. المبيعات */
+const sales = [['مشترٍ عابر', '12 كغ، 08:31', '72.00', 1], ['أبو محمد الشريف', '17 كغ مقابل طحين', '34.00', 0], ['مشترٍ عابر', '5 كغ، 08:02', '30.00', 1], ['مطعم الأصدقاء', '22 كغ، 07:45', '132.00', 0]];
+add('sales', 'المبيعات', 'تبويبان منفصلان: بيع عادي وبيع مقابل طحين، مع حالة الدفع وتأكيده.',
+  { cap: 'تبويبان وقائمة بشارات الحالة وزر التأكيد', html: phone({ active: 'log', body: `
+    <div class="head"><h3>المبيعات</h3><span class="iconbtn end" aria-label="تصفية">${I('filter')}</span></div>
+    <div class="tabs2"><span class="on">بيع عادي</span><span>مقابل طحين</span></div>
+    <ul class="rows lined">${sales.map(([n, s, a, p]) => `<li><span class="ic sale">${I('sale')}</span><span class="who"><b>${n}</b><span>${s}</span></span><span class="amt">${SH(a)}<small>${p ? '<span class="badge ok">مدفوع</span>' : '<span class="badge no">غير مدفوع</span>'}</small></span></li>`).join('')}</ul>
+    <p class="hint">المس أي عملية غير مدفوعة لتأكيد دفعها</p>` }) },
+  { cap: 'ملخص اليوم في الأعلى، والعمليات مجمّعة حسب التاريخ', html: phone({ active: 'log', body: `
+    <div class="head"><h3>المبيعات</h3></div>
+    <div class="seg"><span class="on">بيع عادي</span><span>مقابل طحين</span></div>
+    <div class="grid2"><div class="card flat stat"><div class="l">مدفوع</div><div class="v in">${SH('218.00')}</div></div><div class="card flat stat"><div class="l">غير مدفوع</div><div class="v debt">${SH('124.00')}</div></div></div>
+    <div class="date-h">اليوم</div>
+    <ul class="rows">${row('sale', 'مشترٍ عابر', '12 كغ، 08:31', SH('72.00'))}${row('sale', 'مطعم الأصدقاء', '22 كغ، غير مدفوع', `${SH('132.00')}<small style="color:var(--orange-ink);font-weight:600">تأكيد الدفع</small>`, 'debt')}</ul>
+    <div class="date-h">أمس</div>
+    <ul class="rows">${row('sale', 'مشترٍ عابر', '5 كغ، 18:20', SH('30.00'))}${row('sale', 'أم خالد', '7 كغ', SH('42.00'))}</ul>` }) });
+
+/* 10. سجل المبيعات */
+add('log', 'سجل المبيعات', 'على مستوى المخبز كله. البطاقات للفترة كاملة، والفلاتر تخص القائمة.',
+  { cap: 'أربع بطاقات ملخص ثم القائمة', html: phone({ active: 'log', body: `
+    <div class="head"><h3>السجل</h3><span class="chip end">${I('back')}${N('21/11 – 27/11')}${I('chev')}</span></div>
+    <div class="pills"><span>يوم</span><span class="on">أسبوع</span><span>شهر</span><span>سنة</span></div>
+    <div class="card hero" style="padding:16px 16px"><div class="l">الخبز المباع</div><div class="big" style="font-size:34px">${N(625)}<small>كغ</small></div><div class="split"><span>عادي <b class="num">427</b></span><span>مقابل طحين <b class="num">198</b></span></div></div>
+    <div class="grid2"><div class="card stat"><div class="l">الدخل المالي</div><div class="v">${SH('2,501')}</div><div class="x">نقدًا ${N('2,111')}، تحويل ${N(390)}</div></div>
+      <div class="card stat"><div class="l">الطحين</div><div class="v">${N(387)} <span class="unit">كغ مستلم</span></div><div class="x">مصروف ${N(198)} كغ</div></div></div>
+    <div class="chips"><span class="chip">النوع${I('down')}</span><span class="chip">الزبون${I('down')}</span><span class="chip">سجّلها${I('down')}</span></div>
+    <ul class="rows lined">${recent.slice(0, 3).join('')}</ul>` }) },
+  { cap: 'رسم أعمدة للدخل، والأرقام قائمة واحدة كالإيصال', html: phone({ active: 'log', body: `
+    <div class="head"><h3>السجل</h3></div>
+    <div class="pills"><span>يوم</span><span class="on">أسبوع</span><span>شهر</span><span>سنة</span></div>
+    <div class="label">الدخل المالي هذا الأسبوع</div><div class="big-num" style="font-size:32px">${N('2,501.00')}<small>شيكل</small></div>
+    ${chartBars([351, 400, 350, 280, 420, 310, 390], ['21', '22', '23', '24', '25', '26', '27'], 'الدخل اليومي')}
+    <ul class="kv" style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:4px 16px">
+      <li><span>الخبز المباع</span><span>${N(625)} كغ</span></li><li><span>منه مقابل طحين</span><span>${N(198)} كغ</span></li>
+      <li><span>نقدًا / تحويل</span><span>${N('2,111')} / ${N(390)} شيكل</span></li><li><span>الطحين المستلم</span><span>${N(387)} كغ</span></li></ul>
+    <div class="t-section" style="margin-top:12px">الحركات<a>${I('filter', 'width:16px;height:16px;vertical-align:-3px')} تصفية</a></div>
+    <ul class="rows">${recent.slice(1, 3).join('')}</ul>` }) });
+
+/* 11. المزامنة */
+add('sync', 'المزامنة', 'ما سُجّل دون إنترنت ينتظر هنا، ويُرسل تلقائيًا. الخادم يعطي كل حركة رقمها الرسمي.',
+  { cap: 'عدّاد كبير ثم قائمة بحالة كل عملية', html: phone({ active: 'more', net: 'off', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">المزامنة</h3></div>
+    <div class="card" style="text-align:center"><div class="label">تنتظر الإرسال</div><div class="big-num">${N(3)}</div><div class="hint">تُرسل عند عودة الإنترنت. آخر مزامنة ${N('08:02')}</div></div>
+    <div class="card" style="padding:0 16px"><ul class="rows lined">
+      ${row('sale', 'بيع عادي، 12 كغ', 'مشترٍ عابر، 08:31', '<span class="badge wait">ينتظر</span>')}
+      ${row('sale', 'خبز مقابل طحين، 8 كغ', 'أم خالد، 08:12', '<span class="badge wait">ينتظر</span>')}
+      ${row('flour', 'إيداع طحين، 40 كغ', 'أبو محمد الشريف، 08:05', '<span class="badge wait">ينتظر</span>')}
+      ${row('pay', 'دفعة، 50.00 شيكل', 'مطعم الأصدقاء، أمس', '<span class="badge ok">أُرسلت</span>')}
+      ${row('bad', 'خبز مقابل طحين، 5 كغ', 'الزبون حُذف من جهاز آخر', '<span class="badge no">رُفضت</span>')}</ul></div>` }) },
+  { cap: 'تنبيه دون إنترنت، ومجموعات منفصلة مع سبب الرفض', html: phone({ active: 'more', net: 'off', body: `
+    <div class="head"><h3>المزامنة</h3></div>
+    <div class="banner">${I('wifiOff', 'width:20px;height:20px')}<span><b>دون إنترنت</b>البيع والإيداع والدفعات تعمل. سترسل العمليات تلقائيًا.</span></div>
+    <div class="grp-h">تنتظر الإرسال<span>${N(3)}</span></div>
+    <ul class="rows">${row('sale', 'بيع عادي، 12 كغ', '08:31', SH('72.00'))}${row('sale', 'خبز مقابل طحين، 8 كغ', 'أم خالد', SH('16.00'))}${row('flour', 'إيداع طحين', 'أبو محمد الشريف', 'له 40 كغ')}</ul>
+    <div class="grp-h" style="color:var(--danger)">رُفضت<span>${N(1)}</span></div>
+    <div class="card flat" style="padding:12px 16px"><b style="font-weight:500">خبز مقابل طحين، 5 كغ</b><div class="hint">حُذف الزبون من جهاز آخر قبل الإرسال</div><div class="btns" style="margin-top:10px"><span class="btn sec" style="min-height:44px">إزالة من القائمة</span></div></div>
+    <div class="btns"><span class="btn dark off">${I('sync')}مزامنة الآن</span></div>` }) });
+
+/* 12. المزيد */
+add('more', 'المزيد', 'تظهر العناصر حسب صلاحيات المستخدم. ما يحتاج إنترنت يظهر معطّلًا دون اتصال.',
+  { cap: 'قائمة مجمّعة بأيقونات وأسهم', html: phone({ active: 'more', net: 'off', body: `
+    <div class="head"><span class="av" style="width:52px;height:52px;font-size:19px">م</span><h3 class="sm">محمد<small>صاحب مخبز النور</small></h3></div>
+    <div class="menu-t">العمل</div><ul class="menu rows">
+      <li><span class="ic sale">${I('sale')}</span>المبيعات<span class="v chev">${I('chev', 'width:18px;height:18px')}</span></li>
+      <li><span class="ic sale">${I('sync')}</span>المزامنة<span class="v"><span class="badge wait">${N(3)}</span></span></li>
+      <li class="dim"><span class="ic bank">${I('bank')}</span>البنوك والمحافظ<span class="v">يحتاج إنترنت</span></li></ul>
+    <div class="menu-t">الإدارة</div><ul class="menu rows">
+      <li class="dim"><span class="ic bank">${I('shield')}</span>المستخدمون<span class="v">يحتاج إنترنت</span></li>
+      <li class="dim"><span class="ic bank">${I('gear')}</span>الإعدادات والأسعار<span class="v">يحتاج إنترنت</span></li>
+      <li><span class="ic bank">${I('user')}</span>الملف الشخصي<span class="v chev">${I('chev', 'width:18px;height:18px')}</span></li>
+      <li style="color:var(--danger)"><span class="ic bad">${I('logout')}</span>تسجيل الخروج</li></ul>` }) },
+  { cap: 'مربعات كبيرة سهلة اللمس', html: phone({ active: 'more', body: `
+    <div class="head"><h3>المزيد</h3><span class="av end">م</span></div>
+    <div class="tiles">
+      <span class="tile">${I('sale')}<span>المبيعات<br><small>${N(14)} عملية اليوم</small></span></span>
+      <span class="tile">${I('sync')}<span>المزامنة<br><small>كل شيء مُرسل</small></span></span>
+      <span class="tile">${I('bank')}<span>البنوك والمحافظ<br><small>${N(3)} حسابات</small></span></span>
+      <span class="tile">${I('shield')}<span>المستخدمون<br><small>${N(2)} موظفان</small></span></span>
+      <span class="tile">${I('gear')}<span>الإعدادات<br><small>السعر ${N('6.00')} شيكل</small></span></span>
+      <span class="tile">${I('user')}<span>الملف الشخصي<br><small>محمد</small></span></span></div>
+    <div class="btns"><span class="btn ghost" style="color:var(--danger)">${I('logout')}تسجيل الخروج</span></div>` }) });
+
+/* 13. البنوك */
+const banks = ['جوال باي', 'بنك فلسطين', 'بال باي'];
+add('banks', 'البنوك والمحافظ', 'قائمة واحدة للمرسل والمستقبل. الحذف نهائي ولصاحب المخبز فقط، ولا يغيّر الكشوف القديمة.',
+  { cap: 'قائمة بسيطة مع زر تعديل لكل بنك', html: phone({ active: 'more', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">البنوك والمحافظ</h3><span class="iconbtn end" aria-label="إضافة">${I('plus')}</span></div>
+    <ul class="menu rows">${banks.map(b => `<li><span class="ic bank">${I('bank')}</span>${b}<span class="v">${I('edit', 'width:18px;height:18px')}</span></li>`).join('')}</ul>
+    <p class="hint" style="padding:0 4px">تظهر هذه الأسماء في "من ← إلى" عند تسجيل دفعة بتحويل</p>` }) },
+  { cap: 'بطاقات بعدد الدفعات، وإجراءات ظاهرة على البطاقة', html: phone({ active: 'more', body: `
+    <div class="head"><h3 class="sm">البنوك والمحافظ</h3></div>
+    ${banks.map((b, i) => `<div class="card flat" style="padding:16px;display:flex;align-items:center;gap:12px"><span class="ic bank sq">${I('bank')}</span><span class="who"><b>${b}</b><span>${N([24, 11, 3][i])} دفعة هذا الشهر</span></span><span class="iconbtn" aria-label="تعديل">${I('edit', 'width:18px;height:18px')}</span><span class="iconbtn" aria-label="حذف" style="color:var(--danger)">${I('trash', 'width:18px;height:18px')}</span></div>`).join('')}
+    <div class="btns"><span class="btn pri">${I('plus')}إضافة بنك أو محفظة</span></div>` }) });
+
+/* 14. المستخدمون */
+add('users', 'المستخدمون', 'صاحب المخبز يضيف الموظفين ويوقفهم. يحتاج إنترنت.',
+  { cap: 'قائمة بعدد الصلاحيات والحالة', html: phone({ active: 'more', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">المستخدمون</h3><span class="iconbtn end" aria-label="إضافة موظف">${I('plus')}</span></div>
+    <ul class="rows lined">${row('av:سا', 'سامر', 'كاشير، 4 صلاحيات', '<span class="badge ok">فعّال</span>')}${row('av:ري', 'ريم', 'محاسبة، 9 صلاحيات', '<span class="badge ok">فعّال</span>')}${row('av:خا', 'خالد', 'صلاحيتان', '<span class="badge mute">موقوف</span>')}</ul>` }) },
+  { cap: 'بطاقات مع مفتاح الإيقاف مباشرة', html: phone({ active: 'more', body: `
+    <div class="head"><h3 class="sm">المستخدمون</h3><span class="chip end">${N(3)} موظفين</span></div>
+    ${[['سا', 'سامر', 'تسجيل بيع، عرض الزبائن، دفعة، إيداع', 1], ['ري', 'ريم', 'الكشوف، السجل، التسوية وغيرها', 1], ['خا', 'خالد', 'تسجيل بيع، عرض الزبائن', 0]].map(([a, n, p, on]) =>
+      `<div class="card flat" style="padding:16px"><div style="display:flex;align-items:center;gap:10px"><span class="av">${a}</span><span class="who"><b>${n}</b><span>${on ? 'فعّال' : 'موقوف'}</span></span><span class="switch ${on ? 'on' : ''}" role="switch" aria-checked="${!!on}"></span></div><div class="hint" style="margin-top:8px">${p}</div></div>`).join('')}` }) });
+
+/* 15. نموذج الموظف */
+const permGroups = [['الزبائن', [['عرض الزبائن', 1], ['إضافة زبون', 1], ['تعديل زبون', 0]]], ['المبيعات', [['عرض قائمة المبيعات', 1], ['تسجيل بيع عادي', 1], ['تسجيل بيع مقابل طحين', 1]]], ['المال والطحين', [['تسجيل دفعة', 1], ['تسجيل إيداع طحين', 1]]], ['الكشوف', [['عرض الكشف المالي', 0], ['عرض كشف الطحين', 0], ['تحميل الكشوف', 0]]]];
+add('staff', 'نموذج الموظف', 'الصلاحيات مربعات اختيار مجمّعة. الحذف والأسعار وإدارة المستخدمين لصاحب المخبز وحده ولا تظهر هنا.',
+  { cap: 'صفحة كاملة بكل الصلاحيات ظاهرة', html: phone({ active: 'more', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">سامر</h3></div>
+    <div class="field"><label>الاسم</label><div class="input">سامر</div></div>
+    <div class="field"><label>البريد الإلكتروني</label><div class="input"><span class="num">samer@alnoor.ps</span></div></div>
+    ${permGroups.map(([g, ps]) => `<div class="grp-h">${g}</div><ul class="checks">${ps.map(([p, on]) => `<li><span class="box ${on ? 'on' : ''}">${on ? I('check') : ''}</span>${p}</li>`).join('')}</ul>`).join('')}
+    <div class="btns"><span class="btn pri">حفظ</span></div>` }) },
+  { cap: 'مجموعات قابلة للطي بعدّاد ومفاتيح', html: phone({ active: 'more', body: `
+    <div class="head"><h3 class="sm">صلاحيات سامر</h3></div>
+    ${permGroups.map(([g, ps], gi) => `<div class="card flat" style="padding:12px 16px;margin-bottom:8px"><div style="display:flex;align-items:center;gap:8px"><b style="font-weight:600">${g}</b><span class="badge mute">${N(ps.filter(p => p[1]).length)} من ${N(ps.length)}</span><span class="chev end">${I(gi === 1 ? 'down' : 'chev', 'width:18px;height:18px')}</span></div>
+      ${gi === 1 ? `<ul class="checks" style="margin-top:6px">${ps.map(([p, on]) => `<li>${p}<span class="switch ${on ? 'on' : ''}" role="switch" aria-checked="${!!on}"></span></li>`).join('')}</ul>` : ''}</div>`).join('')}
+    <div class="note">صاحب المخبز وحده يحذف الزبائن والبنوك ويغيّر الأسعار ويدير المستخدمين</div>
+    <div class="btns"><span class="btn pri">حفظ الصلاحيات</span></div>` }) });
+
+/* 16. الإعدادات */
+add('settings', 'الإعدادات', 'سعر الكيلو ورسم التبديل يتغيران بالإنترنت فقط، حتى لا يختلف السعر بين الأجهزة.',
+  { cap: 'نموذج مباشر بحقلين', html: phone({ active: 'more', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">الإعدادات</h3></div>
+    <div class="field"><label>سعر كيلو الخبز</label><div class="input"><span class="num">6.00</span><span class="suf">شيكل</span></div></div>
+    <div class="field"><label>رسم تبديل الطحين للكيلو</label><div class="input"><span class="num">2.00</span><span class="suf">شيكل</span></div><div class="hint">يُضاف على الحساب المالي عند كل بيع مقابل طحين</div></div>
+    <div class="note">البيع المسجّل دون إنترنت يُحسب بآخر سعر وصل للهاتف</div>
+    <div class="btns"><span class="btn pri">حفظ</span></div>` }) },
+  { cap: 'صفوف تفتح للتعديل، معطّلة دون إنترنت', html: phone({ active: 'more', net: 'off', body: `
+    <div class="head"><h3 class="sm">الإعدادات</h3></div>
+    <div class="banner">${I('wifiOff', 'width:20px;height:20px')}<span><b>يحتاج إنترنت</b>يمكنك رؤية الأسعار الحالية، وتغييرها عند الاتصال.</span></div>
+    <ul class="menu rows"><li class="dim">سعر كيلو الخبز<span class="v">${SH('6.00')}</span></li><li class="dim">رسم تبديل الطحين<span class="v">${SH('2.00')}</span></li></ul>
+    <div class="menu-t">التطبيق</div>
+    <ul class="menu rows"><li>الوضع الداكن<span class="switch"></span></li><li>آخر مزامنة<span class="v num">08:02</span></li></ul>` }) });
+
+/* 17. الملف الشخصي */
+add('profile', 'الملف الشخصي', 'الاسم والبريد وكلمة المرور. الموظف لا يحذف حسابه.',
+  { cap: 'صورة رمزية في الوسط ثم الحقول', html: phone({ active: 'more', body: `
+    <div style="text-align:center;padding:16px 0 6px"><span class="av" style="width:72px;height:72px;font-size:26px;margin:0 auto">م</span><div style="font-size:19px;font-weight:600;margin-top:8px">محمد</div><div class="hint">صاحب مخبز النور</div></div>
+    <div class="field"><label>الاسم</label><div class="input">محمد</div></div>
+    <div class="field"><label>البريد الإلكتروني</label><div class="input"><span class="num">owner@alnoor.ps</span></div></div>
+    <div class="btns col"><span class="btn pri">حفظ</span><span class="btn ghost">${I('key')}تغيير كلمة المرور</span></div>` }) },
+  { cap: 'صفوف إعدادات، وكل صف يفتح نافذة', html: phone({ active: 'more', body: `
+    <div class="head"><h3>حسابي</h3></div>
+    <ul class="menu rows"><li><span class="ic bank">${I('user')}</span>الاسم<span class="v">محمد</span></li><li><span class="ic bank">${I('mail')}</span>البريد<span class="v num">owner@alnoor.ps</span></li><li><span class="ic bank">${I('key')}</span>كلمة المرور<span class="v chev">${I('chev', 'width:18px;height:18px')}</span></li></ul>
+    <ul class="menu rows"><li style="color:var(--danger)"><span class="ic bad">${I('logout')}</span>تسجيل الخروج</li></ul>` }) });
+
+/* 18. المخابز: مالك المنصة */
+const bks = [['مخبز النور', 'فعّال', 'ok', 'ينتهي 26/12، متبقٍ 30 يومًا'], ['مخبز الأمل', 'ينتهي قريبًا', 'wait', 'متبقٍ 4 أيام'], ['أفران الشام', 'منتهٍ', 'no', 'انتهى 20/11'], ['مخبز القدس', 'موقوف', 'mute', 'أوقفه مالك المنصة']];
+add('bakeries', 'المخابز (مالك المنصة)', 'مالك المنصة يدير المخابز واشتراكاتها. يحتاج إنترنت.',
+  { cap: 'قائمة بحالة الاشتراك والأيام المتبقية', html: phone({ nav: 'admin', active: 'bakeries', body: `
+    <div class="head"><h3>المخابز</h3><span class="chip end">${N(14)} مخبزًا</span></div>
+    <div class="input" style="margin-bottom:10px">${I('search', 'width:18px;height:18px;color:var(--muted)')}<span class="ph">ابحث باسم المخبز</span></div>
+    <ul class="rows lined">${bks.map(([n, s, c, d]) => `<li><span class="ic bank sq">${I('store')}</span><span class="who"><b>${n}</b><span>${d}</span></span><span class="badge ${c}">${s}</span></li>`).join('')}</ul>` }) },
+  { cap: 'عدّادات للحالات، ثم بطاقة لكل مخبز', html: phone({ nav: 'admin', active: 'bakeries', body: `
+    <div class="head"><h3>المخابز</h3></div>
+    <div class="grid2"><div class="card flat stat"><div class="l">فعّال</div><div class="v">${N(11)}</div></div><div class="card flat stat"><div class="l">يحتاج تجديدًا</div><div class="v" style="color:var(--warn)">${N(3)}</div></div></div>
+    <div class="chips"><span class="chip on">الكل</span><span class="chip">ينتهي قريبًا</span><span class="chip">منتهٍ</span><span class="chip">موقوف</span></div>
+    ${bks.slice(0, 3).map(([n, s, c, d]) => `<div class="card flat" style="padding:16px"><div style="display:flex;align-items:center;gap:8px"><b style="font-weight:500">${n}</b><span class="badge ${c} end">${s}</span></div><div class="hint">${d}</div></div>`).join('')}` }) });
+
+/* 19. صفحة المخبز والتجديد */
+add('bakery', 'صفحة المخبز والتجديد', 'التجديد باختيارات سريعة، والإيقاف بتأكيد.',
+  { cap: 'نافذة تجديد باختيارات 1 و3 و6 و12 شهرًا', html: phone({ nav: 'admin', active: 'bakeries', body: `<div class="head"><h3 class="sm">مخبز الأمل</h3></div><div class="card" style="height:160px"></div>`, overlay: `
+    <div class="scrim"></div><div class="sheet" role="dialog" aria-label="تجديد الاشتراك"><div class="grab"></div>
+      <div class="sheet-t"><b>تجديد الاشتراك</b><span class="end badge wait">متبقٍ 4 أيام</span></div>
+      <div class="presets"><span>1</span><span class="on">3</span><span>6</span><span>12</span></div>
+      <div class="hint" style="margin-top:-6px;margin-bottom:12px">أشهر</div>
+      <div class="note">ينتهي الاشتراك الجديد في <b>${N('01/03/2027')}</b></div>
+      <div class="btns"><span class="btn pri">تجديد 3 أشهر</span></div></div>` }) },
+  { cap: 'بطاقة الحالة وقائمة إجراءات، والإيقاف بحوار تأكيد', html: phone({ nav: 'admin', active: 'bakeries', body: `
+    <div class="head"><span class="iconbtn plain" aria-label="رجوع">${I('back')}</span><h3 class="sm">مخبز النور</h3></div>
+    <div class="card hero"><div class="l">الاشتراك</div><div style="font-size:24px;font-weight:600">فعّال حتى ${N('26/12/2026')}</div><div class="l">متبقٍ ${N(30)} يومًا</div></div>
+    <ul class="menu rows"><li><span class="ic bank">${I('cal')}</span>تجديد الاشتراك<span class="v chev">${I('chev', 'width:18px;height:18px')}</span></li><li><span class="ic bank">${I('user')}</span>حساب صاحب المخبز<span class="v">محمد</span></li><li style="color:var(--danger)"><span class="ic bad">${I('x')}</span>إيقاف الاشتراك</li></ul>`, overlay: `
+    <div class="scrim"></div><div class="dialog" role="alertdialog"><span class="ic bad">${I('alert')}</span><b>إيقاف اشتراك مخبز النور؟</b><p>لن يستطيع صاحب المخبز وموظفوه الدخول حتى تعيد التفعيل.</p>
+      <div class="btns"><span class="btn sec">إلغاء</span><span class="btn danger">إيقاف</span></div></div>` }) });
+
+/* 20. الحالات */
+add('expired', 'انتهى الاشتراك', 'يظهر لصاحب المخبز وموظفيه عند انتهاء الاشتراك.',
+  { cap: 'رسالة في الوسط وزر تواصل', html: phone({ nav: false, body: `<div class="empty" style="padding-top:150px"><span class="ic bad">${I('clock')}</span><b>انتهى اشتراك مخبز النور</b><p>تواصل مع مالك المنصة لتجديده. بياناتك محفوظة ولن تُحذف.</p></div><div class="btns col" style="margin-top:22px"><span class="btn pri">${I('phone')}تواصل لتجديد الاشتراك</span><span class="btn ghost">تسجيل الخروج</span></div>` }) },
+  { cap: 'داخل التطبيق: تنبيه في الأعلى والبيانات للقراءة فقط', html: phone({ active: 'home', body: `<div class="head"><h3>اليوم</h3></div><div class="banner" style="background:var(--danger-soft);color:var(--danger)">${I('clock', 'width:20px;height:20px')}<span><b>انتهى الاشتراك في 20/11</b>لا يمكن تسجيل عمليات جديدة. تواصل مع مالك المنصة.</span></div><div class="card hero" style="opacity:.55"><div class="l">خبز مباع</div><div class="big">${N(0)}<small>كغ</small></div></div><ul class="rows" style="opacity:.55">${recent.slice(0, 2).join('')}</ul>` }) });
+add('noperm', 'لا توجد صلاحيات', 'لموظف لم يمنحه صاحب المخبز أي صلاحية بعد.',
+  { cap: 'رسالة في الوسط', html: phone({ nav: false, body: `<div class="empty" style="padding-top:170px"><span class="ic bank">${I('lock')}</span><b>لا توجد صلاحيات لحسابك بعد</b><p>اطلب من صاحب المخبز تحديد ما يمكنك فعله، ثم أعد فتح التطبيق.</p></div><div class="btns" style="margin-top:22px"><span class="btn ghost">تسجيل الخروج</span></div>` }) },
+  { cap: 'مع ما يمكنه فعله الآن', html: phone({ nav: false, body: `<div class="head"><h3 class="sm">لا توجد صلاحيات<small>سامر، موظف في مخبز النور</small></h3></div><div class="note">اطلب من صاحب المخبز تحديد ما يمكنك فعله، ثم حدّث الصلاحيات من هنا</div><ul class="menu rows"><li><span class="ic bank">${I('user')}</span>الملف الشخصي<span class="v chev">${I('chev', 'width:18px;height:18px')}</span></li><li><span class="ic bank">${I('sync')}</span>تحديث الصلاحيات<span class="v chev">${I('chev', 'width:18px;height:18px')}</span></li><li style="color:var(--danger)"><span class="ic bad">${I('logout')}</span>تسجيل الخروج</li></ul>` }) });
+add('offline', 'دون إنترنت بلا بيانات', 'أول فتح للتطبيق على جهاز جديد قبل أي مزامنة.',
+  { cap: 'حالة فارغة مع زر إعادة المحاولة', html: phone({ active: 'customers', net: 'off', body: `<div class="head"><h3>الزبائن</h3></div><div class="empty" style="padding-top:90px"><span class="ic bank">${I('wifiOff')}</span><b>لا توجد بيانات على هذا الجهاز بعد</b><p>اتصل بالإنترنت مرة واحدة لتحميل الزبائن والأرصدة، ثم يعمل التطبيق دون اتصال.</p></div><div class="btns"><span class="btn dark">${I('sync')}إعادة المحاولة</span></div>` }) },
+  { cap: 'هيكل الصفحة مع تنبيه، ويمكن البيع لمشترٍ عابر', html: phone({ active: 'customers', net: 'off', body: `<div class="head"><h3>الزبائن</h3></div><div class="banner">${I('wifiOff', 'width:20px;height:20px')}<span><b>بانتظار أول مزامنة</b>يمكنك تسجيل بيع لمشترٍ عابر الآن.</span></div>${[1, 2, 3, 4, 5].map(() => `<div style="display:flex;gap:12px;align-items:center;padding:12px 0"><span class="av" style="background:var(--muted-bg)"></span><span style="flex:1"><div class="skel" style="width:60%"></div><div class="skel" style="width:35%;margin-top:8px;height:10px"></div></span></div>`).join('')}` }) });
+add('confirm', 'تأكيد الحذف', 'كل حذف يمر بتأكيد يوضح ما سيُحذف.',
+  { cap: 'حوار في وسط الشاشة', html: phone({ active: 'customers', body: `<div class="head"><h3>الزبائن</h3></div><ul class="rows lined">${custs.slice(0, 4).map(([a, n, f]) => row('av:' + a, n, f)).join('')}</ul>`, overlay: `<div class="scrim"></div><div class="dialog" role="alertdialog"><span class="ic bad">${I('trash')}</span><b>حذف أم خالد؟</b><p>ستُحذف كل مبيعاتها وحركاتها نهائيًا، ولا يمكن التراجع.</p><div class="btns"><span class="btn sec">إلغاء</span><span class="btn danger">حذف</span></div></div>` }) },
+  { cap: 'نافذة سفلية بخطوة كتابة الاسم للتأكيد', html: phone({ active: 'customers', body: `<div class="head"><h3>الزبائن</h3></div>`, overlay: `<div class="scrim"></div><div class="sheet" role="alertdialog" aria-label="تأكيد الحذف"><div class="grab"></div><div class="sheet-t"><span class="ic bad">${I('trash')}</span><b>حذف أم خالد</b></div><p class="hint" style="font-size:14px;margin:0 0 12px">ستُحذف ${N(23)} حركة و${N(9)} مبيعات نهائيًا. اكتب اسم الزبون للتأكيد.</p><div class="field"><div class="input focus">أم خالد</div></div><div class="btns"><span class="btn sec">إلغاء</span><span class="btn danger">حذف نهائي</span></div></div>` }) });
+add('toasts', 'رسائل النجاح والخطأ', 'رسائل عائمة تختفي وحدها بعد ثوانٍ، ويمكن لمسها لعرض التفاصيل.',
+  { cap: 'في أعلى الشاشة', html: phone({ active: 'home', body: `<div class="head" style="margin-top:150px"><h3>اليوم</h3></div><div class="card hero" style="height:120px"></div>`, overlay: `
+    <div class="toast top" role="status"><span class="ic pay">${I('check')}</span><span><b>تم تسجيل البيع</b><span class="s">12 كغ، 72.00 شيكل</span></span><span class="act">عرض</span></div>
+    <div class="toast top2" role="alert"><span class="ic bad">${I('alert')}</span><span><b>تعذّر حفظ الدفعة</b><span class="s">المبلغ يجب أن يكون أكبر من صفر</span></span></div>` }) },
+  { cap: 'فوق شريط التنقل، قرب إبهام المستخدم', html: phone({ active: 'home', body: `<div class="head"><h3>اليوم</h3></div><div class="card hero" style="height:120px"></div><ul class="rows">${recent.slice(0, 2).join('')}</ul>`, overlay: `
+    <div class="toast bottom2" role="status"><span class="ic pay">${I('check')}</span><span><b>حُفظ دون إنترنت</b><span class="s">سيُرسل عند الاتصال</span></span><span class="act">المزامنة</span></div>
+    <div class="toast bottom" role="alert"><span class="ic bad">${I('wifiOff')}</span><span><b>الطباعة تحتاج إنترنت</b><span class="s">اطبع الإيصال بعد المزامنة</span></span></div>` }) });
+
+/* العرض */
+document.getElementById('sections').innerHTML = S.map(s => `
+  <section class="s" id="${s.id}"><h2>${s.title}</h2><p>${s.note}</p>
+    <div class="pair">
+      <figure>${s.a.html}<figcaption><b>الخيار أ:</b> <span>${s.a.cap}</span></figcaption></figure>
+      <figure>${s.b.html}<figcaption><b>الخيار ب:</b> <span>${s.b.cap}</span></figcaption></figure>
+    </div></section>`).join('');
+document.getElementById('toc').innerHTML = S.map(s => `<a href="#${s.id}">${s.title}</a>`).join('');
+
+/* أدوات التحكم */
+const press = (sel, el) => document.querySelectorAll(sel).forEach(b => b.setAttribute('aria-pressed', b === el));
+document.querySelectorAll('[data-nav-btn]').forEach(b => b.addEventListener('click', () => { document.body.dataset.nav = b.dataset.navBtn; press('[data-nav-btn]', b); }));
+document.querySelectorAll('[data-theme-btn]').forEach(b => b.addEventListener('click', () => { document.documentElement.dataset.theme = b.dataset.themeBtn; press('[data-theme-btn]', b); }));
+document.getElementById('font').addEventListener('change', e => document.documentElement.style.setProperty('--font', `"${e.target.value}"`));
+const q = new URLSearchParams(location.search);
+if (q.get('theme') === 'dark') document.querySelector('[data-theme-btn="dark"]').click();
+if (q.get('nav') === 'a') document.querySelector('[data-nav-btn="a"]').click();
+if (q.get('font')) { const f = document.getElementById('font'); f.value = q.get('font'); f.dispatchEvent(new Event('change')); }
+</script>
+</body>
+</html>
