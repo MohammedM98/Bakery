@@ -86,7 +86,7 @@ export default function CustomerPage() {
         <View className="min-w-[130px] flex-1">
           <Text className="text-hero-muted text-[13px]">الرصيد المالي</Text>
           <Text className="font-plex-semi text-[22px] leading-[30px] text-hero-foreground">
-            {formatAmount(Math.abs(b.money) / 100)}
+            {formatAmount(b.money / 100)}
             <Text className="text-hero-muted font-plex-medium text-[14px]"> شيكل {b.money > 0 ? 'عليه' : b.money < 0 ? 'له' : ''}</Text>
           </Text>
         </View>
