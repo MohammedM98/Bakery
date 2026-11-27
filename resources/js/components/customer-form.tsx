@@ -145,7 +145,7 @@ export function CustomerDialog({ customer, open, onOpenChange }: { customer?: Cu
                                 حذف العميل
                             </Button>
                         }
-                        title={`حذف "${customer.name}" نهائيًا؟`}
+                        title={`حذف «${customer.name}» نهائيًا؟`}
                         description="تُحذف كل مبيعات العميل وكل حركات كشفيه المالي والطحين. لا يمكن التراجع عن هذا الإجراء."
                         confirmLabel="حذف نهائيًا"
                         processing={deleting}

@@ -29,7 +29,7 @@ class BankController extends Controller
     {
         $bank = $request->user()->bakery->banks()->create($request->validated());
 
-        return back()->with('success', "تمت إضافة \"{$bank->name}\".");
+        return back()->with('success', "تمت إضافة «{$bank->name}».");
     }
 
     public function update(BankRequest $request, Bank $bank): RedirectResponse
@@ -38,7 +38,7 @@ class BankController extends Controller
 
         $bank->update($request->validated());
 
-        return back()->with('success', "تم حفظ الاسم \"{$bank->name}\".");
+        return back()->with('success', "تم حفظ الاسم «{$bank->name}».");
     }
 
     /** Permanent. Old payments keep the name: it is stored as text on each movement. */
@@ -49,7 +49,7 @@ class BankController extends Controller
 
         $bank->delete();
 
-        return back()->with('success', "تم حذف \"{$bank->name}\". الدفعات المسجلة به تبقى كما هي في الكشوف.");
+        return back()->with('success', "تم حذف «{$bank->name}». الدفعات المسجلة به تبقى كما هي في الكشوف.");
     }
 
     private function authorizeBank(Request $request, Bank $bank): void

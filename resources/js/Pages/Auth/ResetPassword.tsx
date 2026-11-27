@@ -2,6 +2,7 @@ import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { InputError } from '@/components/input-error';
+import { PasswordInput } from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,11 +36,8 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="password">كلمة المرور الجديدة</Label>
-                    <Input
+                    <PasswordInput
                         id="password"
-                        type="password"
-                        dir="ltr"
-                        className="h-11 text-end"
                         autoComplete="new-password"
                         autoFocus
                         value={form.data.password}
@@ -51,11 +49,8 @@ export default function ResetPassword({ token, email }: { token: string; email: 
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="password_confirmation">تأكيد كلمة المرور</Label>
-                    <Input
+                    <PasswordInput
                         id="password_confirmation"
-                        type="password"
-                        dir="ltr"
-                        className="h-11 text-end"
                         autoComplete="new-password"
                         value={form.data.password_confirmation}
                         onChange={(e) => form.setData('password_confirmation', e.target.value)}

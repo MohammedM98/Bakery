@@ -27,7 +27,7 @@ export default function Error({ status, appName }: ErrorPageProps) {
             <Head title={title} />
             <GuestFrame appName={appName}>
                 <p className="text-5xl font-semibold text-primary tabular-nums">{status}</p>
-                <h1 className="mt-4 text-[26px] leading-tight font-semibold">{title}</h1>
+                <h1 className="mt-4 text-[26px] leading-snug font-semibold">{title}</h1>
                 <p className="mt-2 text-muted-foreground">{description}</p>
                 <Button asChild className="mt-8 h-11 w-full text-[15px] font-semibold">
                     {/* /dashboard sends each role to its own home, and a guest to the login page. */}

@@ -102,7 +102,7 @@ class CustomerPagesTest extends TestCase
                 'bakery_id' => $other->bakery_id,
             ])
             ->assertRedirect(route('panel.customers.index'))
-            ->assertSessionHas('success', 'تم حفظ بيانات "عميل تجريبي" بنجاح.');
+            ->assertSessionHas('success', 'تم حفظ بيانات «عميل تجريبي» بنجاح.');
 
         $customer = Customer::sole();
         $this->assertSame($owner->bakery_id, $customer->bakery_id);

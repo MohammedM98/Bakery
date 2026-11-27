@@ -152,7 +152,7 @@ export default function AppLayout({ title, subtitle, toolbar, children }: AppLay
                             aria-label={auth.bakery?.name ?? appName}
                         >
                             <AppLogoIcon />
-                            <span className="flex min-w-0 flex-col leading-tight md:hidden">
+                            <span className="flex min-w-0 flex-col leading-snug md:hidden">
                                 <span className="truncate font-semibold text-sidebar-accent-foreground">{auth.bakery?.name ?? appName}</span>
                                 {auth.bakery && <span className="truncate text-xs">{appName}</span>}
                             </span>
@@ -188,7 +188,7 @@ export default function AppLayout({ title, subtitle, toolbar, children }: AppLay
                     <div className="flex flex-1 flex-col px-4 pt-[18px] pb-24 md:px-8 md:pt-[26px] md:pb-8">
                         <header className="mb-[26px] flex flex-wrap items-center gap-x-5 gap-y-3.5 md:flex-nowrap">
                             <div className="min-w-0">
-                                <h1 className="truncate text-[22px] leading-tight font-semibold md:text-[26px]">{title}</h1>
+                                <h1 className="truncate text-[22px] leading-snug font-semibold md:text-[26px]">{title}</h1>
                                 <p className="mt-0.5 truncate text-sm text-muted-foreground">{subtitle ?? auth.bakery?.name ?? appName}</p>
                             </div>
                             {toolbar && <div className="order-3 w-full md:order-none md:ms-6 md:w-auto">{toolbar}</div>}
@@ -202,7 +202,7 @@ export default function AppLayout({ title, subtitle, toolbar, children }: AppLay
                                         <Avatar className="size-10">
                                             <AvatarFallback className="bg-accent font-semibold text-accent-foreground">{user.name.charAt(0)}</AvatarFallback>
                                         </Avatar>
-                                        <span className="hidden max-w-40 leading-tight sm:block">
+                                        <span className="hidden max-w-40 leading-snug sm:block">
                                             <span className="block truncate font-medium">{user.name}</span>
                                             <span className="block truncate text-xs text-muted-foreground">{roleLabels[user.role]}</span>
                                         </span>

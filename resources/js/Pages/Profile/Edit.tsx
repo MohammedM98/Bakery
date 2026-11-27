@@ -3,6 +3,7 @@ import { LoaderCircle } from 'lucide-react';
 import type { FormEvent, ReactNode } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { InputError } from '@/components/input-error';
+import { PasswordInput } from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -87,11 +88,8 @@ function UpdatePasswordForm() {
         <form onSubmit={submit} className="grid gap-5" noValidate>
             {fields.map((f) => (
                 <Field key={f.id} id={f.id} label={f.label} error={form.errors[f.id]}>
-                    <Input
+                    <PasswordInput
                         id={f.id}
-                        type="password"
-                        dir="ltr"
-                        className="h-11 text-end"
                         autoComplete={f.autoComplete}
                         value={form.data[f.id]}
                         onChange={(e) => form.setData(f.id, e.target.value)}
@@ -135,11 +133,8 @@ function DeleteAccountForm() {
             onConfirm={destroy}
         >
             <Field id="delete_password" label="كلمة المرور" error={form.errors.password}>
-                <Input
+                <PasswordInput
                     id="delete_password"
-                    type="password"
-                    dir="ltr"
-                    className="h-11 text-end"
                     autoComplete="current-password"
                     value={form.data.password}
                     onChange={(e) => form.setData('password', e.target.value)}

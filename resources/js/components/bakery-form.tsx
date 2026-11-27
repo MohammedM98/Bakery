@@ -2,6 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import type { ComponentProps, FormEvent } from 'react';
 import { Field } from '@/components/form-field';
+import { PasswordInput } from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -87,7 +88,14 @@ export function BakeryCreateForm({ onDone }: { onDone?: () => void }) {
                     {input('owner_email', { type: 'email', dir: 'ltr', autoComplete: 'off', className: 'h-11 text-end' })}
                 </Field>
                 <Field id="owner_password" label="كلمة المرور" hint="8 أحرف على الأقل" error={form.errors.owner_password}>
-                    {input('owner_password', { type: 'password', dir: 'ltr', autoComplete: 'new-password', className: 'h-11 text-end' })}
+                    <PasswordInput
+                        id="owner_password"
+                        autoComplete="new-password"
+                        value={form.data.owner_password}
+                        onChange={(e) => form.setData('owner_password', e.target.value)}
+                        aria-invalid={!!form.errors.owner_password}
+                        aria-describedby="owner_password-error"
+                    />
                 </Field>
             </fieldset>
 

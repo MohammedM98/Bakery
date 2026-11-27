@@ -133,7 +133,7 @@ export default function Index({ users, permissionsTotal, groups }: { users: Staf
             <ConfirmDialog
                 open={target !== null}
                 onOpenChange={(open) => !open && setTarget(null)}
-                title={target?.is_active ? `إيقاف حساب "${target.name}"؟` : `تفعيل حساب "${target?.name}"؟`}
+                title={target?.is_active ? `إيقاف حساب «${target.name}»؟` : `تفعيل حساب «${target?.name}»؟`}
                 description={
                     target?.is_active
                         ? 'لن يستطيع الدخول، ويُخرَج من النظام فورًا إن كان داخلًا. حركاته السابقة تبقى باسمه، ويمكنك تفعيله لاحقًا.'

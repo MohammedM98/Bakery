@@ -112,7 +112,7 @@ export default function Index({ banks, canManage, canDelete }: Props) {
                                             </Button>
                                         )}
                                         {canDelete && (
-                                            <Button variant="ghost" size="icon" className="size-11 text-destructive hover:text-destructive" aria-label={`حذف ${bank.name}`} onClick={() => setDeleting(bank)}>
+                                            <Button variant="ghost" size="icon" className="size-11 text-muted-foreground hover:text-destructive" aria-label={`حذف ${bank.name}`} onClick={() => setDeleting(bank)}>
                                                 <Trash2 />
                                             </Button>
                                         )}
@@ -129,7 +129,7 @@ export default function Index({ banks, canManage, canDelete }: Props) {
             <ConfirmDialog
                 open={deleting !== null}
                 onOpenChange={(o) => !o && setDeleting(null)}
-                title={`حذف "${deleting?.name ?? ''}"؟`}
+                title={`حذف «${deleting?.name ?? ''}»؟`}
                 description="يُحذف من القائمة نهائيًا. الدفعات المسجلة به تبقى في كشوف الزبائن بنفس الاسم."
                 processing={processing}
                 onConfirm={destroy}

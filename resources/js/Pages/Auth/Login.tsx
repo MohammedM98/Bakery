@@ -2,6 +2,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { InputError } from '@/components/input-error';
+import { PasswordInput } from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -44,11 +45,8 @@ export default function Login({ status }: { status: string | null }) {
                             نسيت كلمة المرور؟
                         </Link>
                     </div>
-                    <Input
+                    <PasswordInput
                         id="password"
-                        type="password"
-                        dir="ltr"
-                        className="h-11 text-end"
                         autoComplete="current-password"
                         required
                         value={form.data.password}

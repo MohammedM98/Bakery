@@ -52,7 +52,7 @@ class CustomerController extends Controller
 
         // Staff without the list stay on the form, ready for the next customer.
         return redirect()->route($request->user()->can('view-customers') ? 'panel.customers.index' : 'panel.customers.create')
-            ->with('success', "تم حفظ بيانات \"{$name}\" بنجاح.");
+            ->with('success', "تم حفظ بيانات «{$name}» بنجاح.");
     }
 
     public function show(StatementRequest $request, Customer $customer): Response
@@ -111,10 +111,10 @@ class CustomerController extends Controller
         // The full edit page returns to the list, as before; the edit dialog stays where it was opened.
         $fromEditPage = url()->previous() === route('panel.customers.edit', $customer);
         if ($fromEditPage && $request->user()->can('view-customers')) {
-            return redirect()->route('panel.customers.index')->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
+            return redirect()->route('panel.customers.index')->with('success', "تم حفظ بيانات «{$customer->name}» بنجاح.");
         }
 
-        return back()->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
+        return back()->with('success', "تم حفظ بيانات «{$customer->name}» بنجاح.");
     }
 
     public function destroy(Request $request, Customer $customer, DeleteCustomer $action): RedirectResponse

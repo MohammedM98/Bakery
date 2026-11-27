@@ -52,7 +52,7 @@ export default function GuestLayout({ title, description, children }: GuestLayou
         <>
             <Head title={title} />
             <GuestFrame>
-                <h1 className="text-[26px] leading-tight font-semibold">{title}</h1>
+                <h1 className="text-[26px] leading-snug font-semibold">{title}</h1>
                 {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
                 <div className="mt-8">{children}</div>
             </GuestFrame>

@@ -3,6 +3,7 @@ import { LoaderCircle } from 'lucide-react';
 import type { ComponentProps, FormEvent } from 'react';
 import { Field } from '@/components/form-field';
 import { InputError } from '@/components/input-error';
+import { PasswordInput } from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -71,7 +72,14 @@ export function StaffForm({ user, groups, onDone }: { user?: StaffFields; groups
                     hint={user ? 'اتركها فارغة لتبقى كلمة المرور الحالية' : '8 أحرف على الأقل'}
                     error={form.errors.password}
                 >
-                    {input('password', { type: 'password', dir: 'ltr', autoComplete: 'new-password', className: 'h-11 text-end' })}
+                    <PasswordInput
+                        id="password"
+                        autoComplete="new-password"
+                        value={form.data.password}
+                        onChange={(e) => form.setData('password', e.target.value)}
+                        aria-invalid={!!form.errors.password}
+                        aria-describedby="password-error"
+                    />
                 </Field>
             </div>
 

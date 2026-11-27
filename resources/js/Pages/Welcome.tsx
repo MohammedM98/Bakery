@@ -16,7 +16,7 @@ export default function Welcome() {
         <>
             <Head title="نظام إدارة المخابز" />
             <GuestFrame>
-                <h1 className="text-4xl leading-tight font-semibold">نظام إدارة المخابز</h1>
+                <h1 className="text-4xl leading-snug font-semibold">نظام إدارة المخابز</h1>
                 <p className="mt-4 text-muted-foreground">مبيعات اليوم، حسابات العملاء، ورصيد الطحين مقابل الخبز، من هاتفك وأنت أمام الفرن.</p>
                 <Button asChild className="mt-8 h-11 w-full text-[15px] font-semibold">
                     {auth.user ? <Link href={route('dashboard')}>الذهاب إلى لوحة التحكم</Link> : <Link href={route('login')}>تسجيل الدخول</Link>}

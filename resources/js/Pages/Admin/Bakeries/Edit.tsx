@@ -114,8 +114,8 @@ export default function Edit({ bakery, owners }: Props) {
                                 {owners.map((o) => (
                                     <li key={o.email} className="grid">
                                         <span className="font-medium">{o.name}</span>
-                                        <span dir="ltr" className="text-end text-sm text-muted-foreground sm:text-start">
-                                            {o.email}
+                                        <span className="text-sm text-muted-foreground">
+                                            <bdi dir="ltr">{o.email}</bdi>
                                         </span>
                                     </li>
                                 ))}
@@ -138,7 +138,7 @@ export default function Edit({ bakery, owners }: Props) {
                                     حذف المخبز نهائيًا
                                 </Button>
                             }
-                            title={`حذف مخبز "${bakery.name}" نهائيًا؟`}
+                            title={`حذف مخبز «${bakery.name}» نهائيًا؟`}
                             description="يُحذف المخبز وحساب صاحبه وكل عملائه ومبيعاته ودفعاته. لا يمكن التراجع عن هذا الإجراء."
                             confirmLabel="حذف نهائيًا"
                             processing={deleting}

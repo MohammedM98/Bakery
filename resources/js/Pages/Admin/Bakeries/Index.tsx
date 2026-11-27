@@ -200,7 +200,7 @@ export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) 
             <ConfirmDialog
                 open={deleting !== null}
                 onOpenChange={(open) => !open && !processing && setDeleting(null)}
-                title={`حذف مخبز "${deleting?.name ?? ''}" نهائيًا؟`}
+                title={`حذف مخبز «${deleting?.name ?? ''}» نهائيًا؟`}
                 description="يُحذف المخبز وحساب صاحبه وكل عملائه ومبيعاته ودفعاته. لا يمكن التراجع عن هذا الإجراء."
                 confirmLabel="حذف نهائيًا"
                 processing={processing}

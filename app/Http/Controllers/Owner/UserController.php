@@ -42,7 +42,7 @@ class UserController extends Controller
             'is_active' => true,
         ]);
 
-        return redirect()->route('panel.users.index')->with('success', "تمت إضافة \"{$user->name}\".");
+        return redirect()->route('panel.users.index')->with('success', "تمت إضافة «{$user->name}».");
     }
 
     public function edit(Request $request, User $user): Response
@@ -64,7 +64,7 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('panel.users.index')->with('success', "تم حفظ بيانات \"{$user->name}\" وصلاحياته.");
+        return redirect()->route('panel.users.index')->with('success', "تم حفظ بيانات «{$user->name}» وصلاحياته.");
     }
 
     /** Sends the wanted state (not a toggle), so a double click cannot undo itself. */
@@ -74,7 +74,7 @@ class UserController extends Controller
 
         $user->update(['is_active' => $active]);
 
-        return back()->with('success', $active ? "تم تفعيل حساب \"{$user->name}\"." : "تم إيقاف حساب \"{$user->name}\". لن يستطيع الدخول.");
+        return back()->with('success', $active ? "تم تفعيل حساب «{$user->name}»." : "تم إيقاف حساب «{$user->name}». لن يستطيع الدخول.");
     }
 
     private function authorizeStaff(Request $request, User $user): void

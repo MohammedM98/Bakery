@@ -425,15 +425,15 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                 <div className="grid gap-3.5 md:gap-5 lg:grid-cols-[1.5fr_1fr]">
                     {/* The page's one dark card: both balances and the quick actions. */}
                     <Card className="relative gap-0 border-0 bg-hero p-[22px] text-hero-foreground ring-0 after:pointer-events-none after:absolute after:start-[-30px] after:-bottom-10 after:size-[220px] after:rounded-full after:border-[28px] after:border-hero-foreground/[0.035]">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-wrap gap-x-10 gap-y-4">
                             <div className="min-w-0">
                                 <span className="block text-[15px] text-hero-muted">الرصيد المالي</span>
-                                <MoneyBalance plain amount={customer.money_balance} className="mt-1 inline-block text-3xl font-semibold sm:text-4xl" />
+                                <MoneyBalance plain amount={customer.money_balance} className="mt-1 inline-block text-3xl font-semibold whitespace-nowrap sm:text-4xl" />
                                 <span className="block text-sm text-hero-muted">{Number(customer.money_balance) > 0 ? 'عليه' : Number(customer.money_balance) < 0 ? 'له' : 'لا شيء'}</span>
                             </div>
                             <div className="min-w-0">
                                 <span className="block text-[15px] text-hero-muted">رصيد الطحين</span>
-                                <FlourBalance plain kg={customer.flour_balance_kg} className="mt-1 block text-3xl font-semibold sm:text-4xl" />
+                                <FlourBalance plain kg={customer.flour_balance_kg} className="mt-1 block text-3xl font-semibold whitespace-nowrap sm:text-4xl" />
                             </div>
                         </div>
                         <div className="relative z-10 mt-auto grid grid-cols-2 gap-2.5 pt-[22px] empty:hidden sm:flex sm:flex-wrap">

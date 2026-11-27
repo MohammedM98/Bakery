@@ -44,7 +44,7 @@ class BakeryController extends Controller
         $bakery = $action->handle($request->validated(), $request->user());
 
         return redirect()->route('admin.bakeries.index')
-            ->with('success', "تم إنشاء مخبز \"{$bakery->name}\" وحساب صاحبه.");
+            ->with('success', "تم إنشاء مخبز «{$bakery->name}» وحساب صاحبه.");
     }
 
     public function edit(Bakery $bakery): Response
@@ -72,7 +72,7 @@ class BakeryController extends Controller
     {
         $bakery->renew((int) $request->validated('months'));
 
-        return back()->with('success', "تم تجديد اشتراك \"{$bakery->name}\" بنجاح.");
+        return back()->with('success', "تم تجديد اشتراك «{$bakery->name}» بنجاح.");
     }
 
     /** Sets the requested status (not a toggle), so a repeated request cannot undo itself. */
@@ -90,7 +90,7 @@ class BakeryController extends Controller
         $action->handle($bakery);
 
         return redirect()->route('admin.bakeries.index')
-            ->with('success', "تم حذف مخبز \"{$bakery->name}\" وجميع بياناته.");
+            ->with('success', "تم حذف مخبز «{$bakery->name}» وجميع بياناته.");
     }
 
     /**
