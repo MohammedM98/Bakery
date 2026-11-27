@@ -1,4 +1,4 @@
-import { Link, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import type { ComponentProps, FormEvent } from 'react';
 import { Field } from '@/components/form-field';
@@ -13,21 +13,17 @@ export interface BakeryDetails {
     address: string | null;
 }
 
-/** "إلغاء": closes the dialog, or goes back to the list on the full page. */
-function Cancel({ onDone }: { onDone?: () => void }) {
-    return onDone ? (
+/** "إلغاء" closes the dialog. */
+function Cancel({ onDone }: { onDone: () => void }) {
+    return (
         <Button type="button" variant="outline" className="h-11 px-6" onClick={onDone}>
             إلغاء
-        </Button>
-    ) : (
-        <Button type="button" variant="outline" className="h-11 px-6" asChild>
-            <Link href={route('admin.bakeries.index')}>إلغاء</Link>
         </Button>
     );
 }
 
-/** A new bakery with its owner's account. In a dialog `onDone` closes it on cancel and after saving. */
-export function BakeryCreateForm({ onDone }: { onDone?: () => void }) {
+/** A new bakery with its owner's account, in a dialog: `onDone` closes it on cancel and after saving. */
+export function BakeryCreateForm({ onDone }: { onDone: () => void }) {
     const form = useForm({
         name: '',
         phone: '',
@@ -40,7 +36,7 @@ export function BakeryCreateForm({ onDone }: { onDone?: () => void }) {
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        form.post(route('admin.bakeries.store'), { preserveScroll: true, onError: () => form.reset('owner_password'), onSuccess: () => onDone?.() });
+        form.post(route('admin.bakeries.store'), { preserveScroll: true, onError: () => form.reset('owner_password'), onSuccess: onDone });
     };
 
     const input = (id: keyof typeof form.data, props: ComponentProps<typeof Input> = {}) => (
@@ -110,12 +106,12 @@ export function BakeryCreateForm({ onDone }: { onDone?: () => void }) {
     );
 }
 
-export function BakeryDetailsForm({ bakery, onDone }: { bakery: BakeryDetails; onDone?: () => void }) {
+export function BakeryDetailsForm({ bakery, onDone }: { bakery: BakeryDetails; onDone: () => void }) {
     const form = useForm({ name: bakery.name, phone: bakery.phone ?? '', address: bakery.address ?? '' });
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        form.put(route('admin.bakeries.update', bakery.id), { preserveScroll: true, onSuccess: () => onDone?.() });
+        form.put(route('admin.bakeries.update', bakery.id), { preserveScroll: true, onSuccess: onDone });
     };
 
     return (

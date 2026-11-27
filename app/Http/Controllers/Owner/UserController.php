@@ -29,11 +29,6 @@ class UserController extends Controller
         ]);
     }
 
-    public function create(): Response
-    {
-        return Inertia::render('Owner/Users/Create', ['groups' => $this->groups()]);
-    }
-
     public function store(StaffRequest $request): RedirectResponse
     {
         $user = $request->user()->bakery->users()->create([
@@ -43,16 +38,6 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('panel.users.index')->with('success', "تمت إضافة «{$user->name}».");
-    }
-
-    public function edit(Request $request, User $user): Response
-    {
-        $this->authorizeStaff($request, $user);
-
-        return Inertia::render('Owner/Users/Edit', [
-            'user' => [...$user->only('id', 'name', 'email', 'is_active'), 'permissions' => $user->permissions ?? []],
-            'groups' => $this->groups(),
-        ]);
     }
 
     public function update(StaffRequest $request, User $user): RedirectResponse
@@ -75,11 +60,6 @@ class UserController extends Controller
         $user->update(['is_active' => $active]);
 
         return back()->with('success', $active ? "تم تفعيل حساب «{$user->name}»." : "تم إيقاف حساب «{$user->name}». لن يستطيع الدخول.");
-    }
-
-    private function authorizeStaff(Request $request, User $user): void
-    {
-        abort_unless($user->isBakeryStaff() && $user->bakery_id === $request->user()->bakery_id, 404);
     }
 
     /** @return list<array{label: string, permissions: list<array{key: string, label: string}>}> */

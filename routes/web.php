@@ -32,7 +32,6 @@ Route::middleware(['auth', 'role:super_admin'])
     ->name('admin.')
     ->group(function () {
         Route::get('bakeries', [BakeryController::class, 'index'])->name('bakeries.index');
-        Route::get('bakeries/create', [BakeryController::class, 'create'])->name('bakeries.create');
         Route::post('bakeries', [BakeryController::class, 'store'])->name('bakeries.store');
         Route::get('bakeries/{bakery}/edit', [BakeryController::class, 'edit'])->name('bakeries.edit');
         Route::put('bakeries/{bakery}', [BakeryController::class, 'update'])->name('bakeries.update');
@@ -59,7 +58,6 @@ Route::middleware(['auth', 'role:bakery_owner,bakery_staff'])
             Route::get('customers/create', [CustomerController::class, 'create'])->middleware('can:create-customers')->name('customers.create');
             Route::post('customers', [CustomerController::class, 'store'])->middleware('can:create-customers')->name('customers.store');
             Route::get('customers/{customer}', [CustomerController::class, 'show'])->middleware('can:view-customers')->name('customers.show');
-            Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->middleware('can:edit-customers')->name('customers.edit');
             Route::match(['put', 'patch'], 'customers/{customer}', [CustomerController::class, 'update'])->middleware('can:edit-customers')->name('customers.update');
             Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->middleware('can:delete-customers')->name('customers.destroy');
             Route::post('customers/{customer}/deposits', [CustomerAccountController::class, 'deposit'])->middleware('can:record-deposit')->name('customers.deposits.store');
@@ -92,9 +90,7 @@ Route::middleware(['auth', 'role:bakery_owner,bakery_staff'])
             // The owner's staff accounts and their permissions. Owner only.
             Route::middleware('can:manage-users')->group(function () {
                 Route::get('users', [UserController::class, 'index'])->name('users.index');
-                Route::get('users/create', [UserController::class, 'create'])->name('users.create');
                 Route::post('users', [UserController::class, 'store'])->name('users.store');
-                Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
                 Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
                 Route::post('users/{user}/status', [UserController::class, 'updateStatus'])->name('users.status');
             });

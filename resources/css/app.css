@@ -76,7 +76,7 @@
     --frame-shadow: 0 30px 80px -40px rgb(20 30 45 / 35%);
     --popover: #ffffff;
     --popover-foreground: #18202b;
-    --primary: #ee7a3a; /* accent only: primary button, selected pill marker, active item, current chart value */
+    --primary: #c0561b; /* accent only: primary button, selected pill marker, active item, current chart value; white text on it is 4.6:1 */
     --primary-foreground: #ffffff;
     --secondary: #f3f5f8;
     --secondary-foreground: #18202b;
@@ -91,12 +91,12 @@
     --slate: #7d8ca3;
     --border: #e5e9ef;
     --input: #dde3ea;
-    --ring: #ee7a3a;
+    --ring: #c0561b;
     /* The one dark slate hero card per page. */
     --hero: #1c2532;
     --hero-foreground: #ffffff;
     --hero-muted: #aeb8c6;
-    --chart-1: #ee7a3a; /* current value */
+    --chart-1: #c0561b; /* current value */
     --chart-2: #7d8ca3; /* slate */
     --chart-3: #e3e8ef; /* past bars */
     --chart-4: #1f8f5f;
@@ -104,12 +104,12 @@
     --radius: 0.875rem;
     --sidebar: #151b24;
     --sidebar-foreground: #8e99a8;
-    --sidebar-primary: #ee7a3a;
+    --sidebar-primary: #c0561b;
     --sidebar-primary-foreground: #ffffff;
     --sidebar-accent: rgb(255 255 255 / 8%);
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: rgb(255 255 255 / 8%);
-    --sidebar-ring: #ee7a3a;
+    --sidebar-ring: #c0561b;
 }
 
 .dark {
@@ -123,7 +123,7 @@
     --frame-shadow: 0 30px 80px -40px rgb(0 0 0 / 70%);
     --popover: #1c2430;
     --popover-foreground: #e8edf3;
-    --primary: #f08a4e;
+    --primary: #c0561b; /* the button keeps white text at 4.6:1 */
     --primary-foreground: #ffffff;
     --secondary: #1c2430;
     --secondary-foreground: #e8edf3;
@@ -138,23 +138,23 @@
     --slate: #8fa0b8;
     --border: #232c38;
     --input: #2a3442;
-    --ring: #f08a4e;
+    --ring: #d9692c;
     --hero: #1f2935;
     --hero-foreground: #ffffff;
     --hero-muted: #aeb8c6;
-    --chart-1: #f08a4e;
+    --chart-1: #d9692c;
     --chart-2: #8fa0b8;
     --chart-3: #242e3b;
     --chart-4: #43c08a;
     --chart-5: #e6bb69;
     --sidebar: #0c1016;
     --sidebar-foreground: #7b8696;
-    --sidebar-primary: #f08a4e;
+    --sidebar-primary: #d9692c;
     --sidebar-primary-foreground: #ffffff;
     --sidebar-accent: rgb(255 255 255 / 8%);
     --sidebar-accent-foreground: #ffffff;
     --sidebar-border: rgb(255 255 255 / 6%);
-    --sidebar-ring: #f08a4e;
+    --sidebar-ring: #d9692c;
 }
 
 @layer base {

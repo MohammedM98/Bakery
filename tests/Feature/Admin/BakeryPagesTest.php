@@ -76,14 +76,6 @@ class BakeryPagesTest extends TestCase
                 ->where('bakeries.data.0.is_active', false));
     }
 
-    public function test_create_page_renders(): void
-    {
-        $this->actingAs($this->admin())
-            ->get(route('admin.bakeries.create'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page->component('Admin/Bakeries/Create'));
-    }
-
     public function test_admin_creates_a_bakery_with_its_owner_account(): void
     {
         Carbon::setTestNow('2026-11-26');
@@ -111,14 +103,14 @@ class BakeryPagesTest extends TestCase
         User::factory()->create(['email' => 'taken@example.com']);
 
         $this->actingAs($this->admin())
-            ->from(route('admin.bakeries.create'))
+            ->from(route('admin.bakeries.index'))
             ->post(route('admin.bakeries.store'), $this->validStorePayload([
                 'name' => '',
                 'subscription_months' => 25,
                 'owner_email' => 'taken@example.com',
                 'owner_password' => 'short',
             ]))
-            ->assertRedirect(route('admin.bakeries.create'))
+            ->assertRedirect(route('admin.bakeries.index'))
             ->assertSessionHasErrors(['name', 'subscription_months', 'owner_email', 'owner_password']);
 
         $this->assertSame('حقل اسم المخبز مطلوب.', session('errors')->first('name'));
@@ -296,7 +288,6 @@ class BakeryPagesTest extends TestCase
 
         $this->actingAs($owner);
         $this->get(route('admin.bakeries.index'))->assertForbidden();
-        $this->get(route('admin.bakeries.create'))->assertForbidden();
         $this->get(route('admin.bakeries.edit', $bakery))->assertForbidden();
         $this->post(route('admin.bakeries.store'), $this->validStorePayload())->assertForbidden();
         $this->put(route('admin.bakeries.update', $bakery), ['name' => 'x'])->assertForbidden();

@@ -76,7 +76,6 @@ class StaffPermissionsTest extends TestCase
             'customer page' => $as->get(route('panel.customers.show', $c)),
             'add customer page' => $as->get(route('panel.customers.create')),
             'add customer' => $as->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'جديد', 'mobile_number' => '0592222222']),
-            'edit customer page' => $as->get(route('panel.customers.edit', $c)),
             'edit customer' => $as->put(route('panel.customers.update', $c), ['name' => 'معدّل', 'mobile_number' => '0591111111']),
             'sales list' => $as->get(route('panel.sales.index')),
             'sale page' => $as->get(route('panel.sales.create')),
@@ -104,7 +103,6 @@ class StaffPermissionsTest extends TestCase
             'customer page' => ['customer page', ['view-customers'], []],
             'add customer page' => ['add customer page', ['create-customers'], []],
             'add customer' => ['add customer', ['create-customers'], []],
-            'edit customer page' => ['edit customer page', ['edit-customers'], []],
             'edit customer' => ['edit customer', ['edit-customers'], []],
             'sales list' => ['sales list', ['view-sales'], []],
             'sale page' => ['sale page', ['record-sale'], []],
@@ -181,9 +179,7 @@ class StaffPermissionsTest extends TestCase
         $this->get(route('panel.settings.edit'))->assertForbidden();
         $this->put(route('panel.settings.update'), ['regular_price_per_kg' => 1, 'flour_exchange_fee_per_kg' => 1])->assertForbidden();
         $this->get(route('panel.users.index'))->assertForbidden();
-        $this->get(route('panel.users.create'))->assertForbidden();
         $this->post(route('panel.users.store'), ['name' => 'x', 'email' => 'x@example.test', 'password' => 'password1', 'permissions' => []])->assertForbidden();
-        $this->get(route('panel.users.edit', $other))->assertForbidden();
         $this->put(route('panel.users.update', $staff), ['name' => 'x', 'email' => $staff->email, 'permissions' => User::permissionKeys()])->assertForbidden();
         $this->post(route('panel.users.status', $other), ['active' => false])->assertForbidden();
 
@@ -203,7 +199,6 @@ class StaffPermissionsTest extends TestCase
 
         $this->actingAs($staff);
         $this->get(route('panel.customers.show', $theirs))->assertNotFound();
-        $this->get(route('panel.customers.edit', $theirs))->assertNotFound();
         $this->put(route('panel.customers.update', $theirs), ['name' => 'x', 'mobile_number' => '1'])->assertNotFound();
         $this->post(route('panel.customers.payments.store', $theirs), ['amount' => '1', 'payment_date' => now()->toDateString(), 'submission_id' => fake()->uuid()])->assertNotFound();
         $this->get(route('panel.customers.statement.export', [$theirs, 'money', 'pdf']))->assertNotFound();
@@ -304,10 +299,10 @@ class StaffPermissionsTest extends TestCase
             ->post(route('panel.customers.store'), ['submission_id' => fake()->uuid(), 'name' => 'جديد', 'mobile_number' => '0592222222'])
             ->assertRedirect(route('panel.customers.create'))->assertSessionHas('success');
 
-        $this->actingAs($this->staff(['edit-customers']))
-            ->from(route('panel.customers.edit', $this->customer))
+        $this->actingAs($this->staff(['view-customers', 'edit-customers']))
+            ->from(route('panel.customers.show', $this->customer))
             ->put(route('panel.customers.update', $this->customer), ['name' => 'معدّل', 'mobile_number' => '0591111111'])
-            ->assertRedirect(route('panel.customers.edit', $this->customer))->assertSessionHas('success');
+            ->assertRedirect(route('panel.customers.show', $this->customer))->assertSessionHas('success');
 
         $this->actingAs($this->staff(['create-customers']))->get(route('dashboard'))->assertRedirect(route('panel.customers.create'));
     }

@@ -52,11 +52,10 @@ class UserManagementTest extends TestCase
                 ->has('groups', count(User::PERMISSIONS)));
     }
 
-    public function test_create_page_sends_the_permission_groups(): void
+    public function test_the_list_sends_the_permission_groups_for_the_dialogs(): void
     {
-        $this->actingAs($this->owner())->get(route('panel.users.create'))
+        $this->actingAs($this->owner())->get(route('panel.users.index'))
             ->assertInertia(fn (Assert $page) => $page
-                ->component('Owner/Users/Create')
                 ->has('groups', count(User::PERMISSIONS))
                 ->where('groups.0.label', 'اللوحة')
                 ->where('groups.0.permissions.0', ['key' => 'view-dashboard', 'label' => 'عرض اللوحة الرئيسية']));
@@ -120,8 +119,8 @@ class UserManagementTest extends TestCase
 
         $this->actingAs($staff)->get(route('panel.sales.index'))->assertForbidden();
 
-        $this->actingAs($owner)->get(route('panel.users.edit', $staff))
-            ->assertInertia(fn (Assert $page) => $page->component('Owner/Users/Edit')->where('user.permissions', ['view-customers'])->missing('user.password'));
+        $this->actingAs($owner)->get(route('panel.users.index'))
+            ->assertInertia(fn (Assert $page) => $page->where('users.0.permissions', ['view-customers'])->missing('users.0.password'));
 
         // An empty password keeps the current one.
         $this->actingAs($owner)->put(route('panel.users.update', $staff), [
@@ -147,10 +146,8 @@ class UserManagementTest extends TestCase
         $theirStaff = $this->staff($otherOwner);
 
         $this->actingAs($owner);
-        $this->get(route('panel.users.edit', $theirStaff))->assertNotFound();
         $this->put(route('panel.users.update', $theirStaff), ['name' => 'x', 'email' => 'x@example.test', 'permissions' => []])->assertNotFound();
         $this->post(route('panel.users.status', $theirStaff), ['active' => false])->assertNotFound();
-        $this->get(route('panel.users.edit', $owner))->assertNotFound();
         $this->put(route('panel.users.update', $otherOwner), ['name' => 'x', 'email' => 'x@example.test', 'permissions' => []])->assertNotFound();
         $this->post(route('panel.users.status', $owner), ['active' => false])->assertNotFound();
 

@@ -1,4 +1,4 @@
-import { Link, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import type { ComponentProps, FormEvent } from 'react';
 import { Field } from '@/components/form-field';
@@ -24,7 +24,7 @@ export interface StaffFields {
 }
 
 /** Add when `user` is absent (password required), edit otherwise (an empty password keeps the current one). */
-export function StaffForm({ user, groups, onDone }: { user?: StaffFields; groups: PermissionGroup[]; /** In a dialog: closes it on cancel and after saving. */ onDone?: () => void }) {
+export function StaffForm({ user, groups, onDone }: { user?: StaffFields; groups: PermissionGroup[]; /** Closes the dialog on cancel and after saving. */ onDone: () => void }) {
     const form = useForm({
         name: user?.name ?? '',
         email: user?.email ?? '',
@@ -37,7 +37,7 @@ export function StaffForm({ user, groups, onDone }: { user?: StaffFields; groups
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        const options = { preserveScroll: true, onError: () => form.reset('password'), onSuccess: () => onDone?.() };
+        const options = { preserveScroll: true, onError: () => form.reset('password'), onSuccess: onDone };
         if (user) form.put(route('panel.users.update', user.id), options);
         else form.post(route('panel.users.store'), options);
     };
@@ -112,15 +112,9 @@ export function StaffForm({ user, groups, onDone }: { user?: StaffFields; groups
             </fieldset>
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                {onDone ? (
-                    <Button type="button" variant="outline" className="h-11 px-6" onClick={onDone}>
-                        إلغاء
-                    </Button>
-                ) : (
-                    <Button type="button" variant="outline" className="h-11 px-6" asChild>
-                        <Link href={route('panel.users.index')}>إلغاء</Link>
-                    </Button>
-                )}
+                <Button type="button" variant="outline" className="h-11 px-6" onClick={onDone}>
+                    إلغاء
+                </Button>
                 <Button type="submit" className="h-11 px-6" disabled={form.processing}>
                     {form.processing && <LoaderCircle className="animate-spin" />}
                     {user ? 'حفظ التعديلات' : 'إضافة المستخدم'}

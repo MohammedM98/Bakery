@@ -86,16 +86,6 @@ class CustomerController extends Controller
         ]);
     }
 
-    public function edit(Request $request, Customer $customer): Response
-    {
-        $this->authorizeCustomer($request, $customer);
-
-        return Inertia::render('Owner/Customers/Edit', [
-            'customer' => $customer->only('id', 'name', 'mobile_number', 'notes'),
-            'canDelete' => $request->user()->can('delete-customers'),
-        ]);
-    }
-
     public function update(CustomerRequest $request, Customer $customer): RedirectResponse
     {
         $this->authorizeCustomer($request, $customer);
@@ -108,12 +98,7 @@ class CustomerController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
-        // The full edit page returns to the list, as before; the edit dialog stays where it was opened.
-        $fromEditPage = url()->previous() === route('panel.customers.edit', $customer);
-        if ($fromEditPage && $request->user()->can('view-customers')) {
-            return redirect()->route('panel.customers.index')->with('success', "تم حفظ بيانات «{$customer->name}» بنجاح.");
-        }
-
+        // Back to where the edit dialog was opened: the customers list or the customer's page.
         return back()->with('success', "تم حفظ بيانات «{$customer->name}» بنجاح.");
     }
 

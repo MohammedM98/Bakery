@@ -144,19 +144,6 @@ class CustomerPagesTest extends TestCase
         $this->assertSame(0, Customer::count());
     }
 
-    public function test_edit_page_sends_only_the_form_fields(): void
-    {
-        $owner = $this->owner();
-        $customer = $this->customer($owner, ['notes' => 'ملاحظة']);
-
-        $this->actingAs($owner)
-            ->get(route('panel.customers.edit', $customer))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Owner/Customers/Edit')
-                ->where('customer', ['id' => $customer->id, 'name' => 'أحمد', 'mobile_number' => '0591111111', 'notes' => 'ملاحظة']));
-    }
-
     public function test_owner_updates_a_customer_but_not_their_flour_balance(): void
     {
         $owner = $this->owner();
@@ -171,13 +158,6 @@ class CustomerPagesTest extends TestCase
                 'flour_balance_kg' => 999,
             ])
             ->assertRedirect(route('panel.customers.show', $customer))
-            ->assertSessionHas('success');
-
-        // The full edit page still returns to the list.
-        $this->actingAs($owner)
-            ->from(route('panel.customers.edit', $customer))
-            ->put(route('panel.customers.update', $customer), ['name' => 'أحمد علي', 'mobile_number' => '0593333333', 'notes' => 'جديد'])
-            ->assertRedirect(route('panel.customers.index'))
             ->assertSessionHas('success');
 
         $customer->refresh();
@@ -234,7 +214,7 @@ class CustomerPagesTest extends TestCase
         $foreign = $this->customer($this->owner(), ['name' => 'عميل آخر']);
 
         $this->actingAs($owner);
-        $this->get(route('panel.customers.edit', $foreign))->assertNotFound();
+        $this->get(route('panel.customers.show', $foreign))->assertNotFound();
         $this->put(route('panel.customers.update', $foreign), ['name' => 'مخترق', 'mobile_number' => '1'])->assertNotFound();
         $this->delete(route('panel.customers.destroy', $foreign))->assertNotFound();
 

@@ -34,11 +34,6 @@ class BakeryController extends Controller
         return Inertia::render('Admin/Bakeries/Index', ['bakeries' => $bakeries]);
     }
 
-    public function create(): Response
-    {
-        return Inertia::render('Admin/Bakeries/Create');
-    }
-
     public function store(StoreBakeryRequest $request, CreateBakeryWithOwner $action): RedirectResponse
     {
         $bakery = $action->handle($request->validated(), $request->user());
