@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\SyncsToDevices;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable(['bakery_id', 'name', 'mobile_number', 'flour_balance_kg', 'notes'])]
 class Customer extends Model
 {
+    use SyncsToDevices;
+
     /** Cached copy of the sum of the flour movements, kept in step by RecordMovements. Positive = عليه. */
     protected function casts(): array
     {

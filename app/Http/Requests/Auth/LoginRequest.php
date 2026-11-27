@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
+use Closure;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -40,10 +42,28 @@ class LoginRequest extends FormRequest
      */
     public function authenticate(): void
     {
+        $this->check(fn (array $credentials) => Auth::attempt($credentials, $this->boolean('remember')));
+    }
+
+    /**
+     * The same checks as authenticate() without starting a session: the mobile API's token login.
+     *
+     * @throws ValidationException
+     */
+    public function authenticatedUser(): User
+    {
+        $this->check(fn (array $credentials) => Auth::guard('web')->validate($credentials));
+
+        return Auth::guard('web')->getLastAttempted();
+    }
+
+    /** @param  Closure(array<string, mixed>): bool  $attempt */
+    private function check(Closure $attempt): void
+    {
         $this->ensureIsNotRateLimited();
 
         // A disabled account gets the same message as a wrong password: nothing tells whether the email exists.
-        if (! Auth::attempt([...$this->only('email', 'password'), 'is_active' => true], $this->boolean('remember'))) {
+        if (! $attempt([...$this->only('email', 'password'), 'is_active' => true])) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

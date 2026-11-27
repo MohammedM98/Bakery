@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'bakery_id', 'number', 'customer_id', 'ledger', 'type', 'amount', 'description', 'note',
     'sale_id', 'corrects_movement_id', 'from_bank', 'to_bank', 'transfer_reference',
-    'recorded_by', 'recorded_by_name', 'movement_date',
+    'recorded_by', 'recorded_by_name', 'movement_date', 'sync_version',
 ])]
 class Movement extends Model
 {

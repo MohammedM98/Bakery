@@ -9,12 +9,29 @@ use App\Http\Requests\Owner\StoreSaleRequest;
 use App\Models\Sale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class SaleController extends Controller
 {
     public function index(Request $request): Response
+    {
+        [$sales, $filters] = self::filtered($request);
+
+        return Inertia::render('Owner/Sales/Index', [
+            'sales' => $sales->through(fn (Sale $sale) => $sale->toRow()),
+            'filters' => $filters,
+            'pricePerKg' => $request->user()->bakery->regular_price_per_kg,
+        ]);
+    }
+
+    /**
+     * The list's page of sales (customer loaded) and its filters; the mobile API's list uses the same ones.
+     *
+     * @return array{0: LengthAwarePaginator, 1: array{type: string, status: string, date: string}}
+     */
+    public static function filtered(Request $request): array
     {
         // Unknown filter values fall back to the defaults instead of erroring.
         $type = $request->query('type') === Sale::TYPE_FLOUR_EXCHANGE ? Sale::TYPE_FLOUR_EXCHANGE : Sale::TYPE_CASH;
@@ -29,14 +46,9 @@ class SaleController extends Controller
             ->latest('sale_date')
             ->latest('id')
             ->paginate(20)
-            ->withQueryString()
-            ->through(fn (Sale $sale) => $sale->toRow());
+            ->withQueryString();
 
-        return Inertia::render('Owner/Sales/Index', [
-            'sales' => $sales,
-            'filters' => ['type' => $type, 'status' => $status, 'date' => $date],
-            'pricePerKg' => $request->user()->bakery->regular_price_per_kg,
-        ]);
+        return [$sales, ['type' => $type, 'status' => $status, 'date' => $date]];
     }
 
     public function create(Request $request): Response

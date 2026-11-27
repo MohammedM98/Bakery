@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\ApiException;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +19,10 @@ class EnsureSubscriptionActive
         $bakery = $request->user()?->bakery;
 
         if (! $bakery || ! $bakery->isSubscriptionActive()) {
+            if ($request->is('api/*')) {
+                throw ApiException::subscriptionExpired();
+            }
+
             return redirect()->route('panel.subscription.expired');
         }
 

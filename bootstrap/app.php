@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\ApiException;
 use App\Http\Middleware\EnsureSubscriptionActive;
 use App\Http\Middleware\EnsureUserHasRole;
 use App\Http\Middleware\EnsureUserIsActive;
@@ -14,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -26,12 +28,16 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => EnsureUserHasRole::class,
             'subscription.active' => EnsureSubscriptionActive::class,
+            'active' => EnsureUserIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+
+        // The mobile API's errors: {code, message, errors?} with Arabic messages (docs/api.md).
+        $exceptions->render(fn (Throwable $e, Request $request) => $request->is('api/*') ? ApiException::from($e)?->render() : null);
 
         // Arabic error pages instead of Laravel's English ones. 500 and 503 keep the
         // debug page while APP_DEBUG is on, so errors stay readable in development.

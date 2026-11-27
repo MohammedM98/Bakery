@@ -15,6 +15,8 @@ class DeleteCustomer
     public function handle(Customer $customer): void
     {
         DB::transaction(function () use ($customer) {
+            // The customer's row first, like every other write (customer, then bakery): the tombstone takes the bakery lock.
+            $customer->newQuery()->whereKey($customer->id)->lockForUpdate()->value('id');
             $customer->movements()->delete();
             $customer->sales()->delete();
             $customer->delete();

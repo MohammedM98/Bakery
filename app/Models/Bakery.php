@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable([
     'name', 'phone', 'address', 'subscription_status', 'subscription_expires_at',
@@ -18,6 +19,30 @@ class Bakery extends Model
     const STATUS_ACTIVE = 'active';
 
     const STATUS_INACTIVE = 'inactive';
+
+    /** Every price change is kept, so an offline sale's price can be checked against the prices the bakery had. */
+    protected static function booted(): void
+    {
+        static::saved(function (Bakery $bakery) {
+            if ($bakery->wasRecentlyCreated || $bakery->wasChanged(['regular_price_per_kg', 'flour_exchange_fee_per_kg'])) {
+                // From the row: a bakery created without prices has the columns' defaults, not model attributes.
+                $prices = DB::table('bakeries')->where('id', $bakery->id)->first(['regular_price_per_kg', 'flour_exchange_fee_per_kg']);
+                DB::table('bakery_prices')->insert([...(array) $prices, 'bakery_id' => $bakery->id, 'effective_from' => now()]);
+            }
+        });
+    }
+
+    /**
+     * The bakery's next change version for the mobile sync (see SyncsToDevices). Call it inside the
+     * write's transaction: the row lock holds every other writer of this bakery until it commits.
+     */
+    public static function nextSyncVersion(int $bakeryId): int
+    {
+        $version = static::whereKey($bakeryId)->lockForUpdate()->value('sync_version') + 1;
+        static::whereKey($bakeryId)->toBase()->update(['sync_version' => $version]);
+
+        return $version;
+    }
 
     protected function casts(): array
     {

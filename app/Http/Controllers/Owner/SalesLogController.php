@@ -47,6 +47,12 @@ class SalesLogController extends Controller
 
     public function __invoke(SalesLogRequest $request): Response
     {
+        return Inertia::render('Owner/SalesLog', $this->data($request));
+    }
+
+    /** The page's figures and movements; the mobile API's sales log serves the same ones. */
+    public function data(SalesLogRequest $request): array
+    {
         $bakery = $request->user()->bakery;
         $filters = [
             'period' => $request->validated('period') ?? 'day',
@@ -100,7 +106,7 @@ class SalesLogController extends Controller
 
         $step = fn (int $n) => self::shift($filters['period'], $start, $n)->toDateString();
 
-        return Inertia::render('Owner/SalesLog', [
+        return [
             'filters' => $filters,
             'range' => ['from' => $from, 'to' => $to, 'label' => self::label($filters['period'], $start, $end)],
             'previousDate' => $step(-1),
@@ -122,7 +128,7 @@ class SalesLogController extends Controller
                 'recordedBy' => $bakery->movements()->whereNotNull('recorded_by_name')
                     ->distinct()->orderBy('recorded_by_name')->pluck('recorded_by_name'),
             ],
-        ]);
+        ];
     }
 
     /** @return array{0: Carbon, 1: Carbon} */
