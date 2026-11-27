@@ -10,13 +10,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'email', 'password', 'role', 'phone', 'bakery_id', 'permissions', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /** Matches the column default, so a freshly created model is active before it is reloaded. */
     protected $attributes = ['is_active' => true];
@@ -70,6 +71,15 @@ class User extends Authenticatable
 
     /** Never granted to staff: the bakery owner only. */
     const OWNER_ONLY = ['delete-customers', 'delete-banks', 'manage-users', 'manage-settings'];
+
+    /**
+     * A new password signs out every phone: the user's API tokens are revoked. (A disabled account's token is
+     * revoked on its next request by EnsureUserIsActive, which tells the app why: `account_disabled`.)
+     */
+    protected static function booted(): void
+    {
+        static::updated(fn (User $user) => $user->wasChanged('password') && $user->tokens()->delete());
+    }
 
     /**
      * Get the attributes that should be cast.

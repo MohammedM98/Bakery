@@ -31,8 +31,10 @@ class RecordMovements
         return DB::transaction(function () use ($bakery, $user, $movements) {
             // Serialises numbering per bakery: a second writer waits here until this one commits.
             $last = Bakery::whereKey($bakery->id)->lockForUpdate()->value('last_movement_number');
+            // One mobile-sync version for the batch; the customers it touches get it too (their balances changed).
+            $version = Bakery::nextSyncVersion($bakery->id);
 
-            $created = collect($movements)->map(function (array $m, int $i) use ($bakery, $user, $last) {
+            $created = collect($movements)->map(function (array $m, int $i) use ($bakery, $user, $last, $version) {
                 $amount = $m['amount_cents'];
                 unset($m['amount_cents']);
 
@@ -43,6 +45,7 @@ class RecordMovements
                     'amount' => Movement::decimal($amount),
                     'recorded_by' => $user->id,
                     'recorded_by_name' => $user->name,
+                    'sync_version' => $version,
                 ]);
             });
 
@@ -51,6 +54,7 @@ class RecordMovements
             $created->where('ledger', Movement::LEDGER_FLOUR)->groupBy('customer_id')
                 ->each(fn ($rows, $customerId) => Customer::whereKey($customerId)
                     ->increment('flour_balance_kg', Movement::decimal($rows->sum(fn ($m) => Movement::cents($m->amount)))));
+            Customer::whereKey($created->pluck('customer_id')->filter()->unique()->all())->toBase()->update(['sync_version' => $version]);
 
             return $created;
         });

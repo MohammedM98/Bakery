@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\SyncsToDevices;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['bakery_id', 'name'])]
 class Bank extends Model
 {
+    use SyncsToDevices;
+
     public function bakery(): BelongsTo
     {
         return $this->belongsTo(Bakery::class);

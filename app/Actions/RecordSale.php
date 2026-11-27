@@ -21,11 +21,14 @@ class RecordSale
     public function __construct(private RecordMovements $movements, private SettleSales $settle) {}
 
     /**
+     * $pricePerKg: the price or fee an offline device used (section 13), already checked against the bakery's
+     * price history by the API. Null (the website, and online API calls) = the bakery's current setting.
+     *
      * @param  array{kg_amount: string, payment_status: string, sale_date: string, notes?: ?string, buyer_name?: ?string, buyer_mobile?: ?string}  $data
      */
-    public function handle(Bakery $bakery, ?Customer $customer, string $type, array $data, User $user): Sale
+    public function handle(Bakery $bakery, ?Customer $customer, string $type, array $data, User $user, ?string $pricePerKg = null): Sale
     {
-        return DB::transaction(function () use ($bakery, $customer, $type, $data, $user) {
+        return DB::transaction(function () use ($bakery, $customer, $type, $data, $user, $pricePerKg) {
             if ($customer) {
                 // Serialise this customer's writes so the settle step below sees a stable balance.
                 $customer = $bakery->customers()->lockForUpdate()->findOrFail($customer->id);
@@ -35,7 +38,7 @@ class RecordSale
             Bakery::whereKey($bakery->id)->lockForUpdate()->value('id');
 
             $exchange = $type === Sale::TYPE_FLOUR_EXCHANGE;
-            $pricePerKg = $exchange ? $bakery->flour_exchange_fee_per_kg : $bakery->regular_price_per_kg;
+            $pricePerKg ??= $exchange ? $bakery->flour_exchange_fee_per_kg : $bakery->regular_price_per_kg;
             $totalCents = Movement::cents($data['kg_amount'] * $pricePerKg);
             $paid = $data['payment_status'] === Sale::STATUS_PAID;
 

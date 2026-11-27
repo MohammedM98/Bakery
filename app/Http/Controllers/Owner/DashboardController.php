@@ -20,6 +20,12 @@ class DashboardController extends Controller
 {
     public function __invoke(Request $request): Response
     {
+        return Inertia::render('Owner/Dashboard', $this->data($request));
+    }
+
+    /** The page's figures; the mobile API's dashboard serves the same ones. */
+    public function data(Request $request): array
+    {
         $period = $request->validate([
             'period' => ['nullable', Rule::in(array_keys(SalesLogController::PERIODS))],
         ])['period'] ?? 'day';
@@ -39,7 +45,7 @@ class DashboardController extends Controller
         $totalCents = $sales->sum(fn (Sale $s) => Movement::cents($s->total_amount));
         $paidCents = $sales->sum(fn (Sale $s) => min(Movement::cents($s->paid_amount), Movement::cents($s->total_amount)));
 
-        return Inertia::render('Owner/Dashboard', [
+        return [
             'period' => $period,
             'rangeLabel' => SalesLogController::label($period, $start, $end),
             'bread' => [
@@ -60,7 +66,7 @@ class DashboardController extends Controller
             'pricePerKg' => $bakery->regular_price_per_kg,
             // For the flour-deposit dialog; deposits elsewhere also need the customers list.
             'customers' => Gate::allows('record-deposit') && Gate::allows('view-customers') ? $bakery->customers()->orderBy('name')->get(['id', 'name']) : [],
-        ]);
+        ];
     }
 
     /** The period's last movements, one line per operation (a flour sale's fee shows on its withdrawal line). */
