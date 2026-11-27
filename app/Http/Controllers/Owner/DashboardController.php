@@ -95,18 +95,22 @@ class DashboardController extends Controller
             ])->all();
     }
 
-    /** Bread kg and money received for the current bucket and the six before it (days, weeks, months or years). */
-    private function chart($bakery, string $period, Carbon $start): array
+    /**
+     * Bread kg and money received for the current bucket and the six before it (days, weeks, months or years).
+     * Public for the mobile API's sales log, which charts the period being browsed.
+     */
+    public function chart($bakery, string $period, Carbon $start): array
     {
         $starts = collect(range(-6, 0))->map(fn (int $n) => SalesLogController::shift($period, $start, $n));
         $from = $starts->first()->toDateString();
+        $to = SalesLogController::bounds($period, $start)[1]->toDateString();
         // The bucket a date falls in: the last one starting on or before it.
         $bucket = fn (Carbon $date) => $starts->filter(fn (Carbon $s) => $s->lte($date))->keys()->last();
 
-        $kg = $bakery->sales()->whereDate('sale_date', '>=', $from)->get(['sale_date', 'kg_amount'])
+        $kg = $bakery->sales()->whereDate('sale_date', '>=', $from)->whereDate('sale_date', '<=', $to)->get(['sale_date', 'kg_amount'])
             ->groupBy(fn (Sale $s) => $bucket($s->sale_date))
             ->map(fn ($rows) => $rows->sum(fn (Sale $s) => Movement::cents($s->kg_amount)));
-        $received = $bakery->movements()->where('type', Movement::TYPE_PAYMENT)->whereDate('movement_date', '>=', $from)
+        $received = $bakery->movements()->where('type', Movement::TYPE_PAYMENT)->whereDate('movement_date', '>=', $from)->whereDate('movement_date', '<=', $to)
             ->get(['movement_date', 'amount'])
             ->groupBy(fn (Movement $m) => $bucket($m->movement_date))
             ->map(fn ($rows) => -$rows->sum(fn (Movement $m) => Movement::cents($m->amount)));

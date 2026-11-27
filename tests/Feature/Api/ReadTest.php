@@ -117,7 +117,9 @@ class ReadTest extends TestCase
             ->assertJsonPath('summary.money_received_text', '70.00 شيكل')
             ->assertJsonPath('summary.flour_spent_kg_text', '20 كغ')
             ->assertJsonPath('movements.total', 5)
-            ->assertJsonPath('movements.data.0.direction_label', 'له');
+            ->assertJsonPath('movements.data.0.direction_label', 'له')
+            ->assertJsonCount(7, 'chart')
+            ->assertJsonPath('chart.6.received', 70);
     }
 
     public function test_banks_staff_and_settings(): void

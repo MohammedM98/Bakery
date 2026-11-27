@@ -93,6 +93,40 @@ class AuthTest extends TestCase
         $this->assertSame(0, $staff->tokens()->count());
     }
 
+    public function test_the_profile_changes_name_and_email_for_every_role(): void
+    {
+        $owner = $this->bakeryOwner();
+        $this->as($owner)->api('PUT', 'profile', ['name' => 'أبو سامي', 'email' => 'NEW@bakery.test'])
+            ->assertJsonValidationErrors(['email']);
+        $this->as($owner)->api('PUT', 'profile', ['name' => 'أبو سامي', 'email' => 'new@bakery.test'])->assertOk()
+            ->assertJsonPath('user.name', 'أبو سامي')
+            ->assertJsonPath('user.email', 'new@bakery.test');
+
+        $other = $this->admin();
+        $this->as($other)->api('PUT', 'profile', ['name' => 'المالك', 'email' => 'new@bakery.test'])
+            ->assertStatus(422)->assertJsonPath('code', 'validation_failed');
+        $this->as($other)->api('PUT', 'profile', ['name' => 'المالك', 'email' => $other->email])->assertOk();
+    }
+
+    public function test_a_password_change_keeps_this_phone_signed_in_and_signs_out_the_others(): void
+    {
+        $owner = $this->bakeryOwner();
+        $phone = $owner->createToken('هاتف')->plainTextToken;
+        $owner->createToken('جهاز لوحي');
+
+        $this->withToken($phone)->putJson('/api/v1/password', ['current_password' => 'wrong', 'password' => 'new-password-1', 'password_confirmation' => 'new-password-1', 'device_name' => 'هاتف'])
+            ->assertStatus(422)->assertJsonValidationErrors(['current_password']);
+
+        $fresh = $this->withToken($phone)->putJson('/api/v1/password', ['current_password' => 'password', 'password' => 'new-password-1', 'password_confirmation' => 'new-password-1', 'device_name' => 'هاتف'])
+            ->assertOk()->json('token');
+
+        $this->assertSame(['هاتف'], $owner->tokens()->pluck('name')->all());
+        $this->app['auth']->forgetGuards();
+        $this->withToken($phone)->getJson('/api/v1/me')->assertUnauthorized();
+        $this->app['auth']->forgetGuards();
+        $this->withToken($fresh)->getJson('/api/v1/me')->assertOk();
+    }
+
     public function test_logout_revokes_only_this_devices_token(): void
     {
         $owner = $this->bakeryOwner();

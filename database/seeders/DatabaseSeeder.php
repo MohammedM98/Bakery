@@ -8,13 +8,12 @@ use App\Actions\RecordSale;
 use App\Models\Bakery;
 use App\Models\Sale;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
+    // Model events stay on: the price history (bakery_prices) and the sync versions are written by them.
 
     /**
      * Seed the application's database with a super admin and a demo bakery.

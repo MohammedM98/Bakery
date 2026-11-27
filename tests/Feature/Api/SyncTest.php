@@ -257,4 +257,15 @@ class SyncTest extends TestCase
 
         $this->pull()->assertJsonCount(1, 'customers')->assertJsonCount(1, 'movements');
     }
+
+    public function test_the_demo_seed_gives_the_bakery_a_price_an_offline_sale_can_use(): void
+    {
+        $this->seed();
+        $owner = User::where('email', 'owner@bakery.test')->firstOrFail();
+
+        $this->as($owner)->api('POST', 'sync/push', ['operations' => [
+            $this->op('sale', ['kg_amount' => '2', 'payment_status' => 'paid', 'sale_date' => today()->toDateString(), 'price_per_kg' => $owner->bakery->regular_price_per_kg]),
+        ]])->assertOk()->assertJsonPath('results.0.status', 'accepted');
+        $this->as($owner)->api('GET', 'sync/pull')->assertOk()->assertJsonCount($owner->bakery->customers()->count(), 'customers');
+    }
 }

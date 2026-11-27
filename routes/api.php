@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BankController;
 use App\Http\Controllers\Api\CustomerController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\OperationController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\SalesLogController;
 use App\Http\Controllers\Api\SettingsController;
@@ -30,6 +31,8 @@ Route::prefix('v1')->name('api.')->group(function () use ($operation) {
     Route::middleware(['auth:sanctum', 'active'])->group(function () use ($operation) {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('me', [AuthController::class, 'me'])->name('me');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('password', [ProfileController::class, 'password'])->name('password.update');
 
         Route::middleware('role:bakery_owner,bakery_staff')->group(function () use ($operation) {
             // The subscription is checked per operation (push) and in the answer (pull), not for the whole request.
