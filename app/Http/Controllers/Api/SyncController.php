@@ -113,7 +113,10 @@ class SyncController extends Controller
             Movement::LEDGER_MONEY => $can('view-money-statement'),
             Movement::LEDGER_FLOUR => $can('view-flour-statement'),
         ]));
-        $changed = fn ($query) => $query->where('sync_version', '>', $since)->where('sync_version', '<=', $upto);
+        // By reference: paging below lowers $upto, and every part of the answer must stop at the same version.
+        $changed = function ($query) use ($since, &$upto) {
+            return $query->where('sync_version', '>', $since)->where('sync_version', '<=', $upto);
+        };
 
         $movements = $can('view-customers') && $ledgers
             ? $changed($bakery->movements())->whereNotNull('customer_id')->whereIn('ledger', $ledgers)

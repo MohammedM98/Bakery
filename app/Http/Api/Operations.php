@@ -45,6 +45,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
+use Symfony\Component\HttpFoundation\InputBag;
 
 /**
  * Every write the mobile API offers, online (one REST call) or replayed from the offline queue
@@ -90,6 +91,9 @@ class Operations
     /** How far a device clock may run behind the server when its sale price is checked against the price history. */
     const CLOCK_SKEW_MINUTES = 5;
 
+    /** An offline sale may use a price replaced at most this long before it: a device offline longer must sync first. */
+    const STALE_PRICE_DAYS = 14;
+
     /**
      * @param  array<string, mixed>  $input  the payload, with `client_uuid` and the ids of the records it acts on
      * @return array{0: int, 1: array<string, mixed>, 2: bool} status, body, whether it is a replay of an earlier run
@@ -109,7 +113,8 @@ class Operations
         $this->authorize($user, $area, $permission);
         $models = $this->resolve($user, $type, $input);
         $data = $form ? $this->validate($form, $type, $input, $models) : [];
-        $price = in_array($type, ['sale', 'flour_sale'], true) ? $this->devicePrice($user->bakery, $type, $input, $at ?? now()) : null;
+        // Only a queued offline sale (pushed with its time) keeps the device's price; online calls use the current one.
+        $price = $at && in_array($type, ['sale', 'flour_sale'], true) ? $this->devicePrice($user->bakery, $type, $input, $at) : null;
 
         try {
             return DB::transaction(function () use ($user, $type, $uuid, $hash, $models, $data, $price) {
@@ -223,6 +228,9 @@ class Operations
     private function validate(string $form, string $type, array $input, array $models): array
     {
         $request = $form::createFrom(request(), new $form);
+        // Own input bags: createFrom shares the JSON bag with the real request, which must keep its own body.
+        $request->setJson(new InputBag);
+        $request->request->replace();
         $request->query->replace();
         // The website's duplicate check (submission_id) is replaced here by the durable client_uuid.
         $request->replace([...$input, 'submission_id' => $input['client_uuid'] ?? null]);
@@ -244,8 +252,9 @@ class Operations
     }
 
     /**
-     * Section 13: a sale is recorded at the price the device used, if the bakery really had that price at or
-     * before the operation's time (client_created_at, with a little clock skew). Without one: the current price.
+     * Section 13: an offline sale is recorded at the price the device used, if the bakery really had that price
+     * at the operation's time (client_created_at, with a little clock skew), or had it until at most
+     * STALE_PRICE_DAYS before (a device offline across a price change). Without a price: the current one.
      *
      * @param  array<string, mixed>  $input
      */
@@ -259,10 +268,16 @@ class Operations
 
         $cents = Movement::cents($input['price_per_kg']);
         $column = $type === 'flour_sale' ? 'flour_exchange_fee_per_kg' : 'regular_price_per_kg';
-        $known = DB::table('bakery_prices')->where('bakery_id', $bakery->id)
-            ->where('effective_from', '<=', $at->copy()->utc()->addMinutes(self::CLOCK_SKEW_MINUTES)->toDateTimeString())
-            ->pluck($column)
-            ->contains(fn ($price) => Movement::cents($price) === $cents);
+        $at = $at->copy()->utc();
+        $history = DB::table('bakery_prices')->where('bakery_id', $bakery->id)
+            ->where('effective_from', '<=', $at->copy()->addMinutes(self::CLOCK_SKEW_MINUTES)->toDateTimeString())
+            ->orderBy('effective_from')->orderBy('id')
+            ->get([$column, 'effective_from'])->values();
+        $oldest = $at->copy()->subDays(self::STALE_PRICE_DAYS)->toDateTimeString();
+
+        // Each price is in effect until the next row: accept it if that period reaches into the allowed window.
+        $known = $history->contains(fn ($row, int $i) => Movement::cents($row->{$column}) === $cents
+            && (! isset($history[$i + 1]) || $history[$i + 1]->effective_from > $oldest));
 
         return $known ? Movement::decimal($cents)
             : throw new ApiException('price_mismatch', 'السعر الذي استخدمه الجهاز لم يكن من أسعار المخبز في وقت العملية.', 422);

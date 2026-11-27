@@ -24,9 +24,14 @@ class Bakery extends Model
     protected static function booted(): void
     {
         static::saved(function (Bakery $bakery) {
-            if ($bakery->wasRecentlyCreated || $bakery->wasChanged(['regular_price_per_kg', 'flour_exchange_fee_per_kg'])) {
-                // From the row: a bakery created without prices has the columns' defaults, not model attributes.
-                $prices = DB::table('bakeries')->where('id', $bakery->id)->first(['regular_price_per_kg', 'flour_exchange_fee_per_kg']);
+            if (! $bakery->wasRecentlyCreated && ! $bakery->wasChanged(['regular_price_per_kg', 'flour_exchange_fee_per_kg'])) {
+                return;
+            }
+
+            // From the row: a bakery created without prices has the columns' defaults, not model attributes.
+            $prices = DB::table('bakeries')->where('id', $bakery->id)->first(['regular_price_per_kg', 'flour_exchange_fee_per_kg']);
+            // A new bakery's 0 / 0 is "not set yet", never a price a device may sell at.
+            if ((float) $prices->regular_price_per_kg > 0 || (float) $prices->flour_exchange_fee_per_kg > 0) {
                 DB::table('bakery_prices')->insert([...(array) $prices, 'bakery_id' => $bakery->id, 'effective_from' => now()]);
             }
         });

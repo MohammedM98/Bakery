@@ -73,6 +73,15 @@ class User extends Authenticatable
     const OWNER_ONLY = ['delete-customers', 'delete-banks', 'manage-users', 'manage-settings'];
 
     /**
+     * A new password signs out every phone: the user's API tokens are revoked. (A disabled account's token is
+     * revoked on its next request by EnsureUserIsActive, which tells the app why: `account_disabled`.)
+     */
+    protected static function booted(): void
+    {
+        static::updated(fn (User $user) => $user->wasChanged('password') && $user->tokens()->delete());
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

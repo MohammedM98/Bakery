@@ -127,9 +127,30 @@ class SyncTest extends TestCase
         $this->assertSame(['4.00', '6.00'], Sale::orderBy('id')->pluck('price_per_kg')->all());
         $this->assertSame('40.00', $results[0]['data']['sale']['total_amount']);
 
-        // Online, with no price sent: the current setting, as on the website.
-        $this->api('POST', 'sales', ['client_uuid' => $this->uuid(), 'kg_amount' => '1', 'payment_status' => 'paid', 'sale_date' => today()->toDateString()])
+        // Online, the current setting, as on the website: a price in the body is ignored.
+        $this->api('POST', 'sales', ['client_uuid' => $this->uuid(), 'kg_amount' => '1', 'payment_status' => 'paid', 'sale_date' => today()->toDateString(), 'price_per_kg' => '4'])
             ->assertCreated()->assertJsonPath('sale.price_per_kg', '6.00');
+    }
+
+    public function test_a_price_replaced_long_before_or_never_set_is_refused(): void
+    {
+        $sale = fn (string $price, string $at) => $this->op('sale', ['kg_amount' => '1', 'payment_status' => 'paid', 'sale_date' => today()->toDateString(), 'price_per_kg' => $price], null, $at);
+        $unset = $this->bakeryOwner(['regular_price_per_kg' => 0, 'flour_exchange_fee_per_kg' => 0]);
+        $this->as($unset);
+        $this->assertSame('price_mismatch', $this->push([$sale('0', now()->toIso8601String())])[0]['code'], 'a new bakery\'s 0 is not a price');
+
+        $this->travelTo(now()->subDays(20));
+        $this->owner->bakery->update(['regular_price_per_kg' => '7']);
+        $this->travel(4)->days();
+        $this->owner->bakery->update(['regular_price_per_kg' => '8']);
+        $this->travelBack();
+        $this->as($this->owner);
+
+        $this->assertSame(['rejected', 'accepted', 'accepted'], array_column($this->push([
+            $sale('7', now()->toIso8601String()),                  // replaced 16 days ago: too stale
+            $sale('8', now()->toIso8601String()),
+            $sale('7', now()->subDays(17)->toIso8601String()),     // a sale queued back then
+        ]), 'status'));
     }
 
     public function test_pull_sends_changes_since_the_cursor_with_tombstones(): void

@@ -82,6 +82,17 @@ class AuthTest extends TestCase
         $this->assertSame(0, $staff->tokens()->count(), 'the token is revoked');
     }
 
+    public function test_a_new_password_signs_out_every_phone(): void
+    {
+        $owner = $this->bakeryOwner();
+        $staff = $this->staffOf($owner, ['view-customers']);
+        $staff->createToken('هاتف');
+
+        $this->as($owner)->api('PUT', "users/{$staff->id}", ['name' => $staff->name, 'email' => $staff->email, 'password' => 'new-password-1', 'permissions' => []])->assertOk();
+
+        $this->assertSame(0, $staff->tokens()->count());
+    }
+
     public function test_logout_revokes_only_this_devices_token(): void
     {
         $owner = $this->bakeryOwner();

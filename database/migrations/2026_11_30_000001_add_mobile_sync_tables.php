@@ -74,12 +74,14 @@ return new class extends Migration
         DB::table('bakeries')->update(['sync_version' => DB::raw('last_movement_number + 1')]);
 
         // The price each bakery has now, in effect since it was created: the best history there is.
-        DB::table('bakeries')->orderBy('id')->each(fn ($bakery) => DB::table('bakery_prices')->insert([
-            'bakery_id' => $bakery->id,
-            'regular_price_per_kg' => $bakery->regular_price_per_kg,
-            'flour_exchange_fee_per_kg' => $bakery->flour_exchange_fee_per_kg,
-            'effective_from' => $bakery->created_at ?? now(),
-        ]));
+        // A bakery still at 0 / 0 has no price set yet (see Bakery::booted).
+        DB::table('bakeries')->where(fn ($q) => $q->where('regular_price_per_kg', '>', 0)->orWhere('flour_exchange_fee_per_kg', '>', 0))
+            ->orderBy('id')->each(fn ($bakery) => DB::table('bakery_prices')->insert([
+                'bakery_id' => $bakery->id,
+                'regular_price_per_kg' => $bakery->regular_price_per_kg,
+                'flour_exchange_fee_per_kg' => $bakery->flour_exchange_fee_per_kg,
+                'effective_from' => $bakery->created_at ?? now(),
+            ]));
     }
 
     public function down(): void
