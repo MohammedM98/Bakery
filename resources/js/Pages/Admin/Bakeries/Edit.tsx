@@ -1,13 +1,13 @@
-import { Link, router, useForm } from '@inertiajs/react';
-import { CalendarPlus, LoaderCircle, Power } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { Link, router } from '@inertiajs/react';
+import { CalendarPlus, LoaderCircle, Pencil, Power } from 'lucide-react';
+import { useState } from 'react';
+import { BakeryDetailsForm } from '@/components/bakery-form';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { Field } from '@/components/form-field';
+import { DialogShell } from '@/components/form-dialog';
 import { RenewDialog } from '@/components/renew-dialog';
 import { daysLeftText, SubscriptionBadge, type Subscription } from '@/components/subscription';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { formatDate } from '@/lib/format';
 import AppLayout from '@/Layouts/AppLayout';
 
@@ -16,63 +16,9 @@ interface Props {
     owners: { name: string; email: string }[];
 }
 
-function DetailsForm({ bakery }: Pick<Props, 'bakery'>) {
-    const form = useForm({ name: bakery.name, phone: bakery.phone ?? '', address: bakery.address ?? '' });
-
-    const submit = (e: FormEvent) => {
-        e.preventDefault();
-        form.put(route('admin.bakeries.update', bakery.id), { preserveScroll: true });
-    };
-
-    return (
-        <form onSubmit={submit} className="grid gap-5" noValidate>
-            <Field id="name" label="اسم المخبز" error={form.errors.name}>
-                <Input
-                    id="name"
-                    className="h-11"
-                    value={form.data.name}
-                    onChange={(e) => form.setData('name', e.target.value)}
-                    aria-invalid={!!form.errors.name}
-                    aria-describedby="name-error"
-                />
-            </Field>
-            <div className="grid gap-5 sm:grid-cols-2">
-                <Field id="phone" label="رقم الهاتف (اختياري)" error={form.errors.phone}>
-                    <Input
-                        id="phone"
-                        type="tel"
-                        inputMode="tel"
-                        dir="ltr"
-                        className="h-11 text-end"
-                        value={form.data.phone}
-                        onChange={(e) => form.setData('phone', e.target.value)}
-                        aria-invalid={!!form.errors.phone}
-                        aria-describedby="phone-error"
-                    />
-                </Field>
-                <Field id="address" label="العنوان (اختياري)" error={form.errors.address}>
-                    <Input
-                        id="address"
-                        className="h-11"
-                        value={form.data.address}
-                        onChange={(e) => form.setData('address', e.target.value)}
-                        aria-invalid={!!form.errors.address}
-                        aria-describedby="address-error"
-                    />
-                </Field>
-            </div>
-            <div>
-                <Button type="submit" className="h-11 px-6" disabled={form.processing}>
-                    {form.processing && <LoaderCircle className="animate-spin" />}
-                    حفظ التعديلات
-                </Button>
-            </div>
-        </form>
-    );
-}
-
 export default function Edit({ bakery, owners }: Props) {
     const [renewing, setRenewing] = useState(false);
+    const [editing, setEditing] = useState(false);
     const [toggling, setToggling] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const stopped = bakery.subscription_status !== 'active';
@@ -130,8 +76,29 @@ export default function Edit({ bakery, owners }: Props) {
                     <CardHeader>
                         <CardTitle>بيانات المخبز</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <DetailsForm bakery={bakery} />
+                    <CardContent className="grid gap-4">
+                        <dl className="grid gap-3 text-sm sm:grid-cols-3">
+                            <div className="grid gap-1">
+                                <dt className="text-muted-foreground">الاسم</dt>
+                                <dd className="font-medium">{bakery.name}</dd>
+                            </div>
+                            <div className="grid gap-1">
+                                <dt className="text-muted-foreground">الهاتف</dt>
+                                <dd dir="ltr" className="text-end tabular-nums sm:text-start">
+                                    {bakery.phone || '—'}
+                                </dd>
+                            </div>
+                            <div className="grid gap-1">
+                                <dt className="text-muted-foreground">العنوان</dt>
+                                <dd>{bakery.address || '—'}</dd>
+                            </div>
+                        </dl>
+                        <div>
+                            <Button variant="outline" className="h-11 px-6" onClick={() => setEditing(true)}>
+                                <Pencil />
+                                تعديل البيانات
+                            </Button>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -188,6 +155,9 @@ export default function Edit({ bakery, owners }: Props) {
             </div>
 
             <RenewDialog bakery={renewing ? bakery : null} onOpenChange={setRenewing} />
+            <DialogShell open={editing} onOpenChange={setEditing} title="تعديل بيانات المخبز">
+                <BakeryDetailsForm bakery={bakery} onDone={() => setEditing(false)} />
+            </DialogShell>
         </AppLayout>
     );
 }

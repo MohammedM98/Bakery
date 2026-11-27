@@ -53,6 +53,8 @@ class CustomerPagesTest extends TestCase
                     'id' => $mine->id,
                     'name' => 'أحمد',
                     'mobile_number' => '0591111111',
+                    // For the edit dialog.
+                    'notes' => 'سرّي',
                     'flour_balance_kg' => '12.50',
                 ]));
     }
@@ -161,13 +163,14 @@ class CustomerPagesTest extends TestCase
         $customer = $this->customer($owner, ['flour_balance_kg' => 5]);
 
         $this->actingAs($owner)
+            ->from(route('panel.customers.show', $customer))
             ->put(route('panel.customers.update', $customer), [
                 'name' => 'أحمد علي',
                 'mobile_number' => '0593333333',
                 'notes' => 'جديد',
                 'flour_balance_kg' => 999,
             ])
-            ->assertRedirect(route('panel.customers.index'))
+            ->assertRedirect(route('panel.customers.show', $customer))
             ->assertSessionHas('success');
 
         $customer->refresh();

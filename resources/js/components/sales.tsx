@@ -174,7 +174,7 @@ export function SaleList({ sales, showType = false }: { sales: SaleRow[]; showTy
                     </TableHeader>
                     <TableBody>
                         {sales.map((sale) => (
-                            <TableRow key={sale.id}>
+                            <TableRow key={sale.id} className="h-[52px]">
                                 <TableCell className="ps-6 tabular-nums">{formatDate(sale.sale_date)}</TableCell>
                                 <TableCell>
                                     <BuyerName sale={sale} />

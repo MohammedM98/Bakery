@@ -57,7 +57,7 @@ export function PeriodPills({ value, onChange, className }: { value: Period; onC
 }
 
 /** The same pill look for shadcn Tabs (TabsList / TabsTrigger). */
-export const pillTabs = 'h-auto! w-full flex-wrap rounded-[1.375rem] bg-muted p-1.5 sm:w-auto';
+export const pillTabs = 'h-auto! w-full flex-wrap rounded-[1.375rem] bg-muted p-1.5 sm:w-auto sm:self-start';
 export const pillTab = cn(
     'h-10 flex-col gap-0.5 rounded-full px-5 font-normal text-muted-foreground',
     'after:h-0.5 after:w-3.5 after:rounded-full after:bg-transparent',

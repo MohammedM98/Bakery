@@ -45,8 +45,11 @@ class UserManagementTest extends TestCase
                 ->has('users', 1) // not the owner, not the other bakery's staff
                 ->where('users.0.name', 'سامي')
                 ->where('users.0.permissions_count', 2)
-                ->has('users.0', 5)
-                ->where('permissionsTotal', count(User::permissionKeys())));
+                ->where('users.0.permissions', ['record-sale', 'view-customers'])
+                ->has('users.0', 6)
+                ->where('permissionsTotal', count(User::permissionKeys()))
+                // For the add / edit dialogs.
+                ->has('groups', count(User::PERMISSIONS)));
     }
 
     public function test_create_page_sends_the_permission_groups(): void

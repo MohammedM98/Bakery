@@ -23,7 +23,7 @@ export interface StaffFields {
 }
 
 /** Add when `user` is absent (password required), edit otherwise (an empty password keeps the current one). */
-export function StaffForm({ user, groups }: { user?: StaffFields; groups: PermissionGroup[] }) {
+export function StaffForm({ user, groups, onDone }: { user?: StaffFields; groups: PermissionGroup[]; /** In a dialog: closes it on cancel and after saving. */ onDone?: () => void }) {
     const form = useForm({
         name: user?.name ?? '',
         email: user?.email ?? '',
@@ -36,7 +36,7 @@ export function StaffForm({ user, groups }: { user?: StaffFields; groups: Permis
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        const options = { preserveScroll: true, onError: () => form.reset('password') };
+        const options = { preserveScroll: true, onError: () => form.reset('password'), onSuccess: () => onDone?.() };
         if (user) form.put(route('panel.users.update', user.id), options);
         else form.post(route('panel.users.store'), options);
     };
@@ -104,9 +104,15 @@ export function StaffForm({ user, groups }: { user?: StaffFields; groups: Permis
             </fieldset>
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <Button type="button" variant="outline" className="h-11 px-6" asChild>
-                    <Link href={route('panel.users.index')}>إلغاء</Link>
-                </Button>
+                {onDone ? (
+                    <Button type="button" variant="outline" className="h-11 px-6" onClick={onDone}>
+                        إلغاء
+                    </Button>
+                ) : (
+                    <Button type="button" variant="outline" className="h-11 px-6" asChild>
+                        <Link href={route('panel.users.index')}>إلغاء</Link>
+                    </Button>
+                )}
                 <Button type="submit" className="h-11 px-6" disabled={form.processing}>
                     {form.processing && <LoaderCircle className="animate-spin" />}
                     {user ? 'حفظ التعديلات' : 'إضافة المستخدم'}

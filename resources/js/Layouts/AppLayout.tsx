@@ -68,7 +68,7 @@ const roleLabels: Record<Role, string> = {
 /** Icon button in the rail; in the mobile sheet the label shows beside the icon. */
 const railButton = cn(
     'h-11 gap-3 rounded-[14px] px-3 text-sm [&_svg]:size-5',
-    'md:size-11! md:justify-center md:p-0!',
+    'group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&>span]:hidden',
     'data-active:shadow-[inset_-3px_0_0_var(--sidebar-primary)]',
 );
 
@@ -193,7 +193,7 @@ export default function AppLayout({ title, subtitle, toolbar, children }: AppLay
                             </div>
                             {toolbar && <div className="order-3 w-full md:order-none md:ms-6 md:w-auto">{toolbar}</div>}
                             <div className="ms-auto flex items-center gap-2.5">
-                                <ThemeToggle className="size-[42px] rounded-xl border bg-card" />
+                                <ThemeToggle className="size-[42px] rounded-xl border-border bg-card" />
                                 <DropdownMenu>
                                     <DropdownMenuTrigger
                                         className="flex items-center gap-2.5 rounded-xl ps-1.5 text-start outline-none focus-visible:ring-2 focus-visible:ring-ring"

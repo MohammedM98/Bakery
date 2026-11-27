@@ -20,9 +20,12 @@ class UserController extends Controller
             'users' => $request->user()->bakery->staff()->orderByDesc('is_active')->orderBy('name')->get()
                 ->map(fn (User $user) => [
                     ...$user->only('id', 'name', 'email', 'is_active'),
+                    'permissions' => $user->permissions ?? [],
                     'permissions_count' => count($user->permissions ?? []),
                 ]),
             'permissionsTotal' => count(User::permissionKeys()),
+            // For the add / edit dialogs.
+            'groups' => $this->groups(),
         ]);
     }
 

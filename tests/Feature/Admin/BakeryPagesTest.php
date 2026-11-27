@@ -67,6 +67,7 @@ class BakeryPagesTest extends TestCase
                     ->where('id', $bakery->id)
                     ->where('name', 'مخبز السنابل')
                     ->where('phone', null)
+                    ->where('address', null)
                     ->where('owner', ['name' => $owner->name, 'email' => $owner->email])
                     ->where('subscription_status', 'active')
                     ->where('is_active', true)

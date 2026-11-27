@@ -27,6 +27,7 @@ class BakeryController extends Controller
                 'id' => $bakery->id,
                 'name' => $bakery->name,
                 'phone' => $bakery->phone,
+                'address' => $bakery->address,
                 'owner' => $bakery->owners->first()?->only('name', 'email'),
             ]);
 

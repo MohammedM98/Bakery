@@ -1,8 +1,10 @@
 import { Link, router } from '@inertiajs/react';
 import { Building2, CalendarPlus, MoreVertical, Pencil, Plus, Power, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { BakeryCreateForm, BakeryDetailsForm, type BakeryDetails } from '@/components/bakery-form';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
+import { DialogShell } from '@/components/form-dialog';
 import { PaginationLinks } from '@/components/pagination-links';
 import { RenewDialog } from '@/components/renew-dialog';
 import { ExpiryText, SubscriptionBadge, type Subscription } from '@/components/subscription';
@@ -19,14 +21,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/Layouts/AppLayout';
 import type { Paginated } from '@/types';
 
-interface BakeryRow extends Subscription {
-    id: number;
-    name: string;
-    phone: string | null;
+interface BakeryRow extends Subscription, BakeryDetails {
     owner: { name: string; email: string } | null;
 }
 
-function RowActions({ bakery, onRenew, onDelete }: { bakery: BakeryRow; onRenew: () => void; onDelete: () => void }) {
+function RowActions({ bakery, onEdit, onRenew, onDelete }: { bakery: BakeryRow; onEdit: () => void; onRenew: () => void; onDelete: () => void }) {
     const stopped = bakery.subscription_status !== 'active';
     return (
         // modal={false}: the menu opens dialogs; a modal menu closing under them can leave the page unclickable.
@@ -37,11 +36,9 @@ function RowActions({ bakery, onRenew, onDelete }: { bakery: BakeryRow; onRenew:
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem asChild>
-                    <Link href={route('admin.bakeries.edit', bakery.id)}>
-                        <Pencil />
-                        تعديل البيانات
-                    </Link>
+                <DropdownMenuItem onSelect={onEdit}>
+                    <Pencil />
+                    تعديل البيانات
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={onRenew}>
                     <CalendarPlus />
@@ -67,6 +64,8 @@ function RowActions({ bakery, onRenew, onDelete }: { bakery: BakeryRow; onRenew:
 
 export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) {
     const [renewing, setRenewing] = useState<BakeryRow | null>(null);
+    const [creating, setCreating] = useState(false);
+    const [editing, setEditing] = useState<BakeryRow | null>(null);
     const [deleting, setDeleting] = useState<BakeryRow | null>(null);
     const [processing, setProcessing] = useState(false);
 
@@ -81,11 +80,9 @@ export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) 
     };
 
     const addButton = (
-        <Button asChild className="h-11 px-5">
-            <Link href={route('admin.bakeries.create')}>
-                <Plus />
-                إضافة مخبز
-            </Link>
+        <Button className="h-11 px-5" onClick={() => setCreating(true)}>
+            <Plus />
+            إضافة مخبز
         </Button>
     );
 
@@ -120,7 +117,7 @@ export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) 
                                                     {b.owner?.name ?? 'بلا صاحب'}
                                                 </span>
                                             </Link>
-                                            <RowActions bakery={b} onRenew={() => setRenewing(b)} onDelete={() => setDeleting(b)} />
+                                            <RowActions bakery={b} onEdit={() => setEditing(b)} onRenew={() => setRenewing(b)} onDelete={() => setDeleting(b)} />
                                         </div>
                                         <div className="flex items-end justify-between gap-3 text-sm">
                                             <ExpiryText subscription={b} />
@@ -180,7 +177,7 @@ export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) 
                                                 <ExpiryText subscription={b} />
                                             </TableCell>
                                             <TableCell className="pe-6">
-                                                <RowActions bakery={b} onRenew={() => setRenewing(b)} onDelete={() => setDeleting(b)} />
+                                                <RowActions bakery={b} onEdit={() => setEditing(b)} onRenew={() => setRenewing(b)} onDelete={() => setDeleting(b)} />
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -193,6 +190,12 @@ export default function Index({ bakeries }: { bakeries: Paginated<BakeryRow> }) 
                 )}
             </div>
 
+            <DialogShell open={creating} onOpenChange={setCreating} title="إضافة مخبز">
+                <BakeryCreateForm onDone={() => setCreating(false)} />
+            </DialogShell>
+            <DialogShell open={editing !== null} onOpenChange={(open) => !open && setEditing(null)} title="تعديل بيانات المخبز">
+                {editing && <BakeryDetailsForm bakery={editing} onDone={() => setEditing(null)} />}
+            </DialogShell>
             <RenewDialog bakery={renewing} onOpenChange={(open) => !open && setRenewing(null)} />
             <ConfirmDialog
                 open={deleting !== null}

@@ -1,7 +1,9 @@
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Pencil, Plus, Power, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { DialogShell } from '@/components/form-dialog';
+import { StaffForm, type PermissionGroup, type StaffFields } from '@/components/staff-form';
 import { EmptyState } from '@/components/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,11 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { cn } from '@/lib/utils';
 import AppLayout from '@/Layouts/AppLayout';
 
-interface StaffRow {
-    id: number;
-    name: string;
-    email: string;
-    is_active: boolean;
+interface StaffRow extends StaffFields {
     permissions_count: number;
 }
 
@@ -22,13 +20,11 @@ function StatusBadge({ user }: { user: StaffRow }) {
     return <Badge className={cn(user.is_active ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground')}>{user.is_active ? 'فعّال' : 'موقوف'}</Badge>;
 }
 
-function Actions({ user, onStatus }: { user: StaffRow; onStatus: () => void }) {
+function Actions({ user, onStatus, onEdit }: { user: StaffRow; onStatus: () => void; onEdit: () => void }) {
     return (
         <div className="flex shrink-0 gap-1">
-            <Button variant="ghost" size="icon" className="size-11" asChild>
-                <Link href={route('panel.users.edit', user.id)} aria-label={`تعديل ${user.name} وصلاحياته`}>
-                    <Pencil />
-                </Link>
+            <Button variant="ghost" size="icon" className="size-11" aria-label={`تعديل ${user.name} وصلاحياته`} onClick={onEdit}>
+                <Pencil />
             </Button>
             <Button variant="ghost" size="icon" className="size-11 text-muted-foreground" onClick={onStatus} aria-label={user.is_active ? `إيقاف ${user.name}` : `تفعيل ${user.name}`}>
                 <Power />
@@ -37,8 +33,10 @@ function Actions({ user, onStatus }: { user: StaffRow; onStatus: () => void }) {
     );
 }
 
-export default function Index({ users, permissionsTotal }: { users: StaffRow[]; permissionsTotal: number }) {
+export default function Index({ users, permissionsTotal, groups }: { users: StaffRow[]; permissionsTotal: number; groups: PermissionGroup[] }) {
     const [target, setTarget] = useState<StaffRow | null>(null);
+    // null = closed, 'new' = add, a row = edit.
+    const [editing, setEditing] = useState<StaffRow | 'new' | null>(null);
     const [processing, setProcessing] = useState(false);
     const count = (u: StaffRow) => (u.permissions_count === 0 ? 'بلا صلاحيات' : `${u.permissions_count} من ${permissionsTotal} صلاحية`);
 
@@ -53,11 +51,9 @@ export default function Index({ users, permissionsTotal }: { users: StaffRow[]; 
     };
 
     const addButton = (
-        <Button asChild className="h-11 px-5">
-            <Link href={route('panel.users.create')}>
-                <Plus />
-                إضافة مستخدم
-            </Link>
+        <Button className="h-11 px-5" onClick={() => setEditing('new')}>
+            <Plus />
+            إضافة مستخدم
         </Button>
     );
 
@@ -92,7 +88,7 @@ export default function Index({ users, permissionsTotal }: { users: StaffRow[]; 
                                             </span>
                                             <span className="text-sm text-muted-foreground tabular-nums">{count(u)}</span>
                                         </div>
-                                        <Actions user={u} onStatus={() => setTarget(u)} />
+                                        <Actions user={u} onStatus={() => setTarget(u)} onEdit={() => setEditing(u)} />
                                     </Card>
                                 </li>
                             ))}
@@ -123,7 +119,7 @@ export default function Index({ users, permissionsTotal }: { users: StaffRow[]; 
                                                 <StatusBadge user={u} />
                                             </TableCell>
                                             <TableCell className="pe-6">
-                                                <Actions user={u} onStatus={() => setTarget(u)} />
+                                                <Actions user={u} onStatus={() => setTarget(u)} onEdit={() => setEditing(u)} />
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -148,6 +144,14 @@ export default function Index({ users, permissionsTotal }: { users: StaffRow[]; 
                 processing={processing}
                 onConfirm={setStatus}
             />
+            <DialogShell
+                wide
+                open={editing !== null}
+                onOpenChange={(open) => !open && setEditing(null)}
+                title={editing === 'new' || !editing ? 'إضافة مستخدم' : `تعديل ${editing.name}`}
+            >
+                <StaffForm key={editing === 'new' ? 'new' : editing?.id} user={editing === 'new' ? undefined : (editing ?? undefined)} groups={groups} onDone={() => setEditing(null)} />
+            </DialogShell>
         </AppLayout>
     );
 }

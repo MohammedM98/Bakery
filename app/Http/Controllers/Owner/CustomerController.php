@@ -29,7 +29,7 @@ class CustomerController extends Controller
                 });
             })
             ->orderBy('name')
-            ->paginate(15, ['id', 'name', 'mobile_number', 'flour_balance_kg'])
+            ->paginate(15, ['id', 'name', 'mobile_number', 'notes', 'flour_balance_kg'])
             ->withQueryString();
 
         return Inertia::render('Owner/Customers/Index', [
@@ -107,12 +107,8 @@ class CustomerController extends Controller
             'notes' => $data['notes'] ?? null,
         ]);
 
-        if (! $request->user()->can('view-customers')) {
-            return back()->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
-        }
-
-        return redirect()->route('panel.customers.index')
-            ->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
+        // Back to where the edit dialog was opened: the customers list or the customer's page.
+        return back()->with('success', "تم حفظ بيانات \"{$customer->name}\" بنجاح.");
     }
 
     public function destroy(Request $request, Customer $customer, DeleteCustomer $action): RedirectResponse

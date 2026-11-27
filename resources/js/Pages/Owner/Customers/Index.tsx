@@ -1,6 +1,7 @@
 import { Link, router } from '@inertiajs/react';
 import { LoaderCircle, Pencil, Plus, Search, Users } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { CustomerDialog, type CustomerFields } from '@/components/customer-form';
 import { EmptyState } from '@/components/empty-state';
 import { FlourBalance } from '@/components/kg-text';
 import { PaginationLinks } from '@/components/pagination-links';
@@ -12,10 +13,7 @@ import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Paginated } from '@/types';
 
-interface CustomerRow {
-    id: number;
-    name: string;
-    mobile_number: string;
+interface CustomerRow extends CustomerFields {
     flour_balance_kg: string;
 }
 
@@ -24,12 +22,10 @@ interface Props {
     search: string;
 }
 
-function EditButton({ customer }: { customer: CustomerRow }) {
+function EditButton({ customer, onEdit }: { customer: CustomerRow; onEdit: (c: CustomerRow) => void }) {
     return (
-        <Button variant="ghost" size="icon" className="size-11 shrink-0" asChild>
-            <Link href={route('panel.customers.edit', customer.id)} aria-label={`تعديل ${customer.name}`}>
-                <Pencil />
-            </Link>
+        <Button variant="ghost" size="icon" className="size-11 shrink-0" aria-label={`تعديل ${customer.name}`} onClick={() => onEdit(customer)}>
+            <Pencil />
         </Button>
     );
 }
@@ -66,12 +62,12 @@ export default function Index({ customers, search }: Props) {
         return () => clearTimeout(timer);
     }, [query]);
 
+    // null = closed, 'new' = add, a row = edit.
+    const [dialog, setDialog] = useState<CustomerRow | 'new' | null>(null);
     const addButton = can('create-customers') && (
-        <Button asChild className="h-11 px-5">
-            <Link href={route('panel.customers.create')}>
-                <Plus />
-                إضافة عميل
-            </Link>
+        <Button className="h-11 px-5" onClick={() => setDialog('new')}>
+            <Plus />
+            إضافة عميل
         </Button>
     );
 
@@ -137,7 +133,7 @@ export default function Index({ customers, search }: Props) {
                                                     <span className="block text-xs text-muted-foreground">رصيد الطحين</span>
                                                     <FlourBalance kg={c.flour_balance_kg} className="font-semibold" />
                                                 </div>
-                                                {can('edit-customers') && <EditButton customer={c} />}
+                                                {can('edit-customers') && <EditButton customer={c} onEdit={setDialog} />}
                                             </Card>
                                         </li>
                                     ))}
@@ -170,7 +166,7 @@ export default function Index({ customers, search }: Props) {
                                                         <FlourBalance kg={c.flour_balance_kg} />
                                                     </TableCell>
                                                     <TableCell className="pe-6">
-                                                        {can('edit-customers') && <EditButton customer={c} />}
+                                                        {can('edit-customers') && <EditButton customer={c} onEdit={setDialog} />}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}
@@ -184,6 +180,12 @@ export default function Index({ customers, search }: Props) {
                     </>
                 )}
             </div>
+            <CustomerDialog
+                key={dialog === 'new' ? 'new' : dialog?.id}
+                customer={dialog === 'new' ? undefined : (dialog ?? undefined)}
+                open={dialog !== null}
+                onOpenChange={(open) => !open && setDialog(null)}
+            />
         </AppLayout>
     );
 }

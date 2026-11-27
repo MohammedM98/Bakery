@@ -155,7 +155,7 @@ export default function Edit() {
     const isStaff = usePage().props.auth.user?.role === 'bakery_staff';
     return (
         <AppLayout title="الملف الشخصي">
-            <div className="grid max-w-2xl gap-6">
+            <div className="mx-auto grid max-w-2xl gap-6">
                 <Card>
                     <CardHeader>
                         <CardTitle>بيانات الحساب</CardTitle>

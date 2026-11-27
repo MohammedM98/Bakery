@@ -63,8 +63,8 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
                     {isCash && recordButton}
                 </div>
 
-                <div className="flex flex-wrap items-end gap-3">
-                    <div className="w-40">
+                <div className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+                    <div className="sm:w-40">
                         <Field id="status" label="الحالة">
                             <Select value={filters.status || 'all'} onValueChange={(v) => visit({ status: v === 'all' ? '' : (v as Filters['status']) })} dir="rtl">
                                 <SelectTrigger id="status" className="w-full data-[size=default]:h-11">
@@ -78,13 +78,13 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
                             </Select>
                         </Field>
                     </div>
-                    <div className="w-44">
+                    <div className="sm:w-44">
                         <Field id="date" label="التاريخ">
                             <DatePicker id="date" value={filters.date} onChange={(date) => visit({ date })} placeholder="كل الأيام" clearLabel="كل الأيام" />
                         </Field>
                     </div>
                     {filtered && (
-                        <Button variant="ghost" className="h-11" onClick={() => visit({ status: '', date: '' })}>
+                        <Button variant="ghost" className="col-span-2 h-11 sm:col-auto" onClick={() => visit({ status: '', date: '' })}>
                             مسح التصفية
                         </Button>
                     )}

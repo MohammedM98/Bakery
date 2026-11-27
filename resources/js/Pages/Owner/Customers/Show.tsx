@@ -6,6 +6,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { Field } from '@/components/form-field';
 import { FlourBalance } from '@/components/kg-text';
 import { MoneyBalance, MoneyText } from '@/components/money-text';
+import { CustomerDialog } from '@/components/customer-form';
 import { DatePicker } from '@/components/date-picker';
 import { pillTab, pillTabs } from '@/components/period-pills';
 import { DepositDialog } from '@/components/deposit-dialog';
@@ -414,6 +415,7 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
     const { currentDate } = usePage().props;
     const can = useCan();
     const [open, setOpen] = useState<Open>(null);
+    const [editing, setEditing] = useState(false);
     const dialog = (name: Exclude<Open, null>) => ({ customer, open: open === name, onOpenChange: (o: boolean) => setOpen(o ? name : null) });
     const firstTab = moneyStatement ? 'money' : flourStatement ? 'flour' : 'sales';
 
@@ -425,18 +427,18 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                     <Card className="relative gap-0 border-0 bg-hero p-[22px] text-hero-foreground ring-0 after:pointer-events-none after:absolute after:start-[-30px] after:-bottom-10 after:size-[220px] after:rounded-full after:border-[28px] after:border-hero-foreground/[0.035]">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="min-w-0">
-                                <span className="text-[15px] text-hero-muted">الرصيد المالي</span>
-                                <MoneyBalance plain amount={customer.money_balance} className="mt-1 block text-start text-3xl font-semibold sm:text-4xl" />
-                                <span className="text-sm text-hero-muted">{Number(customer.money_balance) > 0 ? 'عليه' : Number(customer.money_balance) < 0 ? 'له' : 'لا شيء'}</span>
+                                <span className="block text-[15px] text-hero-muted">الرصيد المالي</span>
+                                <MoneyBalance plain amount={customer.money_balance} className="mt-1 inline-block text-3xl font-semibold sm:text-4xl" />
+                                <span className="block text-sm text-hero-muted">{Number(customer.money_balance) > 0 ? 'عليه' : Number(customer.money_balance) < 0 ? 'له' : 'لا شيء'}</span>
                             </div>
                             <div className="min-w-0">
-                                <span className="text-[15px] text-hero-muted">رصيد الطحين</span>
+                                <span className="block text-[15px] text-hero-muted">رصيد الطحين</span>
                                 <FlourBalance plain kg={customer.flour_balance_kg} className="mt-1 block text-3xl font-semibold sm:text-4xl" />
                             </div>
                         </div>
-                        <div className="relative z-10 mt-auto flex flex-wrap gap-2.5 pt-[22px] empty:hidden">
+                        <div className="relative z-10 mt-auto grid grid-cols-2 gap-2.5 pt-[22px] empty:hidden sm:flex sm:flex-wrap">
                             {can('record-flour-sale') && (
-                                <Button className="h-11 px-[18px] text-[15px] font-semibold" onClick={() => setOpen('bread')}>
+                                <Button className="col-span-2 h-11 px-[18px] text-[15px] font-semibold" onClick={() => setOpen('bread')}>
                                     <Receipt />
                                     خبز مقابل الطحين
                                 </Button>
@@ -466,11 +468,9 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                         <div className="flex items-center justify-between gap-3">
                             <h2 className="text-[17px] font-semibold">بيانات الزبون</h2>
                             {can('edit-customers') && (
-                                <Button variant="outline" asChild className="h-10">
-                                    <Link href={route('panel.customers.edit', customer.id)}>
-                                        <Pencil />
-                                        تعديل
-                                    </Link>
+                                <Button variant="outline" className="h-10" onClick={() => setEditing(true)}>
+                                    <Pencil />
+                                    تعديل
                                 </Button>
                             )}
                         </div>
@@ -533,6 +533,7 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
             {can('record-flour-sale') && <BreadDialog {...dialog('bread')} fee={flourExchangeFee} />}
             {can('record-payment') && <PaymentDialog {...dialog('payment')} unpaidSales={unpaidSales} banks={banks} />}
             {canAdjust && <AdjustmentDialog {...dialog('adjustment')} />}
+            {can('edit-customers') && <CustomerDialog customer={customer} open={editing} onOpenChange={setEditing} />}
         </AppLayout>
     );
 }
