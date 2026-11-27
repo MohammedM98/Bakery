@@ -208,7 +208,14 @@ test('a sign-out by the server keeps unsent work for the same user only', async 
   assert.equal(held.queue.length, 1);
   assert.equal(held.movements.length, 1);
   assert.deepEqual(held.customers.map((c) => c.id), [7]);
-  assert.equal(afterLogin(held, me()).queue.length, 1, 'same user: kept');
-  assert.equal(afterLogin(held, { ...me(), user: { ...me().user, id: 9 } }).queue.length, 0, 'another user: dropped');
+  assert.equal(afterLogin(held, me(), NOW).queue.length, 1, 'same user: kept');
+  assert.equal(afterLogin(held, { ...me(), user: { ...me().user, id: 9 } }, NOW).queue.length, 0, 'another user: dropped');
   assert.equal(holdUnsent({ ...withCustomer() }).heldFor, null, 'nothing unsent: nothing held');
+});
+
+test('the session keeps the server clock against the phone clock', async () => {
+  const { withMe } = await import('../src/sync/engine.ts');
+  const d = withMe(EMPTY, { ...me(), server_time: '2026-11-27T09:00:00+00:00' }, '2026-11-27T08:30:00.000Z');
+  assert.equal(d.clockOffset, 30 * 60 * 1000, 'phone 30 minutes behind');
+  assert.equal(applyPull(d, { ...pull(), server_time: '2026-11-27T09:00:00+00:00' }, '2026-11-27T09:05:00.000Z').clockOffset, -5 * 60 * 1000);
 });
