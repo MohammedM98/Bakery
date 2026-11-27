@@ -1,11 +1,14 @@
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { HandCoins, Pencil, Receipt, Scale, Wheat } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { Field } from '@/components/form-field';
 import { FlourBalance } from '@/components/kg-text';
 import { MoneyBalance, MoneyText } from '@/components/money-text';
+import { DatePicker } from '@/components/date-picker';
+import { pillTab, pillTabs } from '@/components/period-pills';
+import { DepositDialog } from '@/components/deposit-dialog';
 import { RangePicker, StatementView, type Ledger, type Range } from '@/components/statement';
 import { DateAndNotes, PaymentStatusField, SaleList, type PaymentStatus } from '@/components/sales';
 import { KgInput, MoneyInput } from '@/components/unit-input';
@@ -15,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate, formatFlourBalance, formatMoney, newSubmissionId } from '@/lib/format';
-import { cn } from '@/lib/utils';
 import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { SaleRow, Statement } from '@/types';
@@ -64,53 +66,6 @@ function closeHandler(form: { clearErrors: () => void }, onOpenChange: (open: bo
         if (!next) form.clearErrors();
         onOpenChange(next);
     };
-}
-
-function DepositDialog({ customer, open, onOpenChange }: DialogProps) {
-    const { currentDate: today } = usePage().props;
-    const blank = () => ({ kg_amount: '', deposit_date: today, notes: '', submission_id: newSubmissionId() });
-    const form = useForm(blank());
-    const submit = () =>
-        form.post(route('panel.customers.deposits.store', customer.id), {
-            preserveScroll: true,
-            onSuccess: () => {
-                form.setData(blank());
-                onOpenChange(false);
-            },
-        });
-
-    return (
-        <FormDialog
-            open={open}
-            onOpenChange={closeHandler(form, onOpenChange)}
-            title="إيداع طحين"
-            description="تُسجَّل الكمية «له» في كشف الطحين، وتُخصم أولًا مما عليه إن وُجد"
-            submitLabel="تسجيل الإيداع"
-            processing={form.processing}
-            onSubmit={submit}
-        >
-            <Field id="deposit_kg" label="الكمية" error={form.errors.kg_amount}>
-                <KgInput
-                    id="deposit_kg"
-                    autoFocus
-                    min="0.01"
-                    value={form.data.kg_amount}
-                    onChange={(e) => form.setData('kg_amount', e.target.value)}
-                    aria-invalid={!!form.errors.kg_amount}
-                    aria-describedby="deposit_kg-error"
-                />
-            </Field>
-            <DateAndNotes
-                dateId="deposit_date"
-                date={form.data.deposit_date}
-                onDate={(v) => form.setData('deposit_date', v)}
-                dateError={form.errors.deposit_date}
-                notes={form.data.notes}
-                onNotes={(v) => form.setData('notes', v)}
-                notesError={form.errors.notes}
-            />
-        </FormDialog>
-    );
 }
 
 function BreadDialog({ customer, open, onOpenChange, fee }: DialogProps & { fee: string }) {
@@ -439,13 +394,11 @@ function AdjustmentDialog({ customer, open, onOpenChange }: DialogProps) {
                     />
                 </Field>
                 <Field id="adjustment_date" label="التاريخ" error={form.errors.movement_date}>
-                    <Input
+                    <DatePicker
                         id="adjustment_date"
-                        type="date"
                         max={today}
-                        className="h-11"
                         value={form.data.movement_date}
-                        onChange={(e) => form.setData('movement_date', e.target.value)}
+                        onChange={(v) => form.setData('movement_date', v)}
                         aria-invalid={!!form.errors.movement_date}
                         aria-describedby="adjustment_date-error"
                     />
@@ -455,14 +408,7 @@ function AdjustmentDialog({ customer, open, onOpenChange }: DialogProps) {
     );
 }
 
-function Stat({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
-    return (
-        <Card className={cn('gap-1 p-5', className)}>
-            <span className="text-sm text-muted-foreground">{label}</span>
-            {children}
-        </Card>
-    );
-}
+const heroGhost = 'h-11 bg-hero-foreground/9 px-[18px] text-[15px] text-hero-foreground hover:bg-hero-foreground/15 hover:text-hero-foreground';
 
 export default function Show({ customer, flourExchangeFee, range, moneyStatement, flourStatement, sales, unpaidSales, banks, canAdjust, canExport }: Props) {
     const { currentDate } = usePage().props;
@@ -474,74 +420,90 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
     return (
         <AppLayout title={customer.name}>
             <div className="grid gap-6">
-                <div className="grid grid-cols-2 gap-2 empty:hidden sm:flex sm:flex-wrap">
-                    {can('record-flour-sale') && (
-                        <Button className="h-11" onClick={() => setOpen('bread')}>
-                            <Receipt />
-                            خبز مقابل الطحين
-                        </Button>
-                    )}
-                    {can('record-deposit') && (
-                        <Button variant="secondary" className="h-11" onClick={() => setOpen('deposit')}>
-                            <Wheat />
-                            إيداع طحين
-                        </Button>
-                    )}
-                    {can('record-payment') && (
-                        <Button variant="secondary" className="h-11" onClick={() => setOpen('payment')}>
-                            <HandCoins />
-                            تسجيل دفعة
-                        </Button>
-                    )}
-                    {canAdjust && (
-                        <Button variant="outline" className="h-11" onClick={() => setOpen('adjustment')}>
-                            <Scale />
-                            قيد تسوية
-                        </Button>
-                    )}
-                    {can('edit-customers') && (
-                        <Button variant="outline" asChild className="h-11 sm:ms-auto">
-                            <Link href={route('panel.customers.edit', customer.id)}>
-                                <Pencil />
-                                تعديل
-                            </Link>
-                        </Button>
-                    )}
-                </div>
+                <div className="grid gap-3.5 md:gap-5 lg:grid-cols-[1.5fr_1fr]">
+                    {/* The page's one dark card: both balances and the quick actions. */}
+                    <Card className="relative gap-0 border-0 bg-hero p-[22px] text-hero-foreground ring-0 after:pointer-events-none after:absolute after:start-[-30px] after:-bottom-10 after:size-[220px] after:rounded-full after:border-[28px] after:border-hero-foreground/[0.035]">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="min-w-0">
+                                <span className="text-[15px] text-hero-muted">الرصيد المالي</span>
+                                <MoneyBalance plain amount={customer.money_balance} className="mt-1 block text-start text-3xl font-semibold sm:text-4xl" />
+                                <span className="text-sm text-hero-muted">{Number(customer.money_balance) > 0 ? 'عليه' : Number(customer.money_balance) < 0 ? 'له' : 'لا شيء'}</span>
+                            </div>
+                            <div className="min-w-0">
+                                <span className="text-[15px] text-hero-muted">رصيد الطحين</span>
+                                <FlourBalance plain kg={customer.flour_balance_kg} className="mt-1 block text-3xl font-semibold sm:text-4xl" />
+                            </div>
+                        </div>
+                        <div className="relative z-10 mt-auto flex flex-wrap gap-2.5 pt-[22px] empty:hidden">
+                            {can('record-flour-sale') && (
+                                <Button className="h-11 px-[18px] text-[15px] font-semibold" onClick={() => setOpen('bread')}>
+                                    <Receipt />
+                                    خبز مقابل الطحين
+                                </Button>
+                            )}
+                            {can('record-deposit') && (
+                                <Button variant="ghost" className={heroGhost} onClick={() => setOpen('deposit')}>
+                                    <Wheat />
+                                    إيداع طحين
+                                </Button>
+                            )}
+                            {can('record-payment') && (
+                                <Button variant="ghost" className={heroGhost} onClick={() => setOpen('payment')}>
+                                    <HandCoins />
+                                    تسجيل دفعة
+                                </Button>
+                            )}
+                            {canAdjust && (
+                                <Button variant="ghost" className={heroGhost} onClick={() => setOpen('adjustment')}>
+                                    <Scale />
+                                    قيد تسوية
+                                </Button>
+                            )}
+                        </div>
+                    </Card>
 
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-                    <Stat label="رصيد الطحين">
-                        <FlourBalance kg={customer.flour_balance_kg} className="text-2xl font-semibold sm:text-3xl" />
-                    </Stat>
-                    <Stat label="الرصيد المالي">
-                        <MoneyBalance amount={customer.money_balance} className="text-start text-2xl font-semibold sm:text-3xl" />
-                        <span className="text-xs text-muted-foreground">{Number(customer.money_balance) > 0 ? 'عليه' : Number(customer.money_balance) < 0 ? 'له' : 'لا شيء'}</span>
-                    </Stat>
-                    <Stat label="رقم الجوال" className="col-span-2 sm:col-span-1">
-                        <span dir="ltr" className="text-end text-lg font-medium tabular-nums">
-                            {customer.mobile_number}
-                        </span>
-                    </Stat>
-                    <Stat label="ملاحظات" className="col-span-2 sm:col-span-1">
-                        <p className="text-sm whitespace-pre-line">{customer.notes || '—'}</p>
-                    </Stat>
+                    <Card className="gap-4 p-[22px]">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-[17px] font-semibold">بيانات الزبون</h2>
+                            {can('edit-customers') && (
+                                <Button variant="outline" asChild className="h-10">
+                                    <Link href={route('panel.customers.edit', customer.id)}>
+                                        <Pencil />
+                                        تعديل
+                                    </Link>
+                                </Button>
+                            )}
+                        </div>
+                        <dl className="grid gap-3 text-sm">
+                            <div className="flex items-center justify-between gap-3 border-b pb-3">
+                                <dt className="text-muted-foreground">رقم الجوال</dt>
+                                <dd dir="ltr" className="text-[15px] font-medium tabular-nums">
+                                    {customer.mobile_number}
+                                </dd>
+                            </div>
+                            <div className="grid gap-1">
+                                <dt className="text-muted-foreground">ملاحظات</dt>
+                                <dd className="whitespace-pre-line">{customer.notes || '—'}</dd>
+                            </div>
+                        </dl>
+                    </Card>
                 </div>
 
                 {(moneyStatement || flourStatement || sales) && (
                     <Tabs defaultValue={firstTab} dir="rtl" className="gap-3">
-                        <TabsList className="w-full sm:w-auto group-data-horizontal/tabs:h-11">
+                        <TabsList className={pillTabs}>
                             {moneyStatement && (
-                                <TabsTrigger value="money" className="px-4">
+                                <TabsTrigger value="money" className={pillTab}>
                                     الحساب المالي
                                 </TabsTrigger>
                             )}
                             {flourStatement && (
-                                <TabsTrigger value="flour" className="px-4">
+                                <TabsTrigger value="flour" className={pillTab}>
                                     الطحين
                                 </TabsTrigger>
                             )}
                             {sales && (
-                                <TabsTrigger value="sales" className="px-4">
+                                <TabsTrigger value="sales" className={pillTab}>
                                     المبيعات ({sales.length})
                                 </TabsTrigger>
                             )}
@@ -567,7 +529,7 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                 )}
             </div>
 
-            {can('record-deposit') && <DepositDialog {...dialog('deposit')} />}
+            {can('record-deposit') && <DepositDialog customerId={customer.id} open={open === 'deposit'} onOpenChange={(o) => setOpen(o ? 'deposit' : null)} />}
             {can('record-flour-sale') && <BreadDialog {...dialog('bread')} fee={flourExchangeFee} />}
             {can('record-payment') && <PaymentDialog {...dialog('payment')} unpaidSales={unpaidSales} banks={banks} />}
             {canAdjust && <AdjustmentDialog {...dialog('adjustment')} />}

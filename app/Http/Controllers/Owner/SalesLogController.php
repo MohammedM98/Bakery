@@ -41,9 +41,9 @@ class SalesLogController extends Controller
     /** shortcut: times are stored in UTC (app.timezone) and shown in Palestine time; move to a setting if bakeries elsewhere join. */
     const LOCAL_TIMEZONE = 'Asia/Hebron';
 
-    private const MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    const MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
-    private const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
     public function __invoke(SalesLogRequest $request): Response
     {
@@ -55,7 +55,7 @@ class SalesLogController extends Controller
             'customer' => $request->validated('customer') ?? '',
             'recorded_by' => $request->validated('recorded_by') ?? '',
         ];
-        [$start, $end] = $this->bounds($filters['period'], Carbon::parse($filters['date']));
+        [$start, $end] = self::bounds($filters['period'], Carbon::parse($filters['date']));
         $from = $start->toDateString();
         $to = $end->toDateString();
 
@@ -98,11 +98,11 @@ class SalesLogController extends Controller
                 'recorded_by' => $m->recorded_by_name,
             ]);
 
-        $step = fn (int $n) => $this->shift($filters['period'], $start, $n)->toDateString();
+        $step = fn (int $n) => self::shift($filters['period'], $start, $n)->toDateString();
 
         return Inertia::render('Owner/SalesLog', [
             'filters' => $filters,
-            'range' => ['from' => $from, 'to' => $to, 'label' => $this->label($filters['period'], $start, $end)],
+            'range' => ['from' => $from, 'to' => $to, 'label' => self::label($filters['period'], $start, $end)],
             'previousDate' => $step(-1),
             // No browsing into the future: nothing can be recorded there.
             'nextDate' => $end->lt(today()) ? $step(1) : null,
@@ -126,7 +126,7 @@ class SalesLogController extends Controller
     }
 
     /** @return array{0: Carbon, 1: Carbon} */
-    private function bounds(string $period, Carbon $date): array
+    public static function bounds(string $period, Carbon $date): array
     {
         return match ($period) {
             // The week runs Saturday to Friday, as in Palestine.
@@ -137,7 +137,7 @@ class SalesLogController extends Controller
         };
     }
 
-    private function shift(string $period, Carbon $start, int $n): Carbon
+    public static function shift(string $period, Carbon $start, int $n): Carbon
     {
         return match ($period) {
             'week' => $start->copy()->addWeeks($n),
@@ -147,7 +147,7 @@ class SalesLogController extends Controller
         };
     }
 
-    private function label(string $period, Carbon $start, Carbon $end): string
+    public static function label(string $period, Carbon $start, Carbon $end): string
     {
         return match ($period) {
             'week' => $start->format('d/m').' – '.$end->format('d/m/Y'),

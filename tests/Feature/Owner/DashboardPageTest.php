@@ -47,12 +47,14 @@ class DashboardPageTest extends TestCase
         return $sale;
     }
 
-    private function payment(User $owner, string|float $amount, string $date, ?int $saleId = null): void
+    private function payment(User $owner, string|float $amount, string $date, ?int $saleId = null, ?string $bank = null): void
     {
         Movement::create([
             'bakery_id' => $owner->bakery_id,
             'number' => Movement::where('bakery_id', $owner->bakery_id)->max('number') + 1,
             'sale_id' => $saleId,
+            'from_bank' => $bank,
+            'to_bank' => $bank,
             'ledger' => Movement::LEDGER_MONEY,
             'type' => Movement::TYPE_PAYMENT,
             'amount' => -$amount,
@@ -62,47 +64,88 @@ class DashboardPageTest extends TestCase
         ]);
     }
 
-    public function test_todays_figures_the_week_and_the_lists(): void
+    public function test_todays_figures_the_chart_and_the_recent_movements(): void
     {
+        $this->travelTo('2026-11-27 10:00:00'); // a Friday
         $owner = $this->owner();
-        $unpaid = $this->sale($owner, ['kg_amount' => 5, 'total_amount' => 30, 'paid_amount' => 10, 'payment_status' => Sale::STATUS_UNPAID]);
+        $this->sale($owner, ['kg_amount' => 5, 'total_amount' => 30, 'paid_amount' => 10, 'payment_status' => Sale::STATUS_UNPAID]);
         $this->sale($owner, ['kg_amount' => 2, 'total_amount' => 12, 'paid_amount' => 12, 'payment_status' => Sale::STATUS_PAID]);
-        $this->sale($owner, ['kg_amount' => 100, 'total_amount' => 600, 'paid_amount' => 600, 'payment_status' => Sale::STATUS_PAID, 'sale_date' => now()->subDay()->toDateString()]);
-        $this->sale($owner, ['kg_amount' => 9, 'total_amount' => 54, 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->subDays(8)->toDateString()]);
+        $this->sale($owner, ['kg_amount' => 3, 'total_amount' => 6, 'paid_amount' => 0, 'payment_status' => Sale::STATUS_UNPAID, 'sale_type' => Sale::TYPE_FLOUR_EXCHANGE]);
+        $this->sale($owner, ['kg_amount' => 100, 'total_amount' => 600, 'paid_amount' => 600, 'payment_status' => Sale::STATUS_PAID, 'sale_date' => '2026-11-26']);
+        $this->sale($owner, ['kg_amount' => 9, 'total_amount' => 54, 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => '2026-11-19']);
         $this->sale($this->owner(), ['kg_amount' => 50, 'total_amount' => 300, 'payment_status' => Sale::STATUS_UNPAID]);
-        // A payment on account yesterday is money received; the partial 10 today is too.
-        $this->payment($owner, 50, now()->subDay()->toDateString());
+        // A payment on account yesterday is money received; so is a transfer today.
+        $this->payment($owner, 50, '2026-11-26');
+        $this->payment($owner, 8, '2026-11-27', bank: 'بنك فلسطين');
 
         $this->actingAs($owner)
             ->get(route('panel.dashboard'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Owner/Dashboard')
-                ->where('today', ['kg' => 7, 'takings' => 22, 'unpaid' => 20, 'salesCount' => 2, 'unpaidCount' => 1])
-                ->has('last7Days', 7)
-                ->where('last7Days.6', ['date' => now()->toDateString(), 'kg' => 7, 'takings' => 22])
-                ->where('last7Days.5', ['date' => now()->subDay()->toDateString(), 'kg' => 100, 'takings' => 650])
-                ->where('last7Days.0.kg', 0)
-                ->has('unpaidSales', 2)
-                ->where('unpaidSales.0.id', $unpaid->id)
-                ->has('recentSales', 4)
+                ->where('period', 'day')
+                ->where('rangeLabel', 'الجمعة 27/11/2026')
+                ->where('bread', ['kg' => '10.00', 'regular' => '7.00', 'flour' => '3.00'])
+                // Sales today 48, of which 22 paid (10 + 12); received 22 + 8 by transfer.
+                ->where('takings', ['received' => '30.00', 'cash' => '22.00', 'transfer' => '8.00', 'unpaid' => '26.00', 'paidPercent' => 45])
+                ->has('chart', 7)
+                ->where('chart.6', ['label' => '27/11', 'kg' => 10, 'received' => 30])
+                ->where('chart.5', ['label' => '26/11', 'kg' => 100, 'received' => 650])
+                ->where('chart.0', ['label' => '21/11', 'kg' => 0, 'received' => 0])
+                ->has('recent', 3)
+                ->where('recent.0.type', Movement::TYPE_PAYMENT)
+                ->where('recent.0.detail', 'دفعة، تحويل بنك فلسطين')
                 ->where('pricePerKg', '6.00'));
     }
 
-    public function test_another_bakerys_sales_never_reach_the_dashboard(): void
+    public function test_each_period_sums_its_own_range_and_buckets(): void
+    {
+        $this->travelTo('2026-11-27 10:00:00');
+        $owner = $this->owner();
+        $this->sale($owner, ['kg_amount' => 4, 'total_amount' => 24, 'paid_amount' => 24, 'payment_status' => Sale::STATUS_PAID]);
+        $this->sale($owner, ['kg_amount' => 6, 'total_amount' => 36, 'paid_amount' => 36, 'payment_status' => Sale::STATUS_PAID, 'sale_date' => '2026-11-21']); // Saturday: this week
+        $this->sale($owner, ['kg_amount' => 10, 'total_amount' => 60, 'paid_amount' => 60, 'payment_status' => Sale::STATUS_PAID, 'sale_date' => '2026-11-20']); // last week
+        $this->sale($owner, ['kg_amount' => 20, 'total_amount' => 120, 'paid_amount' => 120, 'payment_status' => Sale::STATUS_PAID, 'sale_date' => '2026-10-15']);
+        $this->sale($owner, ['kg_amount' => 40, 'total_amount' => 240, 'paid_amount' => 240, 'payment_status' => Sale::STATUS_PAID, 'sale_date' => '2025-06-01']);
+
+        $get = fn (string $period) => $this->actingAs($owner)->get(route('panel.dashboard', ['period' => $period]));
+
+        $get('week')->assertInertia(fn (Assert $page) => $page
+            ->where('bread.kg', '10.00')
+            ->where('takings.received', '60.00')
+            ->where('takings.paidPercent', 100)
+            ->where('chart.6', ['label' => '21/11', 'kg' => 10, 'received' => 60])
+            ->where('chart.5', ['label' => '14/11', 'kg' => 10, 'received' => 60]));
+        $get('month')->assertInertia(fn (Assert $page) => $page
+            ->where('rangeLabel', 'نوفمبر 2026')
+            ->where('bread.kg', '20.00')
+            ->where('chart.6', ['label' => 'نوفمبر', 'kg' => 20, 'received' => 120])
+            ->where('chart.5', ['label' => 'أكتوبر', 'kg' => 20, 'received' => 120]));
+        $get('year')->assertInertia(fn (Assert $page) => $page
+            ->where('bread.kg', '40.00')
+            ->where('chart.6.label', '2026')
+            ->where('chart.5', ['label' => '2025', 'kg' => 40, 'received' => 240]));
+        $this->actingAs($owner)->get(route('panel.dashboard', ['period' => 'decade']))->assertSessionHasErrors('period');
+    }
+
+    public function test_another_bakerys_figures_never_reach_the_dashboard(): void
     {
         $owner = $this->owner();
         $other = $this->owner();
         $this->sale($other, ['kg_amount' => 50, 'total_amount' => 300, 'payment_status' => Sale::STATUS_UNPAID]);
         $this->payment($other, 80, now()->toDateString());
 
-        $this->actingAs($owner)
-            ->get(route('panel.dashboard'))
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('today', ['kg' => 0, 'takings' => 0, 'unpaid' => 0, 'salesCount' => 0, 'unpaidCount' => 0])
-                ->where('last7Days.6.kg', 0)
-                ->has('unpaidSales', 0)
-                ->has('recentSales', 0));
+        foreach (['day', 'year'] as $period) {
+            $this->actingAs($owner)
+                ->get(route('panel.dashboard', ['period' => $period]))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->where('bread', ['kg' => '0.00', 'regular' => '0.00', 'flour' => '0.00'])
+                    ->where('takings', ['received' => '0.00', 'cash' => '0.00', 'transfer' => '0.00', 'unpaid' => '0.00', 'paidPercent' => null])
+                    ->where('chart.6.kg', 0)
+                    ->where('chart.6.received', 0)
+                    ->has('recent', 0)
+                    ->has('customers', 0));
+        }
     }
 
     public function test_a_sale_settled_from_earlier_credit_is_not_counted_as_takings(): void
@@ -117,9 +160,28 @@ class DashboardPageTest extends TestCase
         $this->actingAs($owner)
             ->get(route('panel.dashboard'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('today.takings', 0)
-                ->where('last7Days.5.takings', 200)
-                ->where('today.unpaidCount', 0));
+                ->where('takings.received', '0.00')
+                // Settled from the credit: fully paid, nothing left unpaid.
+                ->where('takings.paidPercent', 100)
+                ->where('takings.unpaid', '0.00')
+                ->where('chart.5.received', 200)
+                ->where('recent.0.type', Movement::TYPE_SALE)
+                ->where('recent.0.who', 'زبون')
+                ->where('recent.0.detail', 'بيع عادي، 10 كغ'));
+    }
+
+    public function test_the_deposit_dialog_gets_the_customers_only_with_the_permission(): void
+    {
+        $owner = $this->owner();
+        $owner->bakery->customers()->create(['name' => 'زبون', 'mobile_number' => '0590000000']);
+        $staff = User::factory()->create([
+            'role' => User::ROLE_BAKERY_STAFF, 'bakery_id' => $owner->bakery_id, 'permissions' => ['view-dashboard'],
+        ]);
+
+        $this->actingAs($owner)->get(route('panel.dashboard'))->assertInertia(fn (Assert $page) => $page->has('customers', 1));
+        $this->actingAs($staff)->get(route('panel.dashboard'))->assertInertia(fn (Assert $page) => $page->has('customers', 0));
+        $staff->update(['permissions' => ['record-deposit']]);
+        $this->actingAs($staff)->get(route('panel.dashboard'))->assertForbidden();
     }
 
     public function test_the_servers_date_is_shared_for_date_field_defaults(): void
