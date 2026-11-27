@@ -245,7 +245,7 @@ export default function Dashboard({ period, rangeLabel, bread, takings, recent, 
                     <Head title="الخبز المباع">
                         <Chip>{w.range}</Chip>
                     </Head>
-                    <ChartContainer config={lineConfig} className="aspect-auto h-[190px] w-full">
+                    <ChartContainer config={lineConfig} className="aspect-auto h-[190px] w-full" role="img" aria-label={`الخبز المباع، ${w.range}: ${chart.map((b) => `${b.label} ${formatKg(b.kg)}`).join('، ')}`}>
                         <AreaChart data={chart} margin={chartMargin}>
                             <defs>
                                 <linearGradient id="kgFill" x1="0" y1="0" x2="0" y2="1">
@@ -276,7 +276,7 @@ export default function Dashboard({ period, rangeLabel, bread, takings, recent, 
                     <Head title="الدخل المالي">
                         <Chip>{w.range}</Chip>
                     </Head>
-                    <ChartContainer config={barConfig} className="aspect-auto h-[190px] w-full">
+                    <ChartContainer config={barConfig} className="aspect-auto h-[190px] w-full" role="img" aria-label={`الدخل المالي، ${w.range}: ${chart.map((b) => `${b.label} ${formatMoney(b.received)}`).join('، ')}`}>
                         <BarChart data={chart} margin={chartMargin}>
                             <XAxis dataKey="label" reversed tickLine={false} axisLine={false} interval={0} tickMargin={8} fontSize={11} />
                             <YAxis hide domain={[0, (max: number) => max * 1.05 || 1]} />
