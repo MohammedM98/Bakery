@@ -3,6 +3,7 @@ import { CircleCheck, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { DatePicker } from '@/components/date-picker';
 import { Field } from '@/components/form-field';
 import { KgText } from '@/components/kg-text';
 import { MoneyText } from '@/components/money-text';
@@ -322,16 +323,7 @@ export function DateAndNotes({
     return (
         <>
             <Field id={dateId} label="التاريخ" error={dateError}>
-                <Input
-                    id={dateId}
-                    type="date"
-                    max={currentDate}
-                    className="h-11"
-                    value={date}
-                    onChange={(e) => onDate(e.target.value)}
-                    aria-invalid={!!dateError}
-                    aria-describedby={`${dateId}-error`}
-                />
+                <DatePicker id={dateId} max={currentDate} value={date} onChange={onDate} aria-invalid={!!dateError} aria-describedby={`${dateId}-error`} />
             </Field>
             <Field id={`${dateId}_notes`} label="ملاحظات (اختياري)" error={notesError}>
                 <Textarea

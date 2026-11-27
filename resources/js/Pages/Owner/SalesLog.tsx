@@ -5,19 +5,18 @@ import { EmptyState } from '@/components/empty-state';
 import { Field } from '@/components/form-field';
 import { KgText } from '@/components/kg-text';
 import { MoneyText } from '@/components/money-text';
+import { PeriodPills, type Period } from '@/components/period-pills';
 import { PaginationLinks } from '@/components/pagination-links';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDate, formatKg } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Paginated } from '@/types';
 
-type Period = 'day' | 'week' | 'month' | 'year';
 type TypeFilter = '' | 'sale' | 'flour_sale' | 'payment' | 'deposit' | 'adjustment' | 'opening_balance';
 
 interface Filters {
@@ -63,13 +62,6 @@ interface Props {
     options: { customers: { id: number; name: string }[]; recordedBy: string[] };
 }
 
-const periods: [Period, string][] = [
-    ['day', 'يوم'],
-    ['week', 'أسبوع'],
-    ['month', 'شهر'],
-    ['year', 'سنة'],
-];
-
 const types: [TypeFilter, string][] = [
     ['sale', 'بيع عادي'],
     ['flour_sale', 'بيع مقابل طحين'],
@@ -84,16 +76,16 @@ const ALL = 'all';
 /** `lead` is the period's headline figure: the dark card, as on the dashboard. */
 function SummaryCard({ label, children, parts, lead = false }: { label: string; children: ReactNode; parts?: [string, ReactNode][]; lead?: boolean }) {
     return (
-        <Card className={cn('gap-3 p-4 sm:p-5', lead && 'border-0 bg-sidebar text-sidebar-foreground ring-0')}>
+        <Card className={cn('gap-3 p-4 sm:p-5', lead && 'border-0 bg-hero text-hero-foreground ring-0')}>
             <div className="grid gap-1">
-                <p className={cn('text-sm', lead ? 'text-sidebar-foreground/70' : 'text-muted-foreground')}>{label}</p>
-                <p className={cn('text-2xl font-semibold tabular-nums', lead && 'text-3xl text-sidebar-accent-foreground')}>{children}</p>
+                <p className={cn('text-sm', lead ? 'text-hero-muted' : 'text-muted-foreground')}>{label}</p>
+                <p className={cn('text-2xl font-semibold tabular-nums', lead && 'text-3xl')}>{children}</p>
             </div>
             {parts && (
-                <dl className={cn('grid gap-1 border-t pt-3 text-sm', lead && 'border-sidebar-border')}>
+                <dl className={cn('grid gap-1 border-t pt-3 text-sm', lead && 'border-hero-foreground/10')}>
                     {parts.map(([name, value]) => (
                         <div key={name} className="flex items-center justify-between gap-2">
-                            <dt className={lead ? 'text-sidebar-foreground/70' : 'text-muted-foreground'}>{name}</dt>
+                            <dt className={lead ? 'text-hero-muted' : 'text-muted-foreground'}>{name}</dt>
                             <dd className="font-medium tabular-nums">{value}</dd>
                         </div>
                     ))}
@@ -160,19 +152,9 @@ export default function SalesLog({ filters, range, previousDate, nextDate, summa
     const when = (row: LogRow) => (filters.period === 'day' ? row.time : `${formatDate(row.date)}${row.time ? ` · ${row.time}` : ''}`);
 
     return (
-        <AppLayout title="سجل المبيعات">
+        <AppLayout title="سجل المبيعات" toolbar={<PeriodPills value={filters.period} onChange={(period) => visit({ period })} />}>
             <div className="grid gap-6">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <Tabs value={filters.period} onValueChange={(period) => visit({ period: period as Period })} dir="rtl">
-                        <TabsList className="w-full sm:w-auto group-data-horizontal/tabs:h-11">
-                            {periods.map(([value, label]) => (
-                                <TabsTrigger key={value} value={value} className="px-4">
-                                    {label}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                    </Tabs>
-                    <div className="flex items-center justify-between gap-2 sm:justify-end">
+                <div className="flex items-center justify-between gap-2 sm:justify-start">
                         <Button variant="outline" size="icon" className="size-11" aria-label="الفترة السابقة" onClick={() => visit({ date: previousDate })}>
                             <ChevronRight />
                         </Button>
@@ -182,7 +164,6 @@ export default function SalesLog({ filters, range, previousDate, nextDate, summa
                         <Button variant="outline" size="icon" className="size-11" aria-label="الفترة التالية" disabled={!nextDate} onClick={() => nextDate && visit({ date: nextDate })}>
                             <ChevronLeft />
                         </Button>
-                    </div>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">

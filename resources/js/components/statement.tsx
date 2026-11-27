@@ -1,10 +1,12 @@
 import { router } from '@inertiajs/react';
 import { Download, ScrollText, Search } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { DatePicker } from '@/components/date-picker';
 import { EmptyState } from '@/components/empty-state';
 import { Field } from '@/components/form-field';
 import { FlourBalance, KgText } from '@/components/kg-text';
 import { MoneyBalance, MoneyText } from '@/components/money-text';
+import { Pills } from '@/components/period-pills';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -72,19 +74,18 @@ export function RangePicker({ range, today, customerId }: { range: Range; today:
 
     return (
         <Card className="gap-4 p-4">
-            <div className="flex flex-wrap gap-2" role="group" aria-label="الفترة">
-                {shortcuts.map(([label, r]) => (
-                    <Button key={label} type="button" size="sm" variant={active(r) ? 'default' : 'outline'} aria-pressed={active(r)} className="h-9" onClick={() => visit(r)}>
-                        {label}
-                    </Button>
-                ))}
-            </div>
+            <Pills
+                options={shortcuts.map(([label]): [string, string] => [label, label])}
+                value={shortcuts.find(([, r]) => active(r))?.[0] ?? ''}
+                onChange={(label) => visit(shortcuts.find(([l]) => l === label)![1])}
+                className="sm:self-start"
+            />
             <form onSubmit={submit} className="grid grid-cols-2 items-end gap-3 sm:flex">
                 <Field id="range_from" label="من">
-                    <Input id="range_from" type="date" className="h-11" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+                    <DatePicker id="range_from" value={from} max={to || today} onChange={setFrom} placeholder="من البداية" clearLabel="من البداية" />
                 </Field>
                 <Field id="range_to" label="إلى">
-                    <Input id="range_to" type="date" className="h-11" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+                    <DatePicker id="range_to" value={to} min={from || undefined} max={today} onChange={setTo} placeholder="حتى اليوم" clearLabel="حتى اليوم" />
                 </Field>
                 <Button type="submit" variant="secondary" className="col-span-2 h-11">
                     عرض الكشف

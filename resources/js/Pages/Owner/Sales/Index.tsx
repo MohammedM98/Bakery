@@ -2,13 +2,13 @@ import { Link, router } from '@inertiajs/react';
 import { Plus, Receipt, SearchX, Wheat } from 'lucide-react';
 import { useState } from 'react';
 import { EmptyState } from '@/components/empty-state';
+import { Pills } from '@/components/period-pills';
+import { DatePicker } from '@/components/date-picker';
 import { Field } from '@/components/form-field';
 import { PaginationLinks } from '@/components/pagination-links';
 import { CashSaleDialog, SaleList } from '@/components/sales';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCan } from '@/lib/can';
 import AppLayout from '@/Layouts/AppLayout';
 import type { Paginated, SaleRow } from '@/types';
@@ -51,16 +51,15 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
         <AppLayout title="المبيعات">
             <div className="grid gap-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <Tabs value={filters.type} onValueChange={(type) => visit({ type: type as Filters['type'] })} dir="rtl">
-                        <TabsList className="h-11 w-full sm:w-auto group-data-horizontal/tabs:h-11">
-                            <TabsTrigger value="cash" className="px-4">
-                                البيع النقدي
-                            </TabsTrigger>
-                            <TabsTrigger value="flour_exchange" className="px-4">
-                                البيع مقابل الطحين
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                    <Pills
+                        label="نوع البيع"
+                        options={[
+                            ['cash', 'البيع النقدي'],
+                            ['flour_exchange', 'البيع مقابل الطحين'],
+                        ]}
+                        value={filters.type}
+                        onChange={(type) => visit({ type: type as Filters['type'] })}
+                    />
                     {isCash && recordButton}
                 </div>
 
@@ -81,7 +80,7 @@ export default function Index({ sales, filters, pricePerKg }: Props) {
                     </div>
                     <div className="w-44">
                         <Field id="date" label="التاريخ">
-                            <Input id="date" type="date" className="h-11" value={filters.date} onChange={(e) => visit({ date: e.target.value })} />
+                            <DatePicker id="date" value={filters.date} onChange={(date) => visit({ date })} placeholder="كل الأيام" clearLabel="كل الأيام" />
                         </Field>
                     </div>
                     {filtered && (
