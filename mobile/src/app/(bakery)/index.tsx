@@ -40,7 +40,7 @@ function Header() {
         <Text className="font-plex-semi text-[17px]">{state.bakery.name}</Text>
       </View>
       <IconButton icon={Bell} label={pendingCount ? `التنبيهات، ${pendingCount} عمليات تنتظر` : 'التنبيهات'} onPress={() => router.push('/more/sync')}>
-        {pendingCount ? <View className="bg-primary dark:bg-ring absolute end-[11px] top-[10px] h-2 w-2 rounded-full" /> : null}
+        {pendingCount ? <View className="bg-primary dark:bg-ring absolute end-2.5 top-2.5 h-2 w-2 rounded-full" /> : null}
       </IconButton>
     </View>
   );
@@ -59,12 +59,12 @@ function Dashboard() {
 
       <Pressable onPress={() => (app.can('view-sales-log') ? router.push('/log') : undefined)} accessibilityRole="button" accessibilityLabel={`خبز مباع ${CURRENT[period]} ${formatKg(d.breadKg)}`}>
         <Hero className="mb-5 flex-row items-center gap-3.5 p-5">
-          <View className="h-11 w-11 items-center justify-center rounded-[14px] bg-white/[0.06]">
+          <View className="h-11 w-11 items-center justify-center rounded-[14px] bg-hero-foreground/[0.06]">
             <Icon as={Wheat} size={24} strokeWidth={1.5} className="text-wheat" />
           </View>
           <View className="min-w-0 flex-1">
             <Text className="text-hero-muted text-[13px]">خبز مباع {CURRENT[period]}</Text>
-            <Text className="font-plex-semi text-[26px] leading-[34px] text-white">
+            <Text className="font-plex-semi text-[26px] leading-[34px] text-hero-foreground">
               {formatAmount(d.breadKg).replace('.00', '')}
               <Text className="text-hero-muted font-plex-medium text-[15px]"> كغ</Text>
             </Text>
@@ -73,7 +73,7 @@ function Dashboard() {
             </Text>
           </View>
           {app.can('view-sales-log') ? (
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-white">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-hero-foreground">
               <Icon as={ChevronLeft} size={20} strokeWidth={1.5} className="text-hero" />
             </View>
           ) : null}
@@ -158,7 +158,9 @@ function QuickHome() {
         {actions.map((a) => (
           <Pressable key={a.label} onPress={a.onPress} accessibilityRole="button" className="min-w-[46%] flex-1 active:opacity-80">
             <Surface level="l1" radius={22} className="h-28 justify-between p-4">
-              <Icon as={a.icon} size={22} strokeWidth={1.5} className="text-foreground" />
+              <View className="self-start">
+                <Icon as={a.icon} size={22} strokeWidth={1.5} className="text-foreground" />
+              </View>
               <Text className="font-plex-medium">{a.label}</Text>
             </Surface>
           </Pressable>

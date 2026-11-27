@@ -3,7 +3,7 @@ import { Eye, EyeOff } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Field, ListCard, Notice, TextField } from '@/components/common';
+import { Field, ListCard, Notice, TextField, LTR_INPUT } from '@/components/common';
 import { useConfirm } from '@/components/confirm';
 import { NotAllowed, PageHeader, Screen } from '@/components/screen';
 import { useToast } from '@/components/toast';
@@ -50,14 +50,16 @@ export default function StaffForm() {
         <TextField value={name} onChangeText={(v) => (setName(v), setError(null))} />
       </Field>
       <Field label="البريد الإلكتروني">
-        <TextField value={email} onChangeText={(v) => (setEmail(v), setError(null))} keyboardType="email-address" autoCapitalize="none" style={{ writingDirection: 'ltr', textAlign: 'right' }} />
+        <TextField value={email} onChangeText={(v) => (setEmail(v), setError(null))} keyboardType="email-address" autoCapitalize="none" style={LTR_INPUT} />
       </Field>
       <Field label={existing ? 'كلمة مرور جديدة (اختياري)' : 'كلمة المرور'} hint="8 أحرف على الأقل">
         <View className="relative">
-          <TextField value={password} onChangeText={(v) => (setPassword(v), setError(null))} secureTextEntry={!show} className="pe-12" />
-          <Pressable onPress={() => setShow((s) => !s)} accessibilityRole="button" accessibilityLabel={show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'} className="absolute end-1 top-[3px] h-11 w-11 items-center justify-center">
-            <Icon as={show ? EyeOff : Eye} size={20} strokeWidth={1.5} className="text-muted-foreground" />
-          </Pressable>
+          <TextField value={password} onChangeText={(v) => (setPassword(v), setError(null))} secureTextEntry={!show} className="px-12" />
+          <View className="absolute inset-y-0 end-1 justify-center">
+              <Pressable onPress={() => setShow((s) => !s)} accessibilityRole="button" accessibilityLabel={show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'} className="h-11 w-11 items-center justify-center">
+                <Icon as={show ? EyeOff : Eye} size={20} strokeWidth={1.5} className="text-muted-foreground" />
+              </Pressable>
+            </View>
         </View>
       </Field>
 

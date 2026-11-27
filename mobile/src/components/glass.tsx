@@ -5,7 +5,7 @@ import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from
 import Svg, { Circle, Defs, Ellipse, Pattern, RadialGradient, Rect, Stop } from 'react-native-svg';
 
 import { useTheme } from '@/state/theme';
-import type { Level } from '@/theme';
+import { alpha, type Level } from '@/theme';
 
 /**
  * The frosted surface levels (docs/design/app/prototype-frosted.html, "الأسطح والعمق"):
@@ -34,12 +34,14 @@ export function Surface({
           backgroundColor: blurred ? undefined : solid ? L.fallback : L.fill,
           borderWidth: 1,
           borderColor: theme.s.edge,
+          // Own stacking context, so the blur layer (z -1) stays under every child, SVG icons included.
+          zIndex: 0,
         },
         style,
       ]}
       {...props}>
       {blurred ? (
-        <View style={[StyleSheet.absoluteFill, { borderRadius: r, overflow: 'hidden' }]} pointerEvents="none">
+        <View style={[StyleSheet.absoluteFill, { borderRadius: r, overflow: 'hidden', zIndex: -1 }]} pointerEvents="none">
           <BlurView intensity={L.blur} tint={theme.scheme === 'dark' ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <View style={[StyleSheet.absoluteFill, { backgroundColor: L.fill }]} />
         </View>
@@ -64,10 +66,10 @@ export function solidStyle(theme: ReturnType<typeof useTheme>['theme']): ViewSty
 export function ScreenBackground({ style, children }: { style?: StyleProp<ViewStyle>; children?: React.ReactNode }) {
   const { theme } = useTheme();
   const c = theme.c;
-  const glowA = theme.scheme === 'light' ? '#ffffff' : c.popover;
+  const glowA = theme.scheme === 'light' ? c.card : c.popover;
   return (
     <View style={[{ flex: 1, backgroundColor: c.background }, style]}>
-      <Svg style={StyleSheet.absoluteFill} pointerEvents="none" preserveAspectRatio="none" viewBox="0 0 100 100">
+      <Svg width="100%" height="100%" style={StyleSheet.absoluteFill} pointerEvents="none" preserveAspectRatio="none" viewBox="0 0 100 100">
         <Defs>
           <RadialGradient id="g1" cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor={glowA} stopOpacity={theme.scheme === 'light' ? 1 : 0.9} />
@@ -92,18 +94,18 @@ export function Hero({ style, children, radius = 24, ...props }: ViewProps & { r
   const { theme } = useTheme();
   return (
     <View
-      style={[{ borderRadius: radius, boxShadow: theme.s.heroShadow, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' }, style]}
+      style={[{ borderRadius: radius, boxShadow: theme.s.heroShadow, borderWidth: 1, borderColor: alpha(theme.c.heroForeground, 0.06), zIndex: 0 }, style]}
       {...props}>
-      <View style={[StyleSheet.absoluteFill, { borderRadius: radius, overflow: 'hidden' }]} pointerEvents="none">
+      <View style={[StyleSheet.absoluteFill, { borderRadius: radius, overflow: 'hidden', zIndex: -1 }]} pointerEvents="none">
         <LinearGradient colors={theme.s.heroGradient} start={{ x: 1, y: 0 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
-        <Svg style={StyleSheet.absoluteFill}>
+        <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
           <Defs>
             <Pattern id="dots" width="10" height="10" patternUnits="userSpaceOnUse">
-              <Circle cx="1" cy="1" r="1" fill="#ffffff" fillOpacity={0.05} />
+              <Circle cx="1" cy="1" r="1" fill={theme.c.heroForeground} fillOpacity={0.05} />
             </Pattern>
             <RadialGradient id="sheen" cx="90%" cy="0%" r="90%">
-              <Stop offset="0" stopColor="#ffffff" stopOpacity={0.1} />
-              <Stop offset="0.6" stopColor="#ffffff" stopOpacity={0} />
+              <Stop offset="0" stopColor={theme.c.heroForeground} stopOpacity={0.1} />
+              <Stop offset="0.6" stopColor={theme.c.heroForeground} stopOpacity={0} />
             </RadialGradient>
           </Defs>
           <Rect width="100%" height="100%" fill="url(#dots)" />

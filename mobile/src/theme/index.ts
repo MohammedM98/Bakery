@@ -69,6 +69,7 @@ function levels(p: Palette, scheme: Scheme) {
     scrim: alpha(p.sidebar, lightMode ? 0.34 : 0.55),
     chartLine: alpha(ink, lightMode ? 0.38 : 0.42),
     heroGradient: [p.hero, p.sidebar] as const,
+    fabShadow: `0 10px 20px -10px ${sh(lightMode ? 0.45 : 0.7)}`,
     heroShadow: `0 2px 4px ${sh(lightMode ? 0.1 : 0.3)}, 0 18px 36px -16px ${sh(lightMode ? 0.45 : 0.7)}`,
     /** Orange text on glass: the website orange in light mode, the thin-accent orange in dark. */
     accentText: lightMode ? p.primary : p.ring,

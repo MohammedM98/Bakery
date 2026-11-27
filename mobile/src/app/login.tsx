@@ -3,7 +3,7 @@ import { Eye, EyeOff, Mail, Wheat } from 'lucide-react-native';
 import * as React from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Field, Notice, TextField } from '@/components/common';
+import { Field, Notice, TextField, LTR_INPUT } from '@/components/common';
 import { Surface } from '@/components/glass';
 import { Screen } from '@/components/screen';
 import { useToast } from '@/components/toast';
@@ -25,7 +25,7 @@ export default function Login() {
   const [show, setShow] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  if (app.user) return <Redirect href={homeFor(app.user, app.state.subscriptionExpired)} />;
+  if (app.user) return <Redirect href={homeFor(app.user)} />;
 
   const submit = () => {
     if (busy) return;
@@ -34,7 +34,7 @@ export default function Login() {
     setBusy(false);
     if (!r.ok) return setError(r.error);
     const key = Object.values(MOCK_USERS).find((u) => u.email === email.trim().toLowerCase());
-    router.replace(homeFor(key ?? null, app.state.subscriptionExpired));
+    router.replace(homeFor(key ?? null));
   };
 
   return (
@@ -60,11 +60,11 @@ export default function Login() {
               autoComplete="email"
               textContentType="username"
               placeholder="owner@bakery.ps"
-              className="ps-11"
-              style={{ writingDirection: 'ltr', textAlign: 'right' }}
+              className="px-11"
+              style={LTR_INPUT}
               invalid={!!error}
             />
-            <View className="absolute start-4 top-[15px]" pointerEvents="none">
+            <View className="absolute inset-y-0 start-4 justify-center" pointerEvents="none">
               <Icon as={Mail} size={20} strokeWidth={1.5} className="text-muted-foreground" />
             </View>
           </View>
@@ -77,13 +77,15 @@ export default function Login() {
               secureTextEntry={!show}
               autoComplete="current-password"
               textContentType="password"
-              className="ps-12"
+              className="px-12"
               onSubmitEditing={submit}
               invalid={!!error}
             />
-            <Pressable onPress={() => setShow((s) => !s)} accessibilityRole="button" accessibilityLabel={show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'} className="absolute start-1 top-[3px] h-11 w-11 items-center justify-center">
-              <Icon as={show ? EyeOff : Eye} size={20} strokeWidth={1.5} className="text-muted-foreground" />
-            </Pressable>
+            <View className="absolute inset-y-0 start-1 justify-center">
+              <Pressable onPress={() => setShow((s) => !s)} accessibilityRole="button" accessibilityLabel={show ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'} className="h-11 w-11 items-center justify-center">
+                <Icon as={show ? EyeOff : Eye} size={20} strokeWidth={1.5} className="text-muted-foreground" />
+              </Pressable>
+            </View>
           </View>
         </Field>
         <View className="mb-5 mt-1 flex-row items-center justify-between">
@@ -103,8 +105,8 @@ export default function Login() {
         الحسابات ينشئها مالك المنصة. تواصل معه إن لم يكن لديك حساب
       </Text>
       {__DEV__ || process.env.EXPO_PUBLIC_DEV_MENU === '1' ? (
-        <Text variant="muted" className="mt-3 text-center text-[12px]">
-          تجربة: owner@bakery.test أو samer@alnoor.ps أو admin@bakery.test، وكلمة المرور password
+        <Text variant="muted" className="mt-3 text-center text-[12px] leading-[20px]">
+          {'حسابات التجربة، وكلمة المرور password\nowner@bakery.test\nsamer@alnoor.ps\nadmin@bakery.test'}
         </Text>
       ) : null}
     </Screen>

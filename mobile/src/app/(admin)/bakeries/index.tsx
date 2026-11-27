@@ -32,8 +32,8 @@ export default function Bakeries() {
       />
       {!app.state.online ? <Notice tone="warning" icon={WifiOff} title="يحتاج إنترنت" body="إدارة المخابز والاشتراكات تتم بالإنترنت فقط" /> : null}
       <View className="relative mb-4">
-        <Input value={q} onChangeText={setQ} placeholder="ابحث باسم المخبز" accessibilityLabel="ابحث باسم المخبز" className="ps-11" />
-        <View className="absolute start-4 top-[15px]" pointerEvents="none">
+        <Input value={q} onChangeText={setQ} placeholder="ابحث باسم المخبز" accessibilityLabel="ابحث باسم المخبز" className="px-11" />
+        <View className="absolute inset-y-0 start-4 justify-center" pointerEvents="none">
           <Icon as={Search} size={20} strokeWidth={1.5} className="text-muted-foreground" />
         </View>
       </View>

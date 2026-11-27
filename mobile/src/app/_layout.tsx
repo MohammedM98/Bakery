@@ -9,12 +9,13 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as React from 'react';
-import { I18nManager, Platform } from 'react-native';
+import { I18nManager, Platform, StyleSheet, View } from 'react-native';
 
+import { ExpiredScreen, NoPermissionsScreen } from '@/components/blocked';
 import { ConfirmProvider } from '@/components/confirm';
 import { SheetHost } from '@/components/sheets';
 import { ToastProvider } from '@/components/toast';
-import { AppProvider } from '@/state/app';
+import { AppProvider, useApp } from '@/state/app';
 import { ThemeProvider, useTheme } from '@/state/theme';
 
 export { ErrorBoundary } from 'expo-router';
@@ -32,10 +33,18 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function Shell() {
   const { theme } = useTheme();
+  const { user, state } = useApp();
+  // The website's `subscription.active` gate and its "no permissions" page, drawn over the navigator.
+  // The navigator stays mounted (router calls keep working); a group layout that renders a plain screen
+  // instead of its navigator loops in expo-router, so the gate is not inside (bakery)/_layout.
+  const bakeryUser = user && user.role !== 'super_admin';
   return (
     <>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.c.background } }} />
+      {bakeryUser && (state.subscriptionExpired || user.permissions.length === 0) ? (
+        <View style={StyleSheet.absoluteFill}>{state.subscriptionExpired ? <ExpiredScreen /> : <NoPermissionsScreen />}</View>
+      ) : null}
     </>
   );
 }

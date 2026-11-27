@@ -71,13 +71,41 @@ function fromUrl(): Partial<AppState> {
   return out;
 }
 
+/** ?pending=1: two operations recorded offline and waiting (sync screen, pending marks). */
+function withPendingDemo(s: AppState): AppState {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return s;
+  if (new URLSearchParams(window.location.search).get('pending') !== '1') return s;
+  const base = { note: null, from_bank: null, to_bank: null, transfer_reference: null, recorded_by_name: 'محمد', movement_date: TODAY } as const;
+  const id = s.movements.length;
+  const saleA = s.sales.length + 1000;
+  const saleB = saleA + 1;
+  const sales: ApiSale[] = [
+    { id: saleA, customer_id: null, customer_name: null, buyer_name: null, sale_type: 'cash', kg_amount: '12.00', price_per_kg: '6.00', total_amount: '72.00', paid_amount: '0.00', sale_date: TODAY, created_at: `${TODAY}T08:31:00`, client_id: 'demo-1' },
+    { id: saleB, customer_id: 1, customer_name: 'أبو محمد الشريف', buyer_name: null, sale_type: 'flour', kg_amount: '8.00', price_per_kg: '2.00', total_amount: '16.00', paid_amount: '0.00', sale_date: TODAY, created_at: `${TODAY}T08:12:00`, client_id: 'demo-2' },
+  ];
+  const movements: ApiMovement[] = [
+    { ...base, id: id + 1, number: null, customer_id: null, customer_name: null, ledger: 'money', type: 'sale', amount: '72.00', description: 'خبز 12 كغ × 6.00 شيكل', sale_id: saleA, created_at: `${TODAY}T08:31:00`, client_id: 'demo-1' },
+    { ...base, id: id + 2, number: null, customer_id: 1, customer_name: 'أبو محمد الشريف', ledger: 'flour', type: 'flour_withdrawal', amount: '8.00', description: 'خبز مقابل طحين 8 كغ', sale_id: saleB, created_at: `${TODAY}T08:12:00`, client_id: 'demo-2' },
+    { ...base, id: id + 3, number: null, customer_id: 1, customer_name: 'أبو محمد الشريف', ledger: 'money', type: 'exchange_fee', amount: '16.00', description: 'رسم تبديل طحين 8 كغ', sale_id: saleB, created_at: `${TODAY}T08:12:00`, client_id: 'demo-2' },
+  ];
+  const queue: QueuedOperation[] = [
+    { client_id: 'demo-1', kind: 'sale', title: 'بيع عادي، 12 كغ', subtitle: 'مشترٍ عابر', created_at: `${TODAY}T08:31:00`, status: 'pending', reason: null },
+    { client_id: 'demo-2', kind: 'flour_sale', title: 'خبز مقابل طحين، 8 كغ', subtitle: 'أبو محمد الشريف', created_at: `${TODAY}T08:12:00`, status: 'pending', reason: null },
+  ];
+  return { ...s, sales: [...sales, ...s.sales], movements: [...s.movements, ...movements], queue: [...queue, ...s.queue] };
+}
+
+/** The mock end date when the dev menu (or ?expired=1) ends the subscription. */
+const EXPIRED_ON = '2026-11-20';
+
 function initialState(): AppState {
-  return {
+  const url = fromUrl();
+  return withPendingDemo({
     userKey: 'owner',
     online: true,
     hasLocalData: true,
     subscriptionExpired: false,
-    bakery: BAKERY,
+    bakery: url.subscriptionExpired ? { ...BAKERY, subscription_ends_at: EXPIRED_ON } : BAKERY,
     customers: CUSTOMERS,
     movements: MOVEMENTS,
     sales: SALES,
@@ -86,8 +114,8 @@ function initialState(): AppState {
     bakeries: OTHER_BAKERIES,
     queue: SEED_QUEUE,
     lastSyncAt: `${TODAY}T08:02:00`,
-    ...fromUrl(),
-  };
+    ...url,
+  });
 }
 
 let clientSeq = 0;
@@ -196,7 +224,7 @@ function useAppModel() {
       setState((s) => ({ ...s, online }));
     },
     setExpired(subscriptionExpired: boolean) {
-      setState((s) => ({ ...s, subscriptionExpired }));
+      setState((s) => ({ ...s, subscriptionExpired, bakery: { ...s.bakery, subscription_ends_at: subscriptionExpired ? EXPIRED_ON : BAKERY.subscription_ends_at } }));
     },
     setHasLocalData(hasLocalData: boolean) {
       setState((s) => ({ ...s, hasLocalData }));

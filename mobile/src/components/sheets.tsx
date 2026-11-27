@@ -3,7 +3,7 @@ import { Printer, Scale, Trash2 } from 'lucide-react-native';
 import * as React from 'react';
 import { Platform, ScrollView, View } from 'react-native';
 
-import { Chip, Field, InfoList, Notice, PendingMark, RoundIcon, Segmented, TextField, TYPE_ICONS, UnitInput } from '@/components/common';
+import { Chip, Field, InfoList, Notice, PendingMark, RoundIcon, Segmented, TextField, TYPE_ICONS, UnitInput, LTR_INPUT } from '@/components/common';
 import { useConfirm } from '@/components/confirm';
 import { Keypad } from '@/components/keypad';
 import { BottomSheet } from '@/components/sheet';
@@ -11,7 +11,7 @@ import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { formatDate, formatDays, formatFlourBalance, formatKg, formatMoney, formatTime, fromCents, toCents } from '@/lib/format';
+import { formatDate, formatDays, formatFlourBalance, formatKg, formatMoney, formatTime, fromCents, ltr, toCents } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { Ledger } from '@/mock/types';
 import { TODAY, useApp } from '@/state/app';
@@ -215,7 +215,7 @@ function PaymentSheet({ customerId, saleId, onClose }: { customerId: number; sal
         <UnitInput label="المبلغ" unit="شيكل" value={amount} onChangeText={(v) => (setAmount(v), setError(null))} invalid={!!error} autoFocus={Platform.OS !== 'web'} />
       </Field>
       {balance > 0 ? (
-        <Text onPress={() => setAmount(fromCents(balance))} accessibilityRole="button" className="text-muted-foreground -mt-2 mb-3 self-start py-1 text-[13px] underline">
+        <Text onPress={() => setAmount(fromCents(balance))} accessibilityRole="button" className="text-muted-foreground -mt-1 mb-3 self-start py-1 text-[13px] underline">
           كامل المستحق {formatMoney(balance / 100)}
         </Text>
       ) : null}
@@ -251,7 +251,7 @@ function PaymentSheet({ customerId, saleId, onClose }: { customerId: number; sal
             ))}
           </View>
           <Field label="رقم الحوالة (اختياري)">
-            <TextField value={reference} onChangeText={setReference} placeholder="مثل TR-90210" autoCapitalize="characters" style={{ writingDirection: 'ltr', textAlign: 'right' }} />
+            <TextField value={reference} onChangeText={setReference} placeholder="مثل TR-90210" autoCapitalize="characters" style={LTR_INPUT} />
           </Field>
         </>
       ) : null}
@@ -403,7 +403,7 @@ function AdjustmentSheet({ customerId, corrects, initialLedger, onClose }: { cus
         <TextField value={reason} onChangeText={(v) => (setReason(v), setError(null))} placeholder="مثل تصحيح الحركة رقم 152" maxLength={200} invalid={error?.field === 'reason'} />
       </Field>
       <Field label="رقم الحركة المصحَّحة (اختياري)">
-        <TextField value={number} onChangeText={(v) => setNumber(v.replace(/\D/g, ''))} keyboardType="number-pad" style={{ writingDirection: 'ltr', textAlign: 'right' }} />
+        <TextField value={number} onChangeText={(v) => setNumber(v.replace(/\D/g, ''))} keyboardType="number-pad" style={LTR_INPUT} />
       </Field>
       <SaveButton label="حفظ التسوية" onPress={save} />
     </BottomSheet>
@@ -426,7 +426,7 @@ function MovementSheet({ movementId, onClose, open }: { movementId: number; onCl
 
   return (
     <BottomSheet open onClose={onClose} title={m.description}>
-      <View className="-mt-1 mb-4 flex-row items-center gap-3">
+      <View className="mb-4 flex-row items-center gap-3">
         <RoundIcon icon={TYPE_ICONS[m.type]} tone={tone} />
         <Text variant="muted" className="flex-1">
           {m.customer_name ?? 'مشترٍ عابر'}، {formatDate(m.movement_date)} الساعة {formatTime(m.created_at)}
@@ -446,7 +446,7 @@ function MovementSheet({ movementId, onClose, open }: { movementId: number; onCl
         <InfoList
           items={[
             ['طريقة الدفع', m.from_bank ? `${m.from_bank} ← ${m.to_bank}` : 'نقدًا'],
-            ...(m.transfer_reference ? ([['رقم الحوالة', m.transfer_reference]] as [string, string][]) : []),
+            ...(m.transfer_reference ? ([['رقم الحوالة', ltr(m.transfer_reference)]] as [string, string][]) : []),
           ]}
         />
       ) : null}
@@ -518,7 +518,7 @@ function CustomerSheet({ customerId, onClose }: { customerId: number | null; onC
         <TextField value={name} onChangeText={(v) => (setName(v), setError(null))} invalid={!!error} autoFocus={Platform.OS !== 'web'} />
       </Field>
       <Field label="رقم الجوال (اختياري)">
-        <TextField value={phone} onChangeText={setPhone} keyboardType="phone-pad" inputMode="tel" style={{ writingDirection: 'ltr', textAlign: 'right' }} />
+        <TextField value={phone} onChangeText={setPhone} keyboardType="phone-pad" inputMode="tel" style={LTR_INPUT} />
       </Field>
       <Field label="ملاحظات (اختياري)">
         <TextField value={notes} onChangeText={setNotes} multiline className="h-24 py-3" textAlignVertical="top" />
@@ -640,7 +640,7 @@ function BakerySheet({ onClose }: { onClose: () => void }) {
         <TextField value={f.ownerName} onChangeText={set('ownerName')} />
       </Field>
       <Field label="البريد الإلكتروني">
-        <TextField value={f.ownerEmail} onChangeText={set('ownerEmail')} keyboardType="email-address" autoCapitalize="none" style={{ writingDirection: 'ltr', textAlign: 'right' }} />
+        <TextField value={f.ownerEmail} onChangeText={set('ownerEmail')} keyboardType="email-address" autoCapitalize="none" style={LTR_INPUT} />
       </Field>
       <Field label="كلمة المرور" hint="8 أحرف على الأقل">
         <TextField value={f.password} onChangeText={set('password')} secureTextEntry />

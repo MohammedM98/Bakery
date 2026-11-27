@@ -11,7 +11,7 @@ import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { formatDate, formatMoney } from '@/lib/format';
+import { formatDate, formatMoney, ltr } from '@/lib/format';
 import { subscriptionStatus } from '@/lib/subscription';
 import { TODAY, useApp } from '@/state/app';
 
@@ -37,7 +37,7 @@ export default function BakeryPage() {
       <PageHeader back title={b.name} />
       <Hero className="mb-4 p-5">
         <Text className="text-hero-muted text-[13px]">الاشتراك</Text>
-        <Text className="font-plex-semi text-[22px] leading-[32px] text-white">
+        <Text className="font-plex-semi text-[22px] leading-[32px] text-hero-foreground">
           {s.label === 'فعّال' || s.label === 'ينتهي قريبًا' ? `فعّال حتى ${formatDate(b.subscription_ends_at)}` : s.label === 'منتهٍ' ? `انتهى في ${formatDate(b.subscription_ends_at)}` : 'موقوف'}
         </Text>
         <Text className="text-hero-muted text-[13px]">{s.detail}</Text>
@@ -45,7 +45,7 @@ export default function BakeryPage() {
       <InfoList
         items={[
           ['صاحب المخبز', b.owner_name],
-          ['البريد', b.owner_email],
+          ['البريد', ltr(b.owner_email)],
           ['العنوان', b.address ?? '—'],
           ['الموظفون', String(b.staff_count)],
           ['سعر الكيلو', formatMoney(b.price_per_kg)],

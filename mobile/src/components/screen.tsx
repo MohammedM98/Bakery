@@ -77,16 +77,19 @@ export function PageHeader({
   title,
   subtitle,
   back,
+  onBack,
   end,
 }: {
   title: string;
   subtitle?: string;
   back?: boolean;
+  /** Instead of the router (screens drawn outside the navigator). */
+  onBack?: () => void;
   end?: React.ReactNode;
 }) {
   return (
     <View className="mb-5 mt-2 flex-row items-center gap-3">
-      {back ? <IconButton icon={ChevronRight} label="رجوع" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} /> : null}
+      {back ? <IconButton icon={ChevronRight} label="رجوع" onPress={onBack ?? (() => (router.canGoBack() ? router.back() : router.replace('/')))} /> : null}
       <View className="min-w-0 flex-1">
         <Text variant="title" numberOfLines={1}>
           {title}

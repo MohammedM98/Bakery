@@ -67,7 +67,7 @@ export default function SalesLog() {
         <View className="flex-row items-center gap-3">
           <View className="min-w-0 flex-1">
             <Text className="text-hero-muted text-[13px]">الخبز المباع</Text>
-            <Text className="font-plex-semi text-[28px] leading-[36px] text-white">
+            <Text className="font-plex-semi text-[28px] leading-[36px] text-hero-foreground">
               {formatAmount(d.breadKg).replace('.00', '')}
               <Text className="text-hero-muted font-plex-medium text-[15px]"> كغ</Text>
             </Text>
@@ -75,8 +75,8 @@ export default function SalesLog() {
           <Icon as={Wheat} size={24} strokeWidth={1.5} className="text-wheat" />
         </View>
         <Text className="text-hero-muted text-[13px]">
-          عادي <Text className="font-plex-semi text-[13px] text-white">{formatKg(d.cashKg)}</Text>
-          {'   '}مقابل طحين <Text className="font-plex-semi text-[13px] text-white">{formatKg(d.flourKg)}</Text>
+          عادي <Text className="font-plex-semi text-[13px] text-hero-foreground">{formatKg(d.cashKg)}</Text>
+          {'   '}مقابل طحين <Text className="font-plex-semi text-[13px] text-hero-foreground">{formatKg(d.flourKg)}</Text>
         </Text>
       </Hero>
       <View className="mb-3 flex-row gap-3">

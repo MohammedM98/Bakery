@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import * as React from 'react';
-import { Pressable, View, type ViewProps } from 'react-native';
+import { Platform, Pressable, View, type TextStyle, type ViewProps } from 'react-native';
 
 import { solidStyle, Surface, Well } from '@/components/glass';
 import { Button } from '@/components/ui/button';
@@ -64,7 +64,7 @@ export function Segmented<T extends string>({
 /** Filter chip: the selected one is the dark pill, the others level-2 glass. 40pt high (44 with spacing). */
 export function Chip({ label, on, onPress, count }: { label: string; on?: boolean; onPress?: () => void; count?: number }) {
   const inner = (
-    <Text className={cn('text-[14px] leading-[22px]', on ? 'text-white dark:text-background' : 'text-muted-foreground')}>
+    <Text className={cn('text-[14px] leading-[22px]', on ? 'text-card dark:text-background' : 'text-muted-foreground')}>
       {label}
       {count != null ? `  ${count}` : ''}
     </Text>
@@ -107,11 +107,12 @@ export const TYPE_ICONS: Record<MovementType | 'bank' | 'bakery', LucideIcon> = 
 
 export type Tone = 'neutral' | 'success' | 'danger' | 'warning';
 
-export function RoundIcon({ icon, tone = 'neutral', size = 40 }: { icon: LucideIcon; tone?: Tone; size?: number }) {
+export function RoundIcon({ icon, tone = 'neutral', size = 40, flip }: { icon: LucideIcon; tone?: Tone; size?: number; flip?: boolean }) {
   const { theme } = useTheme();
   const bg = { neutral: undefined, success: theme.s.successSoft, danger: theme.s.dangerSoft, warning: theme.s.warningSoft }[tone];
   const fg = { neutral: 'text-muted-foreground', success: 'text-success', danger: 'text-destructive', warning: 'text-warning' }[tone];
-  const body = <Icon as={icon} size={18} strokeWidth={1.5} className={fg} />;
+  // flip: directional icons (sign out) mirror in RTL.
+  const body = <Icon as={icon} size={18} strokeWidth={1.5} className={cn(fg, flip && '-scale-x-100')} />;
   return bg ? (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg }} className="items-center justify-center">
       {body}
@@ -266,6 +267,22 @@ export function Field({
   );
 }
 
+/**
+ * The number sits on the right and the unit on the left. Web: physical sides, because RN Web gives
+ * inputs dir="auto" and digits turn the field LTR. Native: logical sides, because forceRTL swaps
+ * left and right styles there.
+ */
+const UNIT_INPUT_STYLE = Platform.select<TextStyle>({
+  web: { textAlign: 'right', paddingLeft: 64, paddingRight: 16 },
+  default: { textAlign: 'right', writingDirection: 'ltr', paddingStart: 16, paddingEnd: 64 },
+});
+
+/** Emails, phone numbers and references: typed left to right, kept on the right like the other fields. */
+export const LTR_INPUT = Platform.select<TextStyle>({
+  web: { textAlign: 'right' },
+  default: { textAlign: 'right', writingDirection: 'ltr' },
+});
+
 /** A numeric well with its unit on the end (شيكل / كغ), digits left to right. */
 export function UnitInput({
   value,
@@ -291,11 +308,11 @@ export function UnitInput({
         inputMode="decimal"
         accessibilityLabel={label}
         autoFocus={autoFocus}
-        className={cn('pe-16 font-plex-semi text-[17px]', invalid && 'border-destructive')}
-        style={{ textAlign: 'right', writingDirection: 'ltr' }}
+        className={cn('font-plex-semi text-[17px]', invalid && 'border-destructive')}
+        style={UNIT_INPUT_STYLE}
         placeholder="0"
       />
-      <Text variant="muted" className="absolute end-4 top-[14px]" pointerEvents="none">
+      <Text variant="muted" className="absolute end-4 top-3.5" pointerEvents="none">
         {unit}
       </Text>
     </View>

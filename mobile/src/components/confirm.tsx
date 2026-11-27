@@ -65,7 +65,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
                 ask?.onConfirm();
                 setAsk(null);
               }}>
-              <Text className="text-white">{ask?.action}</Text>
+              <Text className="text-primary-foreground">{ask?.action}</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

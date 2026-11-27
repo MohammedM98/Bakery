@@ -50,7 +50,7 @@ export default function More() {
               key={it.label}
               first={i === 0}
               onPress={off ? undefined : (it.onPress ?? (() => it.href && router.push(it.href)))}
-              start={<RoundIcon icon={it.icon} tone={it.danger ? 'danger' : 'neutral'} />}
+              start={<RoundIcon icon={it.icon} tone={it.danger ? 'danger' : 'neutral'} flip={it.icon === LogOut} />}
               title={<Text className={it.danger ? 'text-destructive font-plex-medium' : off ? 'text-muted-foreground font-plex-medium' : 'font-plex-medium'}>{it.label}</Text>}
               end={
                 off ? (

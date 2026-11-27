@@ -13,6 +13,7 @@ import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Text } from '@/components/ui/text';
+import { ltr } from '@/lib/format';
 import type { ApiCustomer } from '@/mock/types';
 import { useApp } from '@/state/app';
 
@@ -51,8 +52,8 @@ export default function Customers() {
         }
       />
       <View className="relative mb-3">
-        <Input value={q} onChangeText={setQ} placeholder="بحث بالاسم أو رقم الجوال" accessibilityLabel="بحث بالاسم أو رقم الجوال" className="ps-11" returnKeyType="search" />
-        <View className="absolute start-4 top-[15px]" pointerEvents="none">
+        <Input value={q} onChangeText={setQ} placeholder="بحث بالاسم أو رقم الجوال" accessibilityLabel="بحث بالاسم أو رقم الجوال" className="px-11" returnKeyType="search" />
+        <View className="absolute inset-y-0 start-4 justify-center" pointerEvents="none">
           <Icon as={Search} size={20} strokeWidth={1.5} className="text-muted-foreground" />
         </View>
       </View>
@@ -78,7 +79,7 @@ export default function Customers() {
               onPress={() => router.push(`/customers/${c.id}`)}
               start={<Avatar name={c.name} />}
               title={c.name}
-              subtitle={<Text variant="muted" style={{ writingDirection: 'ltr', textAlign: 'right' }}>{c.phone ?? 'بلا رقم'}</Text>}
+              subtitle={c.phone ? ltr(c.phone) : 'بلا رقم'}
               end={<MoneyText cents={b?.money ?? 0} />}
               endSub={<FlourText hundredths={b?.flour ?? 0} className="text-[13px]" />}
             />

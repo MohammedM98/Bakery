@@ -44,16 +44,13 @@ export function DevTools() {
               on={app.state.userKey === k}
               onPress={() => {
                 app.switchUser(k);
-                router.replace(homeFor(MOCK_USERS[k], app.state.subscriptionExpired));
+                router.replace(homeFor(MOCK_USERS[k]));
               }}
             />
           ))}
         </View>
         {toggle('متصل بالإنترنت', app.state.online, app.setOnline, true)}
-        {toggle('الاشتراك منتهٍ', app.state.subscriptionExpired, (v) => {
-          app.setExpired(v);
-          if (v) router.replace('/expired');
-        })}
+        {toggle('الاشتراك منتهٍ', app.state.subscriptionExpired, app.setExpired)}
         {toggle('جهاز جديد بلا بيانات', !app.state.hasLocalData, (v) => app.setHasLocalData(!v))}
         {toggle('الوضع الداكن', preference === 'dark', (v) => setPreference(v ? 'dark' : 'light'))}
       </ListCard>

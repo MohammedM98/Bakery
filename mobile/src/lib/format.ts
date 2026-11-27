@@ -60,6 +60,11 @@ export function formatDays(days: number): string {
   return `${n} يومًا`;
 }
 
+/** A phone number, email or reference kept left to right inside Arabic text (U+2066…U+2069). */
+export function ltr(value: string | null | undefined): string {
+  return value ? `\u2066${value}\u2069` : '';
+}
+
 /** Decimal string → integer hundredths, so sums never use floats (CLAUDE.md section 6). */
 export function toCents(value: string | number | null | undefined): number {
   return Math.round((Number(value ?? 0) || 0) * 100);

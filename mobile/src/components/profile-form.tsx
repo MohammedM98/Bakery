@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { LogOut } from 'lucide-react-native';
 import * as React from 'react';
 
-import { Field, Notice, Segmented, TextField } from '@/components/common';
+import { Field, Notice, Segmented, TextField, LTR_INPUT } from '@/components/common';
 import { PageHeader, Screen } from '@/components/screen';
 import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { useApp } from '@/state/app';
 import { useTheme, type SchemePreference } from '@/state/theme';
 
 /** Profile (name, email, password) for every role; changes need the internet. */
-export function ProfileForm({ back = true, children }: { back?: boolean; children?: React.ReactNode }) {
+export function ProfileForm({ back = true, onBack, children }: { back?: boolean; onBack?: () => void; children?: React.ReactNode }) {
   const app = useApp();
   const toast = useToast();
   const { preference, setPreference } = useTheme();
@@ -22,14 +22,14 @@ export function ProfileForm({ back = true, children }: { back?: boolean; childre
   const [next, setNext] = React.useState('');
   const online = app.state.online;
   return (
-    <Screen net={app.user?.role !== 'super_admin'}>
-      <PageHeader back={back} title="الملف الشخصي" />
+    <Screen net={app.user?.role !== 'super_admin' && !onBack} withNav={!onBack}>
+      <PageHeader back={back} onBack={onBack} title="الملف الشخصي" />
       {!online ? <Notice tone="warning" title="يحتاج إنترنت" body="تعديل الملف الشخصي متاح عند الاتصال" /> : null}
       <Field label="الاسم">
         <TextField value={name} onChangeText={setName} />
       </Field>
       <Field label="البريد الإلكتروني">
-        <TextField value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={{ writingDirection: 'ltr', textAlign: 'right' }} />
+        <TextField value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={LTR_INPUT} />
       </Field>
       <Button className="mb-6 w-full" disabled={!online || !name.trim()} onPress={() => toast({ kind: 'success', title: 'تم حفظ الملف الشخصي' })}>
         <Text>حفظ</Text>
@@ -58,8 +58,11 @@ export function ProfileForm({ back = true, children }: { back?: boolean; childre
           ]}
         />
       </Field>
-      <Button variant="danger" className="w-full" onPress={() => (app.logout(), router.replace('/login'))}>
-        <Icon as={LogOut} size={18} />
+      <Button variant="danger" className="w-full" onPress={() => {
+          app.logout();
+          if (!onBack) router.replace('/login');
+        }}>
+        <Icon as={LogOut} size={18} className="-scale-x-100" />
         <Text>تسجيل الخروج</Text>
       </Button>
       {children}

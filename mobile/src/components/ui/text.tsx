@@ -8,7 +8,7 @@ import { Platform, Text as RNText, type Role } from 'react-native';
 // IBM Plex Sans Arabic, one family per weight (Android ignores fontWeight on custom fonts),
 // and Arabic line heights of about 1.6.
 const textVariants = cva(
-  cn('text-foreground font-plex text-[15px] leading-6', Platform.select({ web: 'select-text' })),
+  cn('text-foreground font-plex text-[15px] leading-6 tabular-nums', Platform.select({ web: 'select-text' })),
   {
     variants: {
       variant: {
@@ -56,9 +56,4 @@ function Text({
   );
 }
 
-/** Latin digits in a left-to-right run so numbers and signs never flip inside Arabic text. */
-function Num({ className, ...props }: React.ComponentProps<typeof Text>) {
-  return <Text className={cn('[font-variant-numeric:tabular-nums]', className)} {...props} />;
-}
-
-export { Num, Text, TextClassContext, textVariants };
+export { Text, TextClassContext, textVariants };

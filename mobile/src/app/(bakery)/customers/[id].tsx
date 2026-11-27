@@ -11,7 +11,7 @@ import { useToast } from '@/components/toast';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Text } from '@/components/ui/text';
-import { formatAmount, formatDate, formatFlourBalance, formatKg, formatMoney, formatShortDate, toCents } from '@/lib/format';
+import { formatAmount, formatDate, ltr, formatFlourBalance, formatKg, formatMoney, formatShortDate, toCents } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import type { Ledger } from '@/mock/types';
 import { TODAY, useApp } from '@/state/app';
@@ -75,21 +75,21 @@ export default function CustomerPage() {
       <PageHeader
         back
         title={customer.name}
-        subtitle={customer.phone ?? undefined}
+        subtitle={customer.phone ? ltr(customer.phone) : undefined}
         end={app.can('edit-customers') ? <IconButton icon={Pencil} label="تعديل الزبون" onPress={() => sheets.open({ kind: 'customer', customerId: customer.id })} /> : null}
       />
 
       <Hero className="mb-4 flex-row flex-wrap gap-3 p-5">
         <View className="min-w-[130px] flex-1">
           <Text className="text-hero-muted text-[13px]">الرصيد المالي</Text>
-          <Text className="font-plex-semi text-[22px] leading-[30px] text-white">
+          <Text className="font-plex-semi text-[22px] leading-[30px] text-hero-foreground">
             {formatAmount(Math.abs(b.money) / 100)}
             <Text className="text-hero-muted font-plex-medium text-[14px]"> شيكل {b.money > 0 ? 'عليه' : b.money < 0 ? 'له' : ''}</Text>
           </Text>
         </View>
-        <View className="min-w-[130px] flex-1 border-s border-white/10 ps-4">
+        <View className="min-w-[130px] flex-1 border-s border-hero-foreground/10 ps-4">
           <Text className="text-hero-muted text-[13px]">رصيد الطحين</Text>
-          <Text className="font-plex-semi text-[22px] leading-[30px] text-white">{formatFlourBalance(b.flour / 100)}</Text>
+          <Text className="font-plex-semi text-[22px] leading-[30px] text-hero-foreground">{formatFlourBalance(b.flour / 100)}</Text>
         </View>
         {b.pending ? (
           <View className="w-full flex-row items-center gap-1.5">
@@ -167,7 +167,7 @@ function StatementTab({ customerId, ledger, range, setRange }: { customerId: num
         </View>
       ) : null}
       {!app.state.online && app.can('export-statements') ? (
-        <Text variant="muted" className="-mt-1 mb-3">
+        <Text variant="muted" className="mb-3">
           التحميل يحتاج إنترنت
         </Text>
       ) : null}

@@ -1,56 +1,96 @@
-# Welcome to your Expo app 👋
+# تطبيق المخبز للجوال
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+تطبيق React Native (Expo) لأصحاب المخابز وموظفيهم ومالك المنصة، بالعربية ومن اليمين لليسار دائمًا. القرارات والتصميم المعتمد في `CLAUDE.md` القسم 13.
 
-## Get started
+**الحالة (الجلسة 10):** كل الشاشات تعمل على **بيانات تجريبية محلية** (`src/mock`) دون اتصال بالخادم. ربطها بالـ API (`/api/v1`) والتخزين المحلي والمزامنة الحقيقية في الجلسة 11.
 
-1. Install dependencies
+## التشغيل
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+المتطلبات: Node 20 أو أحدث، و npm.
 
 ```bash
-npm run reset-project
+cd mobile
+npm install
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+### على الهاتف (Expo Go أو dev build)
 
-### Other setup steps
+```bash
+npx expo start
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+- امسح رمز QR بتطبيق **Expo Go** (أندرويد) أو بالكاميرا (iPhone). الهاتف والحاسوب على نفس الشبكة، أو أضف `--tunnel`.
+- كل المكتبات المستخدمة من وحدات Expo Go المدمجة (`expo-blur`، `expo-linear-gradient`، `react-native-svg`، `react-native-reanimated`)، فيعمل التطبيق في Expo Go دون بناء خاص.
+- **اتجاه RTL:** التطبيق يستدعي `I18nManager.forceRTL(true)`، و`app.json` يضبط `extra.supportsRTL` و `extra.forcesRTL`. في Expo Go قد يحتاج أول تشغيل إلى إغلاق التطبيق وفتحه مرة ثانية حتى ينقلب الاتجاه؛ في dev build أو البناء النهائي يكون RTL من أول تشغيل.
+- لبناء تطوير: `npx expo run:android` أو `npx expo run:ios` (يحتاج Android Studio أو Xcode). بناء EAS للمتاجر في الجلسة 12.
 
-## Learn more
+### على الويب
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+npx expo start --web            # تطوير
+npx expo export -p web          # بناء ثابت في dist/
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### أدوات التجربة
 
-## Join the community
+في وضع التطوير (أو عند البناء مع `EXPO_PUBLIC_DEV_MENU=1`) يظهر في «المزيد» قسم **أدوات التجربة**: تبديل المستخدم (صاحب المخبز، موظف بصلاحيات قليلة، موظف بلا صلاحيات، مالك المنصة) لرؤية نموذج الصلاحيات، وقلب الاتصال بالإنترنت، وانتهاء الاشتراك، و«جهاز جديد بلا بيانات»، والوضع الداكن.
 
-Join our community of developers creating universal apps.
+حسابات الدخول التجريبية (كلمة المرور `password`): `owner@bakery.test`، `samer@alnoor.ps`، `admin@bakery.test`.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+على الويب تفتح معاملات الرابط أي حالة مباشرة (تُستخدم للقطات الشاشة):
+
+| المعامل | المعنى |
+|---|---|
+| `user=owner\|staff\|noPermissions\|admin\|out` | المستخدم التجريبي (`out` = غير مسجّل) |
+| `net=off` | دون إنترنت |
+| `expired=1` | الاشتراك منتهٍ |
+| `empty=1` | جهاز جديد بلا بيانات |
+| `pending=1` | عمليتان تنتظران المزامنة |
+| `theme=dark\|light` | الوضع |
+| `sheet=sale\|payment\|deposit\|flour\|adjustment\|movement\|customer\|bank\|renew\|bakery` (مع `customer=` و `movement=` و `bakery=`) | فتح نافذة سفلية |
+| `toast=demo`، `confirm=demo` | الرسائل ونافذة تأكيد الحذف |
+
+## الفحوص
+
+```bash
+npx tsc --noEmit     # الأنواع
+npx expo lint        # ESLint
+npm test             # قواعد العرض (formatMoney والطحين بالكلمات) بنفس حالات tests/Unit/MoneyFormatTest.php
+```
+
+## بنية المجلد
+
+```
+mobile/
+  app.json                 إعداد Expo (الاسم، RTL، أيقونات)
+  tailwind.config.js       NativeWind: ألوان الموقع كمتغيرات CSS من src/theme/palette.js
+  src/
+    app/                   الشاشات (expo-router)
+      _layout.tsx          الخط، RTL، المزوّدات، وبوابتا «انتهى الاشتراك» و«لا صلاحيات»
+      login.tsx
+      (bakery)/            صاحب المخبز والموظف: شريط التنقل العائم بخمسة عناصر
+        index.tsx          الرئيسية (أو إجراءات سريعة للموظف بلا «عرض اللوحة»)
+        customers/         القائمة وصفحة الزبون (الرصيدان، الإجراءات، الكشفان، المبيعات)
+        log.tsx            سجل المبيعات
+        more/              المزيد، المبيعات، المزامنة، البنوك، المستخدمون، نموذج الموظف، الإعدادات، الملف الشخصي
+      (admin)/             مالك المنصة: المخابز وصفحة المخبز والحساب
+    components/
+      ui/                  مكوّنات React Native Reusables (منسوخة من مستودعها ومُعاد تلوينها بالرموز)
+      glass.tsx            مستويات الأسطح الزجاجية، البطاقة البارزة، خلفية المستوى 0
+      sheet.tsx sheets.tsx النافذة السفلية وكل النماذج والتفاصيل
+      nav-bar.tsx          الشريط العائم وزر البيع البارز
+      ...                  الصفوف، الأزرار المتبادلة، الرسائل، لوحة الأرقام، الرسوم، التأكيد
+    theme/                 palette.js (ألوان الموقع، المصدر الوحيد) و index.ts (الأسطح، الخط، المسافات)
+    lib/                   format.ts (نسخة قواعد الموقع)، period.ts (يوم/أسبوع/شهر/سنة)، access.ts
+    mock/                  types.ts (أشكال البيانات المتوقعة من الـ API) و data.ts (البيانات التجريبية)
+    state/                 app.tsx (الجلسة، العمليات، قائمة الانتظار)، selectors.ts، theme.tsx
+  tests/format.test.mjs
+```
+
+## ما يحتاج جهازًا حقيقيًا
+
+- **التغبيش على أندرويد:** `expo-blur` على أندرويد يحتاج `BlurTargetView` حول المحتوى المغبَّش؛ حاليًا يستخدم أندرويد بدائل «أندرويد الضعيف» الصلبة من النموذج. يُفحص على جهاز قبل تفعيل التغبيش.
+- **الظلال** (`boxShadow`) والحافة العليا اللامعة على أندرويد و iOS.
+- **RTL على iOS و أندرويد** بعد `forceRTL` (اتجاه الشريط، الأسهم، لوحة الأرقام، الرسوم).
+- **«تقليل الشفافية»** في إعدادات الجهاز يبدّل إلى البدائل الصلبة.
+- لوحة المفاتيح فوق النوافذ السفلية، والمناطق الآمنة على أجهزة بنتوء.

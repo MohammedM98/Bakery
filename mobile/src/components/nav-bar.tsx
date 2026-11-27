@@ -40,7 +40,7 @@ export function FloatingNav({ state, items }: BottomTabBarProps & { items: NavIt
               <Pressable key="fab" onPress={it.onPress} accessibilityRole="button" accessibilityLabel={it.label} className="flex-1 items-center active:opacity-90">
                 <View
                   className="bg-primary -mt-8 h-14 w-14 items-center justify-center rounded-tile"
-                  style={{ borderWidth: 4, borderColor: theme.c.background, boxShadow: '0 10px 20px -10px rgba(20, 26, 34, 0.45)' }}>
+                  style={{ borderWidth: 4, borderColor: theme.c.background, boxShadow: theme.s.fabShadow }}>
                   <Icon as={it.icon} size={26} strokeWidth={2} className="text-primary-foreground" />
                 </View>
                 <Text className="font-plex-medium text-[12px] leading-[18px]">{it.label}</Text>
