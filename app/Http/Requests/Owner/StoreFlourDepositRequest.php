@@ -15,7 +15,7 @@ class StoreFlourDepositRequest extends FormRequest
         return [
             'kg_amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:100000'],
             // No future dates: a statement ending today must close on the current balance.
-            'deposit_date' => ['required', 'date', 'before_or_equal:today'],
+            'deposit_date' => ['required', 'date', 'before_or_equal:'.local_today()->toDateString()],
             'notes' => ['nullable', 'string', 'max:1000'],
             ...$this->submissionRules(),
         ];

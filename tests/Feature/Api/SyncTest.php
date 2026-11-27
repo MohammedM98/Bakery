@@ -40,7 +40,7 @@ class SyncTest extends TestCase
 
     public function test_a_batch_mixes_accepted_duplicate_and_rejected_operations(): void
     {
-        $today = today()->toDateString();
+        $today = local_today()->toDateString();
         $deleted = $this->customerOf($this->owner, 'محذوف');
         $deposit = $this->op('deposit', ['customer_id' => $this->customer->id, 'kg_amount' => '30', 'deposit_date' => $today]);
         $this->as($this->owner);
@@ -88,7 +88,7 @@ class SyncTest extends TestCase
     public function test_revoked_permissions_and_an_expired_subscription_reject_each_operation(): void
     {
         $staff = $this->staffOf($this->owner, ['view-customers', 'record-deposit']);
-        $op = fn () => $this->op('deposit', ['customer_id' => $this->customer->id, 'kg_amount' => '1', 'deposit_date' => today()->toDateString()]);
+        $op = fn () => $this->op('deposit', ['customer_id' => $this->customer->id, 'kg_amount' => '1', 'deposit_date' => local_today()->toDateString()]);
         $this->as($staff);
 
         $this->assertSame('accepted', $this->push([$op()])[0]['status']);
@@ -112,7 +112,7 @@ class SyncTest extends TestCase
         $this->owner->bakery->update(['regular_price_per_kg' => '4']);
         $this->travelBack();
         $this->owner->bakery->update(['regular_price_per_kg' => '6']);
-        $sale = fn (string $price, string $at) => $this->op('sale', ['kg_amount' => '10', 'payment_status' => 'unpaid', 'sale_date' => today()->toDateString(), 'price_per_kg' => $price], null, $at);
+        $sale = fn (string $price, string $at) => $this->op('sale', ['kg_amount' => '10', 'payment_status' => 'unpaid', 'sale_date' => local_today()->toDateString(), 'price_per_kg' => $price], null, $at);
         $this->as($this->owner);
 
         $results = $this->push([
@@ -128,13 +128,13 @@ class SyncTest extends TestCase
         $this->assertSame('40.00', $results[0]['data']['sale']['total_amount']);
 
         // Online, the current setting, as on the website: a price in the body is ignored.
-        $this->api('POST', 'sales', ['client_uuid' => $this->uuid(), 'kg_amount' => '1', 'payment_status' => 'paid', 'sale_date' => today()->toDateString(), 'price_per_kg' => '4'])
+        $this->api('POST', 'sales', ['client_uuid' => $this->uuid(), 'kg_amount' => '1', 'payment_status' => 'paid', 'sale_date' => local_today()->toDateString(), 'price_per_kg' => '4'])
             ->assertCreated()->assertJsonPath('sale.price_per_kg', '6.00');
     }
 
     public function test_a_price_replaced_long_before_or_never_set_is_refused(): void
     {
-        $sale = fn (string $price, string $at) => $this->op('sale', ['kg_amount' => '1', 'payment_status' => 'paid', 'sale_date' => today()->toDateString(), 'price_per_kg' => $price], null, $at);
+        $sale = fn (string $price, string $at) => $this->op('sale', ['kg_amount' => '1', 'payment_status' => 'paid', 'sale_date' => local_today()->toDateString(), 'price_per_kg' => $price], null, $at);
         $unset = $this->bakeryOwner(['regular_price_per_kg' => 0, 'flour_exchange_fee_per_kg' => 0]);
         $this->as($unset);
         $this->assertSame('price_mismatch', $this->push([$sale('0', now()->toIso8601String())])[0]['code'], 'a new bakery\'s 0 is not a price');
@@ -159,7 +159,7 @@ class SyncTest extends TestCase
         $bank = $this->owner->bakery->banks()->create(['name' => 'جوال باي']);
         $other = $this->customerOf($this->bakeryOwner(), 'زبون مخبز آخر');
         $this->as($this->owner);
-        $this->push([$this->op('deposit', ['customer_id' => $this->customer->id, 'kg_amount' => '7', 'deposit_date' => today()->toDateString()])]);
+        $this->push([$this->op('deposit', ['customer_id' => $this->customer->id, 'kg_amount' => '7', 'deposit_date' => local_today()->toDateString()])]);
 
         $first = $this->pull()->assertJsonPath('full', true)->assertJsonPath('has_more', false)
             ->assertJsonPath('subscription.active', true)
@@ -190,7 +190,7 @@ class SyncTest extends TestCase
     public function test_pull_follows_the_users_permissions(): void
     {
         $staff = $this->staffOf($this->owner, ['view-customers', 'view-flour-statement']);
-        $this->as($this->owner)->push([$this->op('flour_sale', ['customer_id' => $this->customer->id, 'kg_amount' => '2', 'payment_status' => 'unpaid', 'sale_date' => today()->toDateString()])]);
+        $this->as($this->owner)->push([$this->op('flour_sale', ['customer_id' => $this->customer->id, 'kg_amount' => '2', 'payment_status' => 'unpaid', 'sale_date' => local_today()->toDateString()])]);
 
         $this->as($staff);
         $pull = $this->pull()->assertJsonCount(1, 'movements')->assertJsonPath('movements.0.ledger', 'flour')->assertJsonPath('banks', []);
@@ -207,7 +207,7 @@ class SyncTest extends TestCase
     {
         $this->as($this->owner);
         foreach (array_chunk(range(1, 260), 100) as $chunk) {
-            $this->push(array_map(fn () => $this->op('flour_sale', ['customer_id' => $this->customer->id, 'kg_amount' => '1', 'payment_status' => 'unpaid', 'sale_date' => today()->toDateString()]), $chunk));
+            $this->push(array_map(fn () => $this->op('flour_sale', ['customer_id' => $this->customer->id, 'kg_amount' => '1', 'payment_status' => 'unpaid', 'sale_date' => local_today()->toDateString()]), $chunk));
         }
 
         $numbers = [];
@@ -250,7 +250,7 @@ class SyncTest extends TestCase
     public function test_the_migration_backfill_gives_existing_rows_a_version_the_first_pull_reads(): void
     {
         // Rows written before the sync columns existed: what the migration's backfill leaves behind.
-        $this->as($this->owner)->push([$this->op('deposit', ['customer_id' => $this->customer->id, 'kg_amount' => '3', 'deposit_date' => today()->toDateString()])]);
+        $this->as($this->owner)->push([$this->op('deposit', ['customer_id' => $this->customer->id, 'kg_amount' => '3', 'deposit_date' => local_today()->toDateString()])]);
         DB::table('movements')->update(['sync_version' => DB::raw('number')]);
         DB::table('customers')->update(['sync_version' => 1]);
         DB::table('bakeries')->update(['sync_version' => DB::raw('last_movement_number + 1')]);

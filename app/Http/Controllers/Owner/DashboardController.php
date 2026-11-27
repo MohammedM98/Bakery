@@ -30,7 +30,7 @@ class DashboardController extends Controller
             'period' => ['nullable', Rule::in(array_keys(SalesLogController::PERIODS))],
         ])['period'] ?? 'day';
         $bakery = $request->user()->bakery;
-        [$start, $end] = SalesLogController::bounds($period, today());
+        [$start, $end] = SalesLogController::bounds($period, local_today());
         $from = $start->toDateString();
         $to = $end->toDateString();
 

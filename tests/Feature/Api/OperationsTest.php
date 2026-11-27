@@ -33,7 +33,7 @@ class OperationsTest extends TestCase
     private function unpaidSale(User $owner, ?Customer $customer = null): Sale
     {
         return app(RecordSale::class)->handle($owner->bakery, $customer, Sale::TYPE_CASH, [
-            'kg_amount' => '2', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => today()->toDateString(),
+            'kg_amount' => '2', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => local_today()->toDateString(),
         ], $owner);
     }
 
@@ -42,7 +42,7 @@ class OperationsTest extends TestCase
     {
         $bakery = $owner->bakery;
         $customer = $bakery->customers()->first() ?? $this->customerOf($owner);
-        $today = today()->toDateString();
+        $today = local_today()->toDateString();
         $key = ['client_uuid' => $this->uuid()];
         $bank = fn () => $bakery->banks()->firstOrCreate(['name' => 'بنك فلسطين']);
         $staff = fn () => $bakery->staff()->first() ?? $this->staffOf($owner);
@@ -130,7 +130,7 @@ class OperationsTest extends TestCase
     public function test_a_sale_answers_with_the_server_numbers_and_the_balances_after(): void
     {
         $this->as($this->owner)->api('POST', "customers/{$this->customer->id}/flour-sales", [
-            'client_uuid' => $this->uuid(), 'kg_amount' => '10', 'payment_status' => 'unpaid', 'sale_date' => today()->toDateString(),
+            'client_uuid' => $this->uuid(), 'kg_amount' => '10', 'payment_status' => 'unpaid', 'sale_date' => local_today()->toDateString(),
         ])->assertCreated()
             ->assertHeader('Idempotent-Replayed', 'false')
             ->assertJsonPath('movements.0.number', 1)
@@ -155,7 +155,7 @@ class OperationsTest extends TestCase
             ->assertJsonPath('errors.kg_amount.0', 'يجب ألا تقل قيمة حقل الكمية عن 0.01.')
             ->assertJsonStructure(['errors' => ['deposit_date']]);
 
-        $this->api('POST', 'sales', ['kg_amount' => 1, 'payment_status' => 'paid', 'sale_date' => today()->toDateString()])
+        $this->api('POST', 'sales', ['kg_amount' => 1, 'payment_status' => 'paid', 'sale_date' => local_today()->toDateString()])
             ->assertStatus(422)->assertJsonStructure(['errors' => ['client_uuid']]);
 
         $this->assertSame(0, Movement::count());
@@ -163,7 +163,7 @@ class OperationsTest extends TestCase
 
     public function test_replaying_a_client_uuid_returns_the_first_answer_and_writes_once(): void
     {
-        $body = ['client_uuid' => $this->uuid(), 'amount' => '40', 'payment_date' => today()->toDateString()];
+        $body = ['client_uuid' => $this->uuid(), 'amount' => '40', 'payment_date' => local_today()->toDateString()];
 
         $first = $this->as($this->owner)->api('POST', "customers/{$this->customer->id}/payments", $body)->assertCreated();
         $again = $this->api('POST', "customers/{$this->customer->id}/payments", $body)->assertCreated()->assertHeader('Idempotent-Replayed', 'true');
@@ -173,7 +173,7 @@ class OperationsTest extends TestCase
 
         $this->api('POST', "customers/{$this->customer->id}/payments", [...$body, 'amount' => '41'])
             ->assertStatus(409)->assertJsonPath('code', 'idempotency_conflict');
-        $this->api('POST', "customers/{$this->customer->id}/deposits", [...$body, 'kg_amount' => '1', 'deposit_date' => today()->toDateString()])
+        $this->api('POST', "customers/{$this->customer->id}/deposits", [...$body, 'kg_amount' => '1', 'deposit_date' => local_today()->toDateString()])
             ->assertStatus(409);
 
         // Another user's key with the same value is not theirs to replay.
@@ -188,7 +188,7 @@ class OperationsTest extends TestCase
 
         $this->as($this->owner)->api('POST', 'sales', $body)->assertStatus(422);
         // The refused attempt left no key: the corrected operation can use the same one.
-        $this->api('POST', 'sales', [...$body, 'sale_date' => today()->toDateString()])->assertCreated()->assertHeader('Idempotent-Replayed', 'false');
+        $this->api('POST', 'sales', [...$body, 'sale_date' => local_today()->toDateString()])->assertCreated()->assertHeader('Idempotent-Replayed', 'false');
 
         $this->assertSame(1, Sale::count());
     }

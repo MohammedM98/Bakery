@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 #[Fillable([
@@ -109,15 +108,15 @@ class Bakery extends Model
             return true;
         }
 
-        return ! $this->subscription_expires_at->lt(Carbon::today());
+        return ! $this->subscription_expires_at->lt(local_today());
     }
 
     /** Extends from the current expiry if it is still in the future, otherwise from today, and reactivates. */
     public function renew(int $months): void
     {
-        $base = $this->subscription_expires_at && $this->subscription_expires_at->isFuture()
+        $base = $this->subscription_expires_at && $this->subscription_expires_at->gt(local_today())
             ? $this->subscription_expires_at
-            : now();
+            : local_today();
 
         $this->update([
             'subscription_status' => self::STATUS_ACTIVE,
@@ -129,7 +128,7 @@ class Bakery extends Model
     {
         return Attribute::make(
             get: fn () => $this->subscription_expires_at
-                ? Carbon::today()->diffInDays($this->subscription_expires_at, false)
+                ? local_today()->diffInDays($this->subscription_expires_at, false)
                 : null,
         );
     }

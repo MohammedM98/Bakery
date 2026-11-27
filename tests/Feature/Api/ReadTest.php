@@ -25,12 +25,12 @@ class ReadTest extends TestCase
         $this->owner = $this->bakeryOwner();
         $customer = $this->customerOf($this->owner);
         app(RecordSale::class)->handle($this->owner->bakery, $customer, Sale::TYPE_FLOUR_EXCHANGE, [
-            'kg_amount' => '20', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => today()->toDateString(),
+            'kg_amount' => '20', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => local_today()->toDateString(),
         ], $this->owner);
         app(RecordSale::class)->handle($this->owner->bakery, null, Sale::TYPE_CASH, [
-            'kg_amount' => '4', 'payment_status' => Sale::STATUS_PAID, 'sale_date' => today()->toDateString(),
+            'kg_amount' => '4', 'payment_status' => Sale::STATUS_PAID, 'sale_date' => local_today()->toDateString(),
         ], $this->owner);
-        app(RecordCustomerPayment::class)->handle($customer, ['amount' => '50', 'payment_date' => today()->toDateString()], $this->owner);
+        app(RecordCustomerPayment::class)->handle($customer, ['amount' => '50', 'payment_date' => local_today()->toDateString()], $this->owner);
     }
 
     public function test_customers_list_has_both_balances_with_display_texts(): void

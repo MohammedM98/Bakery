@@ -155,7 +155,7 @@ class SyncController extends Controller
     /** @return array{0: int, 1: string, 2: bool} version since, history floor (Y-m-d), whether this is a full pull */
     private function cursor(mixed $cursor, string $hash): array
     {
-        $fresh = [0, today()->subDays(self::HISTORY_DAYS)->toDateString(), true];
+        $fresh = [0, local_today()->subDays(self::HISTORY_DAYS)->toDateString(), true];
 
         if ($cursor === null || $cursor === '') {
             return $fresh;

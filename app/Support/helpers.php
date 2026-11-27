@@ -1,5 +1,18 @@
 <?php
 
+use Illuminate\Support\Carbon;
+
+if (! function_exists('local_today')) {
+    /**
+     * Today's date in the bakery's time zone (app.local_timezone), as midnight in app.timezone so it
+     * compares with date columns: a sale at 01:00 Palestine time belongs to that day, not the UTC one.
+     */
+    function local_today(): Carbon
+    {
+        return Carbon::parse(now(config('app.local_timezone'))->toDateString());
+    }
+}
+
 if (! function_exists('money')) {
     /**
      * Format a monetary amount in shekels: "1,234.50 شيكل". A negative number is wrapped in a

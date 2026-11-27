@@ -46,7 +46,7 @@ class SalesLogTest extends TestCase
     {
         $customer = $owner->bakery->customers()->create(['name' => 'أحمد', 'mobile_number' => '0591111111']);
         $bank = $owner->bakery->banks()->create(['name' => 'جوال باي']);
-        $today = now()->toDateString();
+        $today = local_today()->toDateString();
 
         $this->record($owner, 'panel.sales.store', ['kg_amount' => '4', 'payment_status' => 'paid', 'sale_date' => $today, 'buyer_name' => 'سامي']);
         $this->record($owner, 'panel.sales.store', ['kg_amount' => '2', 'payment_status' => 'paid', 'sale_date' => '2026-11-25']);

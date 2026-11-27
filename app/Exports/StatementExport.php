@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Http\Controllers\Owner\SalesLogController;
 use App\Models\Customer;
 use App\Models\Movement;
 use Mpdf\Config\ConfigVariables;
@@ -30,7 +29,7 @@ class StatementExport
     public function filename(string $extension): string
     {
         $type = $this->money() ? 'كشف-مالي' : 'كشف-طحين';
-        $period = ($this->from ?? 'البداية').'_'.($this->to ?? now()->toDateString());
+        $period = ($this->from ?? 'البداية').'_'.($this->to ?? local_today()->toDateString());
 
         return str_replace(['/', '\\', ' '], '-', "{$type}-{$this->customer->name}-{$period}.{$extension}");
     }
@@ -51,7 +50,7 @@ class StatementExport
                 (bool) $this->to => 'حتى '.$date($this->to),
                 default => 'كل الحركات',
             },
-            'تاريخ الإصدار' => now(SalesLogController::LOCAL_TIMEZONE)->format('d/m/Y H:i'),
+            'تاريخ الإصدار' => now(config('app.local_timezone'))->format('d/m/Y H:i'),
         ];
     }
 

@@ -63,7 +63,7 @@ class CustomerAccountTest extends TestCase
     {
         $owner = $this->owner();
         $customer = $this->customer($owner, 12.5);
-        $this->breadForFlour($owner, $customer, '2', 'unpaid', now()->toDateString());
+        $this->breadForFlour($owner, $customer, '2', 'unpaid', local_today()->toDateString());
 
         $this->actingAs($owner)
             ->get(route('panel.customers.show', $customer))
@@ -72,7 +72,7 @@ class CustomerAccountTest extends TestCase
                 ->component('Owner/Customers/Show')
                 ->where('customer.flour_balance_kg', '-10.50')
                 ->where('customer.money_balance', '3.00')
-                ->where('range', ['from' => now()->startOfMonth()->toDateString(), 'to' => now()->toDateString()])
+                ->where('range', ['from' => now()->startOfMonth()->toDateString(), 'to' => local_today()->toDateString()])
                 ->where('flourStatement.opening', '0.00')
                 ->where('flourStatement.rows.0.description', 'رصيد افتتاحي')
                 ->where('flourStatement.rows.0.credit', '12.50')
@@ -294,7 +294,7 @@ class CustomerAccountTest extends TestCase
 
         $this->actingAs($owner)
             ->get(route('panel.customers.show', [$customer, 'from' => '2026-02-31', 'to' => 'x']))
-            ->assertInertia(fn (Assert $page) => $page->where('range', ['from' => now()->startOfMonth()->toDateString(), 'to' => now()->toDateString()]));
+            ->assertInertia(fn (Assert $page) => $page->where('range', ['from' => now()->startOfMonth()->toDateString(), 'to' => local_today()->toDateString()]));
     }
 
     public function test_payment_validation_failure(): void

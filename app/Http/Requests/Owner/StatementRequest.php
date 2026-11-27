@@ -28,8 +28,8 @@ class StatementRequest extends FormRequest
         $explicit = fn (string $key) => $this->has($key) && in_array($this->query($key), [null, ''], true) || $valid($this->query($key));
 
         return [
-            'from' => $explicit('from') ? $date('from') : now()->startOfMonth()->toDateString(),
-            'to' => $explicit('to') ? $date('to') : now()->toDateString(),
+            'from' => $explicit('from') ? $date('from') : local_today()->startOfMonth()->toDateString(),
+            'to' => $explicit('to') ? $date('to') : local_today()->toDateString(),
         ];
     }
 }

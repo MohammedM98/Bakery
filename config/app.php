@@ -67,6 +67,9 @@ return [
 
     'timezone' => 'UTC',
 
+    // The bakery's calendar day ("today", sale dates, periods); timestamps stay stored in UTC.
+    'local_timezone' => env('APP_LOCAL_TIMEZONE', 'Asia/Hebron'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

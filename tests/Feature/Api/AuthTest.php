@@ -119,7 +119,7 @@ class AuthTest extends TestCase
         $this->login($owner->email)->assertOk()->assertJsonPath('subscription.active', false);
 
         $this->as($owner)->api('GET', 'customers')->assertStatus(403)->assertJsonPath('code', 'subscription_expired');
-        $this->api('POST', 'sales', ['client_uuid' => $this->uuid(), 'kg_amount' => 1, 'payment_status' => 'paid', 'sale_date' => today()->toDateString()])
+        $this->api('POST', 'sales', ['client_uuid' => $this->uuid(), 'kg_amount' => 1, 'payment_status' => 'paid', 'sale_date' => local_today()->toDateString()])
             ->assertStatus(403)->assertJsonPath('code', 'subscription_expired');
 
         $owner->bakery->update(['subscription_status' => Bakery::STATUS_INACTIVE, 'subscription_expires_at' => now()->addMonth()]);
