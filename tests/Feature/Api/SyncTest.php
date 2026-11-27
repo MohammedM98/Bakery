@@ -146,10 +146,11 @@ class SyncTest extends TestCase
         $this->travelBack();
         $this->as($this->owner);
 
-        $this->assertSame(['rejected', 'accepted', 'accepted'], array_column($this->push([
+        $this->assertSame(['rejected', 'accepted', 'accepted', 'rejected'], array_column($this->push([
             $sale('7', now()->toIso8601String()),                  // replaced 16 days ago: too stale
             $sale('8', now()->toIso8601String()),
-            $sale('7', now()->subDays(17)->toIso8601String()),     // a sale queued back then
+            $sale('8', now()->subDays(13)->toIso8601String()),     // queued 13 days ago, the price then
+            $sale('7', now()->subDays(17)->toIso8601String()),     // claims to be older than the window: not trusted
         ]), 'status'));
     }
 

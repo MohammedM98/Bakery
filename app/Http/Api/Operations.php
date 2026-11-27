@@ -269,6 +269,13 @@ class Operations
         $cents = Movement::cents($input['price_per_kg']);
         $column = $type === 'flour_sale' ? 'flour_exchange_fee_per_kg' : 'regular_price_per_kg';
         $at = $at->copy()->utc();
+        $refuse = fn () => throw new ApiException('price_mismatch', 'السعر الذي استخدمه الجهاز لم يكن من أسعار المخبز في وقت العملية.', 422);
+
+        // client_created_at comes from the device: older than the stale window, it could pick any past price.
+        // And 0 only when it is the price now (a history row may hold 0 in its other column).
+        if ($at->lt(now()->subDays(self::STALE_PRICE_DAYS)) || ($cents === 0 && Movement::cents($bakery->{$column}) !== 0)) {
+            $refuse();
+        }
         $history = DB::table('bakery_prices')->where('bakery_id', $bakery->id)
             ->where('effective_from', '<=', $at->copy()->addMinutes(self::CLOCK_SKEW_MINUTES)->toDateTimeString())
             ->orderBy('effective_from')->orderBy('id')
@@ -279,8 +286,7 @@ class Operations
         $known = $history->contains(fn ($row, int $i) => Movement::cents($row->{$column}) === $cents
             && (! isset($history[$i + 1]) || $history[$i + 1]->effective_from > $oldest));
 
-        return $known ? Movement::decimal($cents)
-            : throw new ApiException('price_mismatch', 'السعر الذي استخدمه الجهاز لم يكن من أسعار المخبز في وقت العملية.', 422);
+        return $known ? Movement::decimal($cents) : $refuse();
     }
 
     /**
