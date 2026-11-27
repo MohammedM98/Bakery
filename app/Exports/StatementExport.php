@@ -95,7 +95,7 @@ class StatementExport
         ];
     }
 
-    /** A4, right to left, Cairo embedded; mPDF shapes the Arabic letters (OTL). */
+    /** A4, right to left, IBM Plex Sans Arabic embedded (as in the app); mPDF shapes the Arabic letters (OTL). */
     public function pdf(): string
     {
         $fontDirs = (new ConfigVariables)->getDefaults()['fontDir'];
@@ -108,10 +108,10 @@ class StatementExport
             'tempDir' => storage_path('framework/cache/mpdf'),
             'fontDir' => [...$fontDirs, resource_path('fonts')],
             'fontdata' => $fontData + [
-                'cairo' => ['R' => 'Cairo-Regular.ttf', 'B' => 'Cairo-SemiBold.ttf', 'useOTL' => 0xFF, 'useKashida' => 75],
+                'plex' => ['R' => 'IBMPlexSansArabic-Regular.ttf', 'B' => 'IBMPlexSansArabic-SemiBold.ttf', 'useOTL' => 0xFF, 'useKashida' => 75],
             ],
-            'default_font' => 'cairo',
-            // ₪ and ← are not in Cairo: mPDF takes them from its bundled DejaVu font.
+            'default_font' => 'plex',
+            // Characters missing from the font (← in the transfer column) come from mPDF's bundled DejaVu.
             'useSubstitutions' => true,
             'margin_left' => 12,
             'margin_right' => 12,
@@ -154,7 +154,7 @@ class StatementExport
         $headerRow = $row++;
 
         $numeric = $this->numericColumns();
-        $format = $this->money() ? '#,##0.00 "₪";-#,##0.00 "₪"' : '#,##0.00';
+        $format = $this->money() ? '#,##0.00 "شيكل";-#,##0.00 "شيكل"' : '#,##0.00';
         foreach ($this->rawLines() as $line) {
             foreach ($line['cells'] as $i => $value) {
                 if ($value === null || $value === '') {

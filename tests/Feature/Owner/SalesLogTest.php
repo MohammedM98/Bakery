@@ -39,8 +39,8 @@ class SalesLogTest extends TestCase
     }
 
     /**
-     * Today: a paid walk-in cash sale of 4 kg (20 ₪), 10 kg of bread for flour (15 ₪ fee, unpaid),
-     * a 30 kg flour deposit and a 15 ₪ transfer payment. Yesterday: a 2 kg paid walk-in sale.
+     * Today: a paid walk-in cash sale of 4 kg (20 شيكل), 10 kg of bread for flour (15 شيكل fee, unpaid),
+     * a 30 kg flour deposit and a 15 شيكل transfer payment. Yesterday: a 2 kg paid walk-in sale.
      */
     private function activity(User $owner): Customer
     {
@@ -157,7 +157,7 @@ class SalesLogTest extends TestCase
         // Customers' flour: every debit is bread taken against flour, every credit a deposit.
         $this->assertEquals($sum('flour', 'debit'), (float) $summary['flour_spent_kg']);
         $this->assertEquals($sum('flour', 'credit'), (float) $summary['flour_received_kg']);
-        // Customers' money credits are all payments; the walk-in cash sales (20 + 10 ₪) are on top.
+        // Customers' money credits are all payments; the walk-in cash sales (20 + 10 شيكل) are on top.
         $this->assertEquals($sum('money', 'credit') + 30, (float) $summary['money_received']);
         $this->assertSame('61.75', $summary['money_received']); // 30 walk-in + 15 transfer + 4.50 paid fee + 12.25
     }

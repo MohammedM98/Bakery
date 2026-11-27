@@ -30,7 +30,7 @@ interface Customer {
     notes: string | null;
     /** Positive = عليه, negative = له (kg). */
     flour_balance_kg: string;
-    /** Positive = عليه, negative = له (₪). */
+    /** Positive = عليه, negative = له (شيكل). */
     money_balance: string;
 }
 

@@ -27,7 +27,7 @@ class StatementExportTest extends TestCase
         return User::factory()->create(['role' => User::ROLE_BAKERY_OWNER, 'bakery_id' => $bakery->id, 'name' => 'أبو محمد']);
     }
 
-    /** 12.5 kg opening credit on 2026-10-15, then 20 kg of bread on 2026-11-20 (unpaid fee 30 ₪) and a 10 ₪ transfer. */
+    /** 12.5 kg opening credit on 2026-10-15, then 20 kg of bread on 2026-11-20 (unpaid fee 30 شيكل) and a 10 شيكل transfer. */
     private function customer(User $owner): Customer
     {
         $this->travelTo('2026-10-15 09:00');

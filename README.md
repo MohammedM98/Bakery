@@ -25,8 +25,8 @@
 ## البنية التقنية
 
 - **الخلفية:** Laravel 13، PHP 8.3+. MySQL أو PostgreSQL في الإنتاج، و SQLite محليًا وفي الاختبارات.
-- **الواجهة:** React 19 + TypeScript عبر Inertia.js، مع Tailwind CSS 4 و Vite ومكوّنات shadcn/ui (RTL)، وخط Cairo.
-- **التصدير:** mPDF (عربي RTL بخط Cairo المضمَّن في `resources/fonts`) و PhpSpreadsheet.
+- **الواجهة:** React 19 + TypeScript عبر Inertia.js، مع Tailwind CSS 4 و Vite ومكوّنات shadcn/ui (RTL)، وخط IBM Plex Sans Arabic.
+- **التصدير:** mPDF (عربي RTL بخط IBM Plex Sans Arabic المضمَّن في `resources/fonts`) و PhpSpreadsheet.
 - **الأدوار والصلاحيات:** Middleware باسم `role`، ثم `subscription.active` للوحة المخبز، ثم بوابة `can:<permission>` لكل مسار (`app/Providers/AppServiceProvider.php`، وقائمة الصلاحيات في `User::PERMISSIONS`).
 - **التعليمات الملزمة للتطوير** في `CLAUDE.md`.
 

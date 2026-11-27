@@ -80,7 +80,7 @@ class CustomerAccountTest extends TestCase
                 ->where('flourStatement.rows.1.debit', '2.00')
                 ->where('flourStatement.rows.1.balance', '-10.50')
                 ->where('flourStatement.closing', '-10.50')
-                ->where('moneyStatement.rows.0.description', 'رسم تبديل طحين 2 كغ × 1.50 ₪')
+                ->where('moneyStatement.rows.0.description', 'رسم تبديل طحين 2 كغ × 1.50 شيكل')
                 ->where('moneyStatement.rows.0.number', 3)
                 ->where('moneyStatement.rows.0.recorded_by', $owner->name)
                 ->where('moneyStatement.rows.0.transfer', null)

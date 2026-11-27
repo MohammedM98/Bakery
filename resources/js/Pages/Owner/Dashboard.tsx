@@ -1,6 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { ArrowLeftRight, Banknote, BookOpen, History, Plus, Scale, ShoppingBag, Wheat, type LucideIcon } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Area, AreaChart, Bar, BarChart, Cell, LabelList, PolarAngleAxis, RadialBar, RadialBarChart, ReferenceDot, ReferenceLine, XAxis, YAxis } from 'recharts';
 import { DepositDialog } from '@/components/deposit-dialog';
 import { EmptyState } from '@/components/empty-state';
@@ -76,24 +76,28 @@ function Head({ title, children }: { title: string; children?: ReactNode }) {
 
 function Amount({ row }: { row: Recent }) {
     const n = Number(row.amount);
-    if (row.type === 'payment') return <span className="text-success tabular-nums" dir="ltr">+{formatMoney(-n)}</span>;
-    if (row.type === 'sale' || row.type === 'flour_withdrawal') return <span className="tabular-nums" dir="ltr">{formatMoney(n)}</span>;
+    if (row.type === 'payment') return <span className="text-success tabular-nums">{formatMoney(-n, { plus: true })}</span>;
+    if (row.type === 'sale' || row.type === 'flour_withdrawal') return <span className="tabular-nums">{formatMoney(n)}</span>;
     if (row.ledger === 'flour') return <span className="tabular-nums">{formatFlourBalance(n)}</span>;
     return (
         <span className="whitespace-nowrap tabular-nums">
-            {n > 0 ? 'عليه' : 'له'} <span dir="ltr">{formatMoney(Math.abs(n))}</span>
+            {n > 0 ? 'عليه' : 'له'} {formatMoney(Math.abs(n))}
         </span>
     );
 }
 
-/** The small dark tag above the current value in both charts. */
+/** The small dark tag above the current value in both charts, sized to its text and kept inside the chart. */
 function Tag({ x, y, text, center = false }: { x: number; y: number; text: string; center?: boolean }) {
-    const w = text.length * 6.5 + 18;
-    const left = center ? x - w / 2 : x - 4;
+    const ref = useRef<SVGTextElement>(null);
+    const [w, setW] = useState(text.length * 7 + 18);
+    useLayoutEffect(() => {
+        if (ref.current) setW(ref.current.getComputedTextLength() + 18);
+    }, [text]);
+    const left = Math.max(0, center ? x - w / 2 : x - 4);
     return (
         <g>
             <rect x={left} y={y - 30} width={w} height={22} rx={7} className="fill-foreground" />
-            <text x={left + w / 2} y={y - 15} textAnchor="middle" className="fill-background text-xs font-semibold">
+            <text ref={ref} x={left + w / 2} y={y - 15} textAnchor="middle" className="fill-background text-xs font-semibold">
                 {text}
             </text>
         </g>
@@ -211,7 +215,7 @@ export default function Dashboard({ period, rangeLabel, bread, takings, recent, 
                         </div>
                     </div>
                     <div className="mt-3.5 mb-1 text-center">
-                        <b className="block text-[32px] font-semibold tabular-nums" dir="ltr">
+                        <b className="block text-[32px] font-semibold tabular-nums">
                             {formatMoney(takings.received)}
                         </b>
                         <span className="text-sm text-muted-foreground">دخل فعلًا</span>
@@ -226,7 +230,7 @@ export default function Dashboard({ period, rangeLabel, bread, takings, recent, 
                             <li key={label} className="flex items-center gap-2.5 text-sm">
                                 <span className={cn('size-2.5 shrink-0 rounded', color)} />
                                 {label}
-                                <span className={cn('ms-auto font-medium tabular-nums', text)} dir="ltr">
+                                <span className={cn('ms-auto font-medium tabular-nums', text)}>
                                     {formatMoney(value)}
                                 </span>
                             </li>

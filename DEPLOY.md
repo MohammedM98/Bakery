@@ -9,7 +9,7 @@
 1. مرحلة Node 22: `npm ci` ثم `npm run build` (Vite يبني React و TypeScript و Tailwind إلى `public/build`).
 2. مرحلة PHP 8.4: إضافات `pdo_pgsql` و `pdo_mysql` و `gd` و `zip` و `opcache` (و `mbstring` و `xml` و `dom` موجودة في الصورة الأساسية) — يحتاجها mPDF و PhpSpreadsheet لتصدير الكشوف.
 3. `composer install --no-dev`، ونسخ الواجهة المبنية، وإنشاء `storage/framework/cache/mpdf` (مجلد mPDF المؤقت) وجعل `storage` و `bootstrap/cache` قابلين للكتابة.
-4. خط Cairo لملفات PDF يأتي من `resources/fonts` داخل المستودع، فلا يحتاج تنزيلًا.
+4. خط IBM Plex Sans Arabic لملفات PDF يأتي من `resources/fonts` داخل المستودع، فلا يحتاج تنزيلًا.
 
 **عند التشغيل** (`docker-entrypoint.sh`):
 

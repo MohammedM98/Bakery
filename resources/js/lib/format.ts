@@ -1,9 +1,14 @@
 const moneyFormatter = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const kgFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 3 });
 
-/** Mirrors PHP money(): number_format($amount, 2).' ₪' → "1,234.50 ₪". */
-export function formatMoney(amount: number | string | null | undefined): string {
-    return `${moneyFormatter.format(Number(amount ?? 0) || 0)} ₪`;
+/**
+ * Mirrors PHP money(): "1,234.50 شيكل". A negative number (or one with `plus`) sits in a left-to-right
+ * isolate so the sign stays on its left inside Arabic text: "-50.00 شيكل", "+90.00 شيكل".
+ */
+export function formatMoney(amount: number | string | null | undefined, { plus = false } = {}): string {
+    const n = Number(amount ?? 0) || 0;
+    const number = `${plus && n > 0 ? '+' : ''}${moneyFormatter.format(n)}`;
+    return `${n < 0 || plus ? `\u2066${number}\u2069` : number} شيكل`;
 }
 
 /** "12.5 كغ" with Latin digits. */

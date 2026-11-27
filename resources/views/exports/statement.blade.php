@@ -3,17 +3,17 @@
 <head>
     <meta charset="utf-8">
     <style>
-        body { font-family: cairo; font-size: 9.5pt; color: #3b2a1e; }
+        body { font-family: plex; font-size: 9.5pt; color: #18202b; }
         h1 { font-size: 15pt; font-weight: bold; margin: 0 0 2mm; }
         .meta { width: 100%; margin-bottom: 5mm; border-collapse: collapse; }
         .meta td { padding: 0.6mm 0; vertical-align: top; }
-        .meta .label { color: #7a6656; width: 24mm; }
+        .meta .label { color: #6b7685; width: 24mm; }
         table.rows { width: 100%; border-collapse: collapse; }
-        table.rows th { background: #f1e7d6; font-weight: bold; text-align: right; padding: 2mm 1.6mm; border-bottom: 0.3mm solid #c9b394; }
-        table.rows td { padding: 1.6mm; border-bottom: 0.2mm solid #e6dccd; vertical-align: top; }
-        table.rows tr.total td { background: #f7f1e7; font-weight: bold; }
+        table.rows th { background: #f3f5f8; font-weight: bold; text-align: right; padding: 2mm 1.6mm; border-bottom: 0.3mm solid #dde3ea; }
+        table.rows td { padding: 1.6mm; border-bottom: 0.2mm solid #e5e9ef; vertical-align: top; }
+        table.rows tr.total td { background: #f3f5f8; font-weight: bold; }
         .num, table.rows th.num { text-align: left; white-space: nowrap; }
-        .muted { color: #7a6656; }
+        .muted { color: #6b7685; }
     </style>
 </head>
 <body>
@@ -41,8 +41,12 @@
                 <tr @class(['total' => $line['total']])>
                     @foreach ($line['cells'] as $i => $cell)
                         @if (in_array($i, $numeric, true))
-                            {{-- Money: left-to-right isolate so it reads "-50.00 ₪" as on screen. Flour words stay right to left. --}}
-                            <td class="num">{{ $money && $cell !== '' ? "\u{2066}{$cell}\u{2069}" : $cell }}</td>
+                            {{-- mPDF ignores the isolate marks money() puts around a negative number: a bdo keeps "-50.00 شيكل" as on screen. --}}
+                            @if (preg_match('/^\x{2066}(.+)\x{2069} (.+)$/u', $cell, $m))
+                                <td class="num"><bdo dir="ltr">{{ $m[1] }}</bdo> {{ $m[2] }}</td>
+                            @else
+                                <td class="num">{{ $cell }}</td>
+                            @endif
                         @else
                             <td>{!! nl2br(e($cell)) !!}</td>
                         @endif

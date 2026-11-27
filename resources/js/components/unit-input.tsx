@@ -14,7 +14,7 @@ function UnitInput({ unit, className, ...props }: Props & { unit: string }) {
                 min="0"
                 step="0.01"
                 dir="ltr"
-                className={cn('h-11 pe-3 ps-12 text-end tabular-nums', className)}
+                className={cn('h-11 pe-3 ps-16 text-end tabular-nums', className)}
                 {...props}
             />
             <span className="pointer-events-none absolute inset-y-0 end-0 flex items-center pe-4 text-sm text-muted-foreground" aria-hidden>
@@ -26,7 +26,7 @@ function UnitInput({ unit, className, ...props }: Props & { unit: string }) {
 
 /** Amount in shekels. */
 export function MoneyInput(props: Props) {
-    return <UnitInput unit="₪" {...props} />;
+    return <UnitInput unit="شيكل" {...props} />;
 }
 
 /** Quantity in kilograms. */

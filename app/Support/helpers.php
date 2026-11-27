@@ -2,11 +2,14 @@
 
 if (! function_exists('money')) {
     /**
-     * Format a monetary amount for display in Israeli Shekels (₪).
+     * Format a monetary amount in shekels: "1,234.50 شيكل". A negative number is wrapped in a
+     * left-to-right isolate so its minus stays on the left inside Arabic text ("-50.00 شيكل").
      */
     function money(float|int|string|null $amount): string
     {
-        return number_format((float) $amount, 2).' ₪';
+        $number = number_format((float) $amount, 2);
+
+        return ((float) $amount < 0 ? "\u{2066}{$number}\u{2069}" : $number).' شيكل';
     }
 }
 

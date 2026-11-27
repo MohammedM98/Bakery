@@ -107,9 +107,25 @@ class LedgerTest extends TestCase
         $this->actingAs($owner)->post(route('panel.sales.store'), ['kg_amount' => '2', 'payment_status' => 'unpaid', 'sale_date' => '2026-11-20', 'submission_id' => fake()->uuid()]);
 
         $this->assertSame(
-            [[null, 'sale', '12.00', 'خبز 3 كغ × 4.00 ₪'], [null, 'payment', '-12.00', 'دفعة عن بيع 20/11/2026'], [null, 'sale', '8.00', 'خبز 2 كغ × 4.00 ₪']],
+            [[null, 'sale', '12.00', 'خبز 3 كغ × 4.00 شيكل'], [null, 'payment', '-12.00', 'دفعة عن بيع 20/11/2026'], [null, 'sale', '8.00', 'خبز 2 كغ × 4.00 شيكل']],
             Movement::orderBy('number')->get()->map(fn ($m) => [$m->customer_id, $m->type, $m->amount, $m->description])->all(),
         );
+    }
+
+    public function test_the_currency_migration_rewrites_only_the_symbol_in_descriptions(): void
+    {
+        $owner = $this->owner();
+        $this->actingAs($owner)->post(route('panel.sales.store'), ['kg_amount' => '3', 'payment_status' => 'unpaid', 'sale_date' => '2026-11-20', 'submission_id' => fake()->uuid()]);
+        $movement = Movement::firstOrFail();
+        // As stored before the currency was written as a word.
+        $movement->forceFill(['description' => 'خبز 3 كغ × 4.00 ₪', 'note' => 'ملاحظة ₪'])->save();
+
+        (require database_path('migrations/2026_11_29_000001_write_shekel_in_movement_descriptions.php'))->up();
+
+        $movement->refresh();
+        $this->assertSame('خبز 3 كغ × 4.00 شيكل', $movement->description);
+        $this->assertSame('ملاحظة ₪', $movement->note);
+        $this->assertSame('12.00', $movement->amount);
     }
 
     public function test_mark_paid_writes_one_payment_movement_for_what_was_left(): void
