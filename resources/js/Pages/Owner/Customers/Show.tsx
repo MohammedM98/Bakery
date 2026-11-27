@@ -428,12 +428,12 @@ export default function Show({ customer, flourExchangeFee, range, moneyStatement
                         <div className="flex flex-wrap gap-x-10 gap-y-4">
                             <div className="min-w-0">
                                 <span className="block text-[15px] text-hero-muted">الرصيد المالي</span>
-                                <MoneyBalance plain amount={customer.money_balance} className="mt-1 inline-block text-3xl font-semibold whitespace-nowrap sm:text-4xl" />
+                                <MoneyBalance plain amount={customer.money_balance} className="mt-1 inline-block text-2xl font-semibold whitespace-nowrap min-[400px]:text-3xl sm:text-4xl" />
                                 <span className="block text-sm text-hero-muted">{Number(customer.money_balance) > 0 ? 'عليه' : Number(customer.money_balance) < 0 ? 'له' : 'لا شيء'}</span>
                             </div>
                             <div className="min-w-0">
                                 <span className="block text-[15px] text-hero-muted">رصيد الطحين</span>
-                                <FlourBalance plain kg={customer.flour_balance_kg} className="mt-1 block text-3xl font-semibold whitespace-nowrap sm:text-4xl" />
+                                <FlourBalance plain kg={customer.flour_balance_kg} className="mt-1 block text-2xl font-semibold whitespace-nowrap min-[400px]:text-3xl sm:text-4xl" />
                             </div>
                         </div>
                         <div className="relative z-10 mt-auto grid grid-cols-2 gap-2.5 pt-[22px] empty:hidden sm:flex sm:flex-wrap">

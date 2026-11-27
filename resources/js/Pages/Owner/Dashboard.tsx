@@ -91,7 +91,10 @@ function Tag({ x, y, text, center = false }: { x: number; y: number; text: strin
     const ref = useRef<SVGTextElement>(null);
     const [w, setW] = useState(text.length * 7 + 18);
     useLayoutEffect(() => {
-        if (ref.current) setW(ref.current.getComputedTextLength() + 18);
+        const measure = () => ref.current && setW(ref.current.getComputedTextLength() + 18);
+        measure();
+        // Measure again once the web font has loaded: the fallback font has other widths.
+        document.fonts?.ready.then(measure);
     }, [text]);
     const left = Math.max(0, center ? x - w / 2 : x - 4);
     return (

@@ -13,7 +13,6 @@ export function PasswordInput({ className, ...props }: Omit<ComponentProps<typeo
                 type="button"
                 onClick={() => setShown((s) => !s)}
                 aria-label={shown ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
-                aria-pressed={shown}
                 className="absolute inset-y-0 end-0 flex w-11 items-center justify-center rounded-lg text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
             >
                 {shown ? <EyeOff className="size-4" aria-hidden /> : <Eye className="size-4" aria-hidden />}
