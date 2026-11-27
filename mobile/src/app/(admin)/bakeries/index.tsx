@@ -20,7 +20,22 @@ export default function Bakeries() {
   const sheets = useSheets();
   const [q, setQ] = React.useState('');
   const remote = useRemote<Paged<ApiBakery>>('admin/bakeries');
-  const all = remote.data?.data ?? [];
+  // The API pages by 15: fetch the rest so the list and the search cover every bakery.
+  const [rest, setRest] = React.useState<{ first: ApiBakery[]; rows: ApiBakery[] } | null>(null);
+  const first = remote.data?.data;
+  const last = remote.data?.meta.last_page ?? 1;
+  const { call } = app;
+  React.useEffect(() => {
+    if (!first || last < 2) return;
+    let live = true;
+    Promise.all(Array.from({ length: last - 1 }, (_, i) => call<Paged<ApiBakery>>('GET', `admin/bakeries?page=${i + 2}`))).then((pages) => {
+      if (live) setRest({ first, rows: pages.flatMap((r) => (r.ok ? r.data!.data : [])) });
+    });
+    return () => {
+      live = false;
+    };
+  }, [first, last, call]);
+  const all = [...(first ?? []), ...(rest && rest.first === first ? rest.rows : [])];
   const list = all.filter((b) => !q.trim() || b.name.includes(q.trim()));
   const n = remote.data?.meta.total ?? 0;
   return (

@@ -73,22 +73,23 @@ function op(c: Ctx, type: OfflineType, payload: Record<string, unknown>, title: 
 }
 
 /** The website's cash sale: by the kilo, to a walk-in buyer (an optional name), at the last price the phone got. */
-export function sale(c: Ctx, i: { kg: number; paid: boolean; buyerName: string; price: string }): Built {
+/** `price` null: sent online, the server applies its current price. */
+export function sale(c: Ctx, i: { kg: number; paid: boolean; buyerName: string; price: string | null }): Built {
   return {
-    op: op(c, 'sale', { kg_amount: dec(i.kg), payment_status: i.paid ? 'paid' : 'unpaid', sale_date: c.today, buyer_name: i.buyerName.trim() || null, price_per_kg: i.price }, `بيع عادي، ${formatKg(i.kg)}`, i.buyerName.trim() || 'مشترٍ عابر'),
+    op: op(c, 'sale', { kg_amount: dec(i.kg), payment_status: i.paid ? 'paid' : 'unpaid', sale_date: c.today, buyer_name: i.buyerName.trim() || null, ...(i.price != null ? { price_per_kg: i.price } : {}) }, `بيع عادي، ${formatKg(i.kg)}`, i.buyerName.trim() || 'مشترٍ عابر'),
     // Walk-in movements are not kept on the phone (no statement); the queue shows the sale.
     movements: [],
   };
 }
 
-export function flourSale(c: Ctx, i: { customerId: number; kg: number; paid: boolean; fee: string }): Built {
-  const fee = Math.round(toCents(i.fee) * i.kg);
+export function flourSale(c: Ctx, i: { customerId: number; kg: number; paid: boolean; fee: string | null; shownFee?: string }): Built {
+  const fee = Math.round(toCents(i.fee ?? i.shownFee ?? 0) * i.kg);
   const kg = toCents(i.kg);
   return {
-    op: op(c, 'flour_sale', { ...customerRef(c, i.customerId), kg_amount: dec(i.kg), payment_status: i.paid ? 'paid' : 'unpaid', sale_date: c.today, price_per_kg: i.fee }, `خبز مقابل طحين، ${formatKg(i.kg)}`, nameOf(c, i.customerId)),
+    op: op(c, 'flour_sale', { ...customerRef(c, i.customerId), kg_amount: dec(i.kg), payment_status: i.paid ? 'paid' : 'unpaid', sale_date: c.today, ...(i.fee != null ? { price_per_kg: i.fee } : {}) }, `خبز مقابل طحين، ${formatKg(i.kg)}`, nameOf(c, i.customerId)),
     movements: [
       mv(c, i.customerId, 'flour', 'flour_withdrawal', kg, `خبز مقابل طحين ${kgNum(i.kg)} كغ`),
-      ...(fee > 0 ? [mv(c, i.customerId, 'money', 'exchange_fee', fee, `رسم تبديل طحين ${kgNum(i.kg)} كغ × ${formatMoney(i.fee)}`)] : []),
+      ...(fee > 0 ? [mv(c, i.customerId, 'money', 'exchange_fee', fee, `رسم تبديل طحين ${kgNum(i.kg)} كغ × ${formatMoney(i.fee ?? i.shownFee ?? 0)}`)] : []),
       ...(i.paid && fee > 0 ? [mv(c, i.customerId, 'money', 'payment', -fee, `دفعة عن بيع ${formatDate(c.today)}`, { transfer: 'نقدًا' })] : []),
     ],
   };

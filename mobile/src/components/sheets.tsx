@@ -94,9 +94,15 @@ export function SheetHost({ children }: { children: React.ReactNode }) {
 function useSaved() {
   const toast = useToast();
   const print = usePrint();
+  const { state } = useApp();
   return (r: OpResult & { ok: true }, title: string, body?: string) =>
     r.queued
-      ? toast({ kind: 'offline', title: 'حُفظ دون إنترنت', body: `${title}. سيُرسل عند الاتصال`, action: { label: 'المزامنة', onPress: () => router.push('/more/sync') } })
+      ? toast({
+          kind: 'offline',
+          title: state.online ? 'حُفظ وسيُرسل لاحقًا' : 'حُفظ دون إنترنت',
+          body: state.online ? `${title}. تعذّر الإرسال الآن، ويُعاد تلقائيًا` : `${title}. سيُرسل عند الاتصال`,
+          action: { label: 'المزامنة', onPress: () => router.push('/more/sync') },
+        })
       : toast({ kind: 'success', title, body, ...(r.result?.movements?.length ? { action: { label: 'طباعة', onPress: () => print(r.result!) } } : {}) });
 }
 
@@ -189,7 +195,7 @@ function SaleSheet({ onClose }: { onClose: () => void }) {
   const save = async () => {
     const r = await app.recordSale({ buyerName: buyer, kg, paid: paid === 'paid' });
     if (!r.ok) return setError(r.error);
-    saved(r, 'تم تسجيل البيع', `${formatKg(kg)}، ${formatMoney(total / 100)}`);
+    saved(r, 'تم تسجيل البيع', `${formatKg(kg)}، ${(r.ok && r.result?.sale?.total_text) || formatMoney(total / 100)}`);
     onClose();
   };
 

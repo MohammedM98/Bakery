@@ -5,7 +5,7 @@ import { AppState as RNAppState, Platform } from 'react-native';
 
 import { API_URL, ApiError, createClient } from '@/api/client';
 import type { ApiCustomer, Ledger, Me, OperationResult, Permission } from '@/api/types';
-import { balances as computeBalances, dismiss, EMPTY, enqueue, historyFloor, retry, sync, type LocalData } from '@/sync/engine';
+import { afterLogin, balances as computeBalances, dismiss, EMPTY, enqueue, historyFloor, holdUnsent, retry, sync, type LocalData } from '@/sync/engine';
 import * as ops from '@/sync/operations';
 import { getToken, load, save, setToken } from '@/sync/storage';
 
@@ -57,11 +57,12 @@ function useAppModel() {
   }, []);
   const update = React.useCallback((f: (d: LocalData) => LocalData) => set(f(ref.current)), [set]);
 
+  /** `keep`: signed out by the server, so work not yet sent stays for the same user's next login. */
   const signOutLocally = React.useCallback(
-    async (reason: string | null) => {
+    async (reason: string | null, keep: boolean) => {
       currentToken = null;
       await setToken(null);
-      set(EMPTY);
+      set(keep ? holdUnsent(ref.current) : EMPTY);
       setSignedOutReason(reason);
     },
     [set],
@@ -71,7 +72,7 @@ function useAppModel() {
   const handle = React.useCallback(
     async (e: unknown): Promise<ApiError> => {
       const err = e instanceof ApiError ? e : new ApiError('server_error', String(e));
-      if (err.code === 'unauthenticated' || err.code === 'account_disabled') await signOutLocally(err.code === 'account_disabled' ? err.message : 'انتهت الجلسة. ادخل من جديد');
+      if (err.code === 'unauthenticated' || err.code === 'account_disabled') await signOutLocally(err.code === 'account_disabled' ? err.message : 'انتهت الجلسة. ادخل من جديد', true);
       else if (err.code === 'subscription_expired') {
         const me = await request<Me>('GET', 'me').catch(() => null);
         if (me) update((d) => ({ ...d, me }));
@@ -85,6 +86,8 @@ function useAppModel() {
   const call = React.useCallback(
     async <T,>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown): Promise<Result<T>> => {
       if (!onlineRef.current) return { ok: false, error: 'يحتاج إنترنت' };
+      // Not signed in, or the saved token is not read yet: a request now would be a 401 that signs out.
+      if (!currentToken) return { ok: false, error: 'سجّل الدخول أولًا' };
       try {
         return { ok: true, data: await request<T>(method, path, body) };
       } catch (e) {
@@ -100,6 +103,11 @@ function useAppModel() {
     const next = syncChain.current.then(async () => {
       if (!currentToken || !onlineRef.current) return { ok: false as const, error: new ApiError('network', 'لا يوجد اتصال بالإنترنت') };
       setSyncing(true);
+      // A token without its session (the app was closed during the login): fetch it, it tells the role.
+      if (!ref.current.me) {
+        const me = await request<Me>('GET', 'me').catch(() => null);
+        if (me) update((d) => ({ ...d, me }));
+      }
       // The platform owner keeps nothing offline: refreshing the session is the whole sync.
       const out =
         ref.current.me?.user.role === 'super_admin'
@@ -121,9 +129,9 @@ function useAppModel() {
     (async () => {
       const [saved, t] = await Promise.all([load(), getToken()]);
       currentToken = t;
-      ref.current = t ? saved : EMPTY;
-      // No token (signed out): nothing of the last user stays on the phone.
-      if (!t && saved !== EMPTY) writes.current = save(saved, EMPTY).catch(() => {});
+      ref.current = t || saved.heldFor ? saved : EMPTY;
+      // No token (signed out): nothing of the last user stays on the phone, except work held for their next login.
+      if (!t && !saved.heldFor && saved !== EMPTY) writes.current = save(saved, EMPTY).catch(() => {});
       setData(ref.current);
       setReady(true);
       if (t) runSync();
@@ -172,6 +180,11 @@ function useAppModel() {
     return { ok: true, queued: true };
   };
 
+  /**
+   * Offline, a sale keeps the last price the phone got (section 13). Online it is sent at once without one, so
+   * the server applies the current price, as for any direct request (the phone's copy may be minutes old).
+   */
+  const devicePrice = (price: string | undefined) => (onlineRef.current ? null : (price ?? '0.00'));
   const positive = (n: number, error: string) => (n > 0 && n <= 100000 ? null : { ok: false as const, error });
 
   return {
@@ -211,7 +224,7 @@ function useAppModel() {
         currentToken = t;
         await setToken(t);
         setSignedOutReason(null);
-        set({ ...EMPTY, me: meData });
+        set(afterLogin(ref.current, meData));
         if (meData.user.role !== 'super_admin') runSync();
         return { ok: true };
       } catch (e) {
@@ -225,16 +238,16 @@ function useAppModel() {
       const pending = ref.current.queue.filter((q) => q.status === 'pending').length;
       if (pending && !force) return { ok: false, pending };
       if (onlineRef.current) await request('POST', 'logout').catch(() => {});
-      await signOutLocally(null);
+      await signOutLocally(null, false);
       return { ok: true };
     },
 
     // ---- operations that work offline -------------------------------------------------------------
     recordSale(i: { kg: number; paid: boolean; buyerName: string }): Promise<OpResult> | OpResult {
-      return positive(i.kg, 'اكتب الكمية') ?? record(ops.sale(ctx(), { ...i, price: me?.prices?.regular_price_per_kg ?? '0.00' }));
+      return positive(i.kg, 'اكتب الكمية') ?? record(ops.sale(ctx(), { ...i, price: devicePrice(me?.prices?.regular_price_per_kg) }));
     },
     recordFlourSale(i: { customerId: number; kg: number; paid: boolean }): Promise<OpResult> | OpResult {
-      return positive(i.kg, 'اكتب الكمية') ?? record(ops.flourSale(ctx(), { ...i, fee: me?.prices?.flour_exchange_fee_per_kg ?? '0.00' }));
+      return positive(i.kg, 'اكتب الكمية') ?? record(ops.flourSale(ctx(), { ...i, fee: devicePrice(me?.prices?.flour_exchange_fee_per_kg), shownFee: me?.prices?.flour_exchange_fee_per_kg }));
     },
     recordDeposit(i: { customerId: number; kg: number; note: string }): Promise<OpResult> | OpResult {
       return positive(i.kg, 'اكتب الكمية') ?? record(ops.deposit(ctx(), i));
@@ -270,12 +283,17 @@ function useAppModel() {
       return r;
     },
     /** Changing the password revokes every token (User::updated), so the server hands this phone a new one. */
-    async changePassword(current: string, password: string): Promise<Result> {
-      const r = await call<{ token: string }>('PUT', 'password', { current_password: current, password, password_confirmation: password, device_name: `تطبيق المخبز (${Platform.OS})` });
-      if (!r.ok) return r;
-      currentToken = r.data!.token;
-      await setToken(r.data!.token);
-      return { ok: true };
+    // In the sync chain: a sync between the revocation and the new token would get 401 and sign out.
+    changePassword(current: string, password: string): Promise<Result> {
+      const run = syncChain.current.then(async (): Promise<Result> => {
+        const r = await call<{ token: string }>('PUT', 'password', { current_password: current, password, password_confirmation: password, device_name: `تطبيق المخبز (${Platform.OS})` });
+        if (!r.ok) return r;
+        currentToken = r.data!.token;
+        await setToken(r.data!.token);
+        return { ok: true };
+      });
+      syncChain.current = run.catch(() => {});
+      return run;
     },
     customer(id: number): ApiCustomer | undefined {
       return data.customers.find((c) => c.id === id);
@@ -306,11 +324,11 @@ export function useRemote<T>(path: string | null) {
   const cached = path ? (app.state.cache[path] as { at: string; data: T } | undefined) : undefined;
   const [error, setError] = React.useState<string | null>(null);
   const { call, setCache } = app;
-  const { online, lastSyncAt } = app.state;
+  const { online, lastSyncAt, ready } = app.state;
   const [tick, setTick] = React.useState(0);
 
   React.useEffect(() => {
-    if (!path || !online) return;
+    if (!path || !online || !ready) return;
     let live = true;
     call<T>('GET', path).then((r) => {
       if (!live) return;
@@ -324,7 +342,7 @@ export function useRemote<T>(path: string | null) {
     };
     // setCache changes every render; the cache is written, never read, here.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [path, online, lastSyncAt, tick, call]);
+  }, [path, online, ready, lastSyncAt, tick, call]);
 
   return { data: cached?.data ?? null, at: cached?.at ?? null, error, stale: !online && !!cached, reload: () => setTick((t) => t + 1) };
 }

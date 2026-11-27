@@ -25,9 +25,11 @@ export interface LocalData {
   queue: QueuedOperation[];
   /** Last answers of online-only reads (dashboard, sales, log...), shown offline with their time. */
   cache: Record<string, { at: string; data: unknown }>;
+  /** Signed out by the server with work not yet sent: whose it is, kept for that user's next login. */
+  heldFor: { id: number; email: string } | null;
 }
 
-export const EMPTY: LocalData = { me: null, cursor: null, lastSyncAt: null, customers: [], movements: [], banks: [], queue: [], cache: {} };
+export const EMPTY: LocalData = { me: null, cursor: null, lastSyncAt: null, customers: [], movements: [], banks: [], queue: [], cache: {}, heldFor: null };
 
 /** Most operations in one push (SyncController::BATCH). */
 export const BATCH = 100;
@@ -121,7 +123,8 @@ const waiting = (m: ApiMovement) => m.number == null;
 /** Applies one sync/pull page. */
 export function applyPull(d: LocalData, r: PullResponse, now: string): LocalData {
   const { cursor, has_more: _more, full, customers, movements, banks, deleted, ...me } = r;
-  let next: LocalData = { ...d, me, cursor, lastSyncAt: now };
+  // An expired bakery's answer echoes the cursor it got, "" on a first pull: that is still no copy.
+  let next: LocalData = { ...d, me, cursor: cursor || null, lastSyncAt: now };
   if (!me.subscription?.active) return next;
   if (full) {
     // Keep what waits for the server (and the customers it was recorded for); drop the rest of the copy.
@@ -139,6 +142,30 @@ export function applyPull(d: LocalData, r: PullResponse, now: string): LocalData
       .filter((b) => !deleted.banks.includes(b.id))
       .sort(byName),
   };
+}
+
+/**
+ * The server signed the user out (token revoked, account stopped) before the queue was sent: keep only what has
+ * not reached it (and the customers it was recorded for), so nothing is lost; afterLogin() hands it back.
+ */
+export function holdUnsent(d: LocalData): LocalData {
+  const unsent = d.queue.filter((q) => q.status !== 'sent');
+  if (!unsent.length || !d.me) return EMPTY;
+  const uuids = new Set(unsent.map((q) => q.client_uuid));
+  const movements = d.movements.filter((m) => m.number == null && uuids.has(m.client_uuid ?? ''));
+  const ids = new Set(movements.map((m) => m.customer_id));
+  return {
+    ...EMPTY,
+    heldFor: { id: d.me.user.id, email: d.me.user.email },
+    queue: unsent,
+    movements,
+    customers: d.customers.filter((c) => ids.has(c.id) || uuids.has(c.client_uuid ?? '')),
+  };
+}
+
+/** A login keeps held work only when it is the same user's (the queue belongs to its user, docs/api.md). */
+export function afterLogin(d: LocalData, me: Me): LocalData {
+  return d.heldFor?.id === me.user.id ? { ...d, me, heldFor: null } : { ...EMPTY, me };
 }
 
 /** The first day of movements kept on the phone ("Ymd" at the cursor's end), or null before the first sync. */

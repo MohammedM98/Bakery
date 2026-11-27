@@ -26,7 +26,7 @@ export function ProfileForm({ back = true, onBack, children }: { back?: boolean;
   const [error, setError] = React.useState<{ field: 'profile' | 'password'; text: string } | null>(null);
   const online = app.state.online;
   const saveProfile = async () => {
-    const r = await app.online('PUT', 'profile', { name, email });
+    const r = await app.online('PUT', 'profile', { name, email: email.trim().toLowerCase() });
     if (!r.ok) return setError({ field: 'profile', text: r.error });
     setError(null);
     toast({ kind: 'success', title: 'تم حفظ بيانات الحساب' });

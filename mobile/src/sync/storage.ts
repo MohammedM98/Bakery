@@ -15,7 +15,7 @@ const TABLES = {
   queue: (x: LocalData['queue'][number]) => x.client_uuid,
 } as const;
 type Table = keyof typeof TABLES;
-const META = ['me', 'cursor', 'lastSyncAt', 'cache'] as const;
+const META = ['me', 'cursor', 'lastSyncAt', 'cache', 'heldFor'] as const;
 
 const TOKEN_KEY = 'bakery.token';
 
@@ -43,6 +43,8 @@ export async function load(): Promise<LocalData> {
     (out as unknown as Record<string, unknown>)[r.key] = JSON.parse(r.json);
   }
   out.customers.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+  // A changed row is written again with a new seq: the queue keeps the order its operations were recorded in.
+  out.queue.sort((a, b) => (a.client_created_at < b.client_created_at ? -1 : a.client_created_at > b.client_created_at ? 1 : 0));
   return out;
 }
 

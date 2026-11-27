@@ -196,3 +196,19 @@ test('the receipt has what section 13 lists and escapes names', () => {
   }
   assert.ok(receiptHtml(r, 'a4').includes('size: A4'));
 });
+
+test('a sign-out by the server keeps unsent work for the same user only', async () => {
+  const { holdUnsent, afterLogin } = await import('../src/sync/engine.ts');
+  let d = withCustomer();
+  const b = ops.deposit(ctx(d, 'h-1'), { customerId: 7, kg: 3, note: '' });
+  d = enqueue(d, b.op, { movements: b.movements });
+  const held = holdUnsent(d);
+  assert.equal(held.me, null);
+  assert.deepEqual(held.heldFor, { id: 2, email: 's@b.test' });
+  assert.equal(held.queue.length, 1);
+  assert.equal(held.movements.length, 1);
+  assert.deepEqual(held.customers.map((c) => c.id), [7]);
+  assert.equal(afterLogin(held, me()).queue.length, 1, 'same user: kept');
+  assert.equal(afterLogin(held, { ...me(), user: { ...me().user, id: 9 } }).queue.length, 0, 'another user: dropped');
+  assert.equal(holdUnsent({ ...withCustomer() }).heldFor, null, 'nothing unsent: nothing held');
+});
