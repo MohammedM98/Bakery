@@ -155,15 +155,15 @@ export default function SalesLog({ filters, range, previousDate, nextDate, summa
         <AppLayout title="سجل المبيعات" toolbar={<PeriodPills value={filters.period} onChange={(period) => visit({ period })} />}>
             <div className="grid gap-6">
                 <div className="flex items-center justify-between gap-2 sm:justify-start">
-                        <Button variant="outline" size="icon" className="size-11" aria-label="الفترة السابقة" onClick={() => visit({ date: previousDate })}>
-                            <ChevronRight />
-                        </Button>
-                        <p className="min-w-40 text-center font-semibold tabular-nums" aria-live="polite">
-                            {range.label}
-                        </p>
-                        <Button variant="outline" size="icon" className="size-11" aria-label="الفترة التالية" disabled={!nextDate} onClick={() => nextDate && visit({ date: nextDate })}>
-                            <ChevronLeft />
-                        </Button>
+                    <Button variant="outline" size="icon" className="size-11" aria-label="الفترة السابقة" onClick={() => visit({ date: previousDate })}>
+                        <ChevronRight />
+                    </Button>
+                    <p className="min-w-40 text-center font-semibold tabular-nums" aria-live="polite">
+                        {range.label}
+                    </p>
+                    <Button variant="outline" size="icon" className="size-11" aria-label="الفترة التالية" disabled={!nextDate} onClick={() => nextDate && visit({ date: nextDate })}>
+                        <ChevronLeft />
+                    </Button>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
