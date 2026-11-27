@@ -26,8 +26,13 @@ services:
       # `php artisan key:generate --show` (see DEPLOY.md).
       - key: APP_KEY
         sync: false
+      # The first super admin's sign-in, asked for when the Blueprint is applied (see DEPLOY.md).
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
       - key: SEED_DEMO_DATA
-        value: "true"
+        value: "false"
       - key: LOG_CHANNEL
         value: stderr
       - key: SESSION_DRIVER

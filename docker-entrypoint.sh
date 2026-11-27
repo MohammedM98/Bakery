@@ -4,9 +4,14 @@ set -e
 # Runs only the migrations not yet applied (the movements backfill runs once, on the first deploy that has it).
 php artisan migrate --force
 
-# Demo accounts (admin@bakery.test / owner@bakery.test, password "password") are created only
-# when no super admin exists yet. Set SEED_DEMO_DATA=false to skip it on a real installation.
-if [ "${SEED_DEMO_DATA:-true}" = "true" ]; then
+# The first super admin comes from ADMIN_EMAIL / ADMIN_PASSWORD; nothing happens once one exists.
+if [ -n "${ADMIN_EMAIL:-}" ] && [ -n "${ADMIN_PASSWORD:-}" ]; then
+    php artisan app:create-admin
+fi
+
+# Demo accounts (admin@bakery.test / owner@bakery.test, password "password") only when asked for
+# with SEED_DEMO_DATA=true, and only while no super admin exists.
+if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
     php artisan db:seed --force --class=DatabaseSeeder
 fi
 

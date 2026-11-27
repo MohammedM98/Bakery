@@ -1,7 +1,6 @@
 import { useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import type { FormEvent, ReactNode } from 'react';
-import { ConfirmDialog } from '@/components/confirm-dialog';
 import { InputError } from '@/components/input-error';
 import { PasswordInput } from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -108,46 +107,7 @@ function UpdatePasswordForm() {
     );
 }
 
-function DeleteAccountForm() {
-    const form = useForm({ password: '' });
-
-    const destroy = () => {
-        form.delete(route('profile.destroy'), {
-            errorBag: 'userDeletion',
-            preserveScroll: true,
-            onFinish: () => form.reset(),
-        });
-    };
-
-    return (
-        <ConfirmDialog
-            trigger={
-                <Button variant="destructive" className="h-11 px-6">
-                    حذف الحساب
-                </Button>
-            }
-            title="حذف الحساب نهائيًا؟"
-            description="سيُحذف حسابك ولا يمكن التراجع. اكتب كلمة المرور للتأكيد."
-            confirmLabel="حذف الحساب"
-            processing={form.processing}
-            onConfirm={destroy}
-        >
-            <Field id="delete_password" label="كلمة المرور" error={form.errors.password}>
-                <PasswordInput
-                    id="delete_password"
-                    autoComplete="current-password"
-                    value={form.data.password}
-                    onChange={(e) => form.setData('password', e.target.value)}
-                    aria-invalid={!!form.errors.password}
-                    aria-describedby="delete_password-error"
-                />
-            </Field>
-        </ConfirmDialog>
-    );
-}
-
 export default function Edit() {
-    const isStaff = usePage().props.auth.user?.role === 'bakery_staff';
     return (
         <AppLayout title="الملف الشخصي">
             <div className="mx-auto grid max-w-2xl gap-6">
@@ -169,18 +129,6 @@ export default function Edit() {
                         <UpdatePasswordForm />
                     </CardContent>
                 </Card>
-                {/* Staff accounts are disabled by the bakery owner, not deleted by their holder. */}
-                {!isStaff && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>حذف الحساب</CardTitle>
-                        <CardDescription>يُحذف الحساب نهائيًا ولا يمكن استعادته</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <DeleteAccountForm />
-                    </CardContent>
-                </Card>
-                )}
             </div>
         </AppLayout>
     );

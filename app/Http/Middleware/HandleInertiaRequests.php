@@ -14,6 +14,21 @@ class HandleInertiaRequests extends Middleware
      */
     protected $rootView = 'app';
 
+    /** The route names the page gets (config/ziggy.php groups, `@routes` in app.blade.php). */
+    public static function routeGroup(): string
+    {
+        return auth()->user()?->isSuperAdmin() ? 'admin' : (auth()->check() ? 'panel' : 'guest');
+    }
+
+    /**
+     * Signing in or out changes the route group, so the version differs and Inertia reloads the
+     * page in full (one 409) instead of keeping the previous role's route names.
+     */
+    public function version(Request $request): ?string
+    {
+        return parent::version($request).'|'.self::routeGroup();
+    }
+
     /**
      * Define the props that are shared by default.
      *
