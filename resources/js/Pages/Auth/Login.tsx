@@ -40,7 +40,7 @@ export default function Login({ status }: { status: string | null }) {
                 <div className="grid gap-2">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="password">كلمة المرور</Label>
-                        <Link href={route('password.request')} className="text-sm text-primary underline-offset-4 hover:underline">
+                        <Link href={route('password.request')} className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
                             نسيت كلمة المرور؟
                         </Link>
                     </div>
@@ -69,7 +69,7 @@ export default function Login({ status }: { status: string | null }) {
                         تذكّرني
                     </Label>
                 </div>
-                <Button type="submit" className="h-11 text-base" disabled={form.processing}>
+                <Button type="submit" className="h-11 text-[15px] font-semibold" disabled={form.processing}>
                     {form.processing && <LoaderCircle className="animate-spin" />}
                     دخول
                 </Button>

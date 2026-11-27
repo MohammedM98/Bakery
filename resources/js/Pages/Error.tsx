@@ -1,8 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import { House } from 'lucide-react';
-import { AppLogoIcon } from '@/components/app-logo';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
+import { GuestFrame } from '@/Layouts/GuestLayout';
 
 type ErrorStatus = 403 | 404 | 419 | 500 | 503;
 
@@ -26,29 +25,18 @@ export default function Error({ status, appName }: ErrorPageProps) {
     return (
         <>
             <Head title={title} />
-            <div className="flex min-h-svh flex-col px-4 py-6 sm:px-8">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 font-semibold">
-                        <AppLogoIcon />
-                        <span>{appName}</span>
-                    </div>
-                    <ThemeToggle />
-                </div>
-                <main className="flex flex-1 items-center justify-center py-10">
-                    <div className="w-full max-w-sm text-center">
-                        <p className="text-5xl font-semibold text-primary tabular-nums">{status}</p>
-                        <h1 className="mt-4 text-2xl font-semibold">{title}</h1>
-                        <p className="mt-2 text-muted-foreground">{description}</p>
-                        <Button asChild className="mt-8 h-11 w-full">
-                            {/* /dashboard sends each role to its own home, and a guest to the login page. */}
-                            <Link href={route('dashboard')}>
-                                <House />
-                                الصفحة الرئيسية
-                            </Link>
-                        </Button>
-                    </div>
-                </main>
-            </div>
+            <GuestFrame appName={appName}>
+                <p className="text-5xl font-semibold text-primary tabular-nums">{status}</p>
+                <h1 className="mt-4 text-[26px] leading-tight font-semibold">{title}</h1>
+                <p className="mt-2 text-muted-foreground">{description}</p>
+                <Button asChild className="mt-8 h-11 w-full text-[15px] font-semibold">
+                    {/* /dashboard sends each role to its own home, and a guest to the login page. */}
+                    <Link href={route('dashboard')}>
+                        <House />
+                        الصفحة الرئيسية
+                    </Link>
+                </Button>
+            </GuestFrame>
         </>
     );
 }

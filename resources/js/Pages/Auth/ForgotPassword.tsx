@@ -40,7 +40,7 @@ export default function ForgotPassword({ status }: { status: string | null }) {
                     {form.processing && <LoaderCircle className="animate-spin" />}
                     إرسال رابط الاستعادة
                 </Button>
-                <Link href={route('login')} className="text-center text-sm text-primary underline-offset-4 hover:underline">
+                <Link href={route('login')} className="text-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
                     العودة لتسجيل الدخول
                 </Link>
             </form>
