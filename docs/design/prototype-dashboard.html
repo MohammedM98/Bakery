@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نموذج لوحة المخبز</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #e9edf2;            /* خلفية باردة هادئة خارج الإطار */
+    --page-2: #dfe6ee;
+    --frame: #ffffff;
+    --card: #ffffff;
+    --muted-bg: #f3f5f8;
+    --ink: #18202b;
+    --muted: #6b7685;
+    --border: #e5e9ef;
+    --orange: #ee7a3a;          /* لمسة فقط: الزر الأساسي، العنصر النشط، اليوم الحالي */
+    --orange-2: #f39a63;
+    --orange-soft: #fdeee4;
+    --slate: #7d8ca3;
+    --slate-soft: #eaeef4;
+    --hero: #1c2532;            /* البطاقة البارزة بلون أردوازي بارد */
+    --rail: #151b24;
+    --rail-ink: #8e99a8;
+    --success: #1f8f5f;
+    --success-soft: #e3f3eb;
+    --danger: #cf4a3c;
+    --danger-soft: #fbe9e6;
+    --wheat: #d9a84e;
+    --bar: #e3e8ef;
+    --shadow: 0 1px 2px rgba(20, 30, 45, .04), 0 10px 28px -16px rgba(20, 30, 45, .18);
+  }
+  :root[data-theme="dark"] {
+    --page: #0b0f14;
+    --page-2: #111822;
+    --frame: #10151c;
+    --card: #161c25;
+    --muted-bg: #1c2430;
+    --ink: #e8edf3;
+    --muted: #8c97a6;
+    --border: #232c38;
+    --orange: #f08a4e;
+    --orange-2: #f5a676;
+    --orange-soft: #33241b;
+    --slate: #8fa0b8;
+    --slate-soft: #1f2833;
+    --hero: #1f2935;
+    --rail: #0c1016;
+    --rail-ink: #7b8696;
+    --success: #43c08a;
+    --success-soft: #14291f;
+    --danger: #ef7466;
+    --danger-soft: #36191a;
+    --wheat: #e6bb69;
+    --bar: #242e3b;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 28px -16px rgba(0,0,0,.6);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Cairo", system-ui, sans-serif;
+    color: var(--ink);
+    background: radial-gradient(1200px 600px at 85% -10%, var(--page-2), transparent 60%), var(--page);
+    min-height: 100vh;
+    padding: 28px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+
+  /* الإطار */
+  .app {
+    max-width: 1320px; margin: 0 auto;
+    display: grid; grid-template-columns: 76px 1fr;
+    background: var(--frame); border-radius: 32px; overflow: hidden;
+    box-shadow: 0 30px 80px -40px rgba(20, 30, 45, .35);
+    min-height: calc(100vh - 56px);
+  }
+
+  /* الشريط الجانبي النحيف */
+  .rail {
+    background: var(--rail); display: flex; flex-direction: column; align-items: center;
+    padding: 22px 0; gap: 8px;
+  }
+  .logo { width: 44px; height: 44px; border-radius: 14px; background: #2a3442; display: grid; place-items: center; margin-bottom: 18px; color: #fff; }
+  .rail a {
+    width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center;
+    color: var(--rail-ink); position: relative; text-decoration: none;
+  }
+  .rail a:hover, .rail a:focus-visible { background: rgba(255,255,255,.07); color: #fff; outline: none; }
+  .rail a.active { background: rgba(255,255,255,.08); color: #fff; box-shadow: inset -3px 0 0 var(--orange); }
+  .rail a .tip {
+    position: absolute; inset-inline-end: 54px; white-space: nowrap; background: var(--ink); color: var(--frame);
+    font-size: 13px; padding: 4px 10px; border-radius: 8px; opacity: 0; pointer-events: none; transition: opacity .15s;
+  }
+  :root[data-theme="dark"] .rail a .tip { background: #f4ece5; color: #1f1813; }
+  .rail a:hover .tip, .rail a:focus-visible .tip { opacity: 1; }
+  .rail .spacer { flex: 1; }
+  svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* المحتوى */
+  main { padding: 26px 32px 32px; min-width: 0; }
+  header.top { display: flex; align-items: center; gap: 20px; margin-bottom: 26px; }
+  header.top h1 { font-size: 26px; font-weight: 600; margin: 0; letter-spacing: 0; }
+  .bakery { color: var(--muted); font-size: 14px; margin-top: 2px; }
+  .pills { display: flex; gap: 6px; background: var(--muted-bg); padding: 5px; border-radius: 999px; margin-inline-start: 24px; }
+  .pills button {
+    font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--muted);
+    padding: 6px 18px; border-radius: 999px; cursor: pointer;
+  }
+  .pills button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgba(20,30,45,.12); font-weight: 600; }
+  .pills button[aria-pressed="true"]::after { content: ""; display: block; height: 2px; width: 14px; margin: 2px auto 0; border-radius: 2px; background: var(--orange); }
+  .pills button:focus-visible, .icon-btn:focus-visible, .btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+  .top .end { margin-inline-start: auto; display: flex; align-items: center; gap: 10px; }
+  .icon-btn { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+  .user { display: flex; align-items: center; gap: 10px; padding-inline-start: 6px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--slate-soft); color: var(--ink); display: grid; place-items: center; font-weight: 600; }
+  .user small { display: block; color: var(--muted); font-size: 12px; }
+
+  /* الشبكة */
+  .grid { display: grid; grid-template-columns: 1.15fr 1fr 340px; grid-template-rows: auto auto; gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); min-width: 0; }
+  .card h2 { font-size: 17px; font-weight: 600; margin: 0; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .chip { font-size: 12px; color: var(--muted); background: var(--muted-bg); padding: 4px 10px; border-radius: 999px; }
+  .chip.dark { background: var(--muted-bg); color: var(--muted); }
+
+  /* بطاقة اليوم البرتقالية */
+  .today {
+    grid-column: 1; grid-row: 1;
+    background: var(--hero);
+    color: #fff; border: 0; position: relative; overflow: hidden; display: flex; flex-direction: column;
+  }
+  .today::after { /* سنابل بخط رفيع في الخلفية */
+    content: ""; position: absolute; inset-inline-start: -30px; bottom: -40px; width: 220px; height: 220px; border-radius: 50%;
+    border: 28px solid rgba(255,255,255,.035);
+  }
+  .today .label { font-size: 15px; color: #aeb8c6; }
+  .today .big { font-size: 56px; font-weight: 600; line-height: 1.1; margin: 6px 0 2px; }
+  .today .big small { font-size: 22px; font-weight: 500; opacity: .9; margin-inline-start: 6px; }
+  .today .split { display: flex; gap: 22px; font-size: 14px; color: #aeb8c6; margin-top: 6px; }
+  .today .split b { font-weight: 600; }
+  .today .actions { margin-top: auto; padding-top: 22px; display: flex; gap: 10px; position: relative; z-index: 1; }
+  .btn { font: inherit; font-size: 15px; height: 44px; padding: 0 18px; border-radius: 14px; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .btn.white { background: var(--orange); color: #fff; font-weight: 600; }
+  .btn.ghost { background: rgba(255,255,255,.09); color: #fff; }
+
+  /* آخر الحركات */
+  .recent { grid-column: 2; grid-row: 1; }
+  .rows { list-style: none; margin: 0; padding: 0; }
+  .rows li { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+  .rows li + li { border-top: 1px solid var(--border); }
+  .ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+  .ic.sale { background: var(--slate-soft); color: var(--slate); }
+  .ic.pay { background: var(--success-soft); color: var(--success); }
+  .ic.flour { background: color-mix(in oklab, var(--wheat) 22%, transparent); color: #b57a16; }
+  :root[data-theme="dark"] .ic.flour { color: var(--wheat); }
+  .ic svg { width: 18px; height: 18px; }
+  .rows .who { flex: 1; min-width: 0; }
+  .rows .who b { font-weight: 500; font-size: 15px; display: block; }
+  .rows .who span { color: var(--muted); font-size: 13px; }
+  .rows .amt { font-size: 15px; font-weight: 500; text-align: end; }
+  .rows .amt.in { color: var(--success); }
+
+  /* الحلقة */
+  .ring-card { grid-column: 3; grid-row: 1 / span 2; display: flex; flex-direction: column; }
+  .ring { position: relative; width: 210px; height: 210px; margin: 8px auto 6px; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring .center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .ring .pct { font-size: 40px; font-weight: 600; line-height: 1; }
+  .ring .pct-l { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .ring-card .money { text-align: center; margin: 14px 0 4px; }
+  .ring-card .money b { font-size: 32px; font-weight: 600; display: block; }
+  .ring-card .money span { color: var(--muted); font-size: 14px; }
+  .stack { display: flex; height: 10px; border-radius: 99px; overflow: hidden; gap: 3px; margin: 20px 0 16px; }
+  .stack i { display: block; height: 100%; border-radius: 99px; }
+  .legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .legend li { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+  .legend .dot { width: 10px; height: 10px; border-radius: 4px; flex: none; }
+  .legend .v { margin-inline-start: auto; font-weight: 500; }
+  .ring-card .foot { margin-top: auto; padding-top: 18px; }
+  .btn.outline { width: 100%; justify-content: center; background: var(--muted-bg); color: var(--ink); border: 1px solid var(--border); }
+
+  /* الرسوم */
+  .activity { grid-column: 1; grid-row: 2; }
+  .payments { grid-column: 2; grid-row: 2; }
+  .chart { width: 100%; height: 190px; display: block; overflow: visible; }
+  .axis text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+  .tag { font-size: 12px; font-weight: 600; }
+
+  /* الجوال */
+  .mobile-top { display: none; }
+  @media (max-width: 1180px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+    .ring-card { grid-column: 1 / -1; grid-row: auto; }
+    .today, .recent, .activity, .payments { grid-row: auto; }
+  }
+  @media (max-width: 760px) {
+    body { padding: 0; }
+    .app { grid-template-columns: 1fr; border-radius: 0; min-height: 100vh; }
+    .rail { position: fixed; bottom: 0; inset-inline: 0; flex-direction: row; justify-content: space-around; padding: 8px 6px calc(8px + env(safe-area-inset-bottom)); z-index: 5; }
+    .rail .logo, .rail .spacer, .rail a .tip, .rail a.hide-m { display: none; }
+    main { padding: 18px 16px 96px; }
+    header.top { flex-wrap: wrap; gap: 14px; }
+    .pills { margin-inline-start: 0; order: 3; width: 100%; justify-content: space-between; }
+    .pills button { flex: 1; padding: 8px 0; }
+    .user div { display: none; }
+    .grid { grid-template-columns: 1fr; gap: 14px; }
+    .grid > * { grid-column: 1 !important; }
+    .today .big { font-size: 48px; }
+    .ring { width: 180px; height: 180px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .ring .arc { transition: stroke-dasharray .7s cubic-bezier(.2,.7,.2,1); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="rail" aria-label="القائمة">
+    <div class="logo" aria-hidden="true">
+      <svg class="i" viewBox="0 0 24 24"><path d="M12 22V10"/><path d="M12 10c0-3 2-5 5-5 0 3-2 5-5 5Z"/><path d="M12 10c0-3-2-5-5-5 0 3 2 5 5 5Z"/><path d="M12 15c0-2.5 2-4 4.5-4 0 2.5-2 4-4.5 4Z"/><path d="M12 15c0-2.5-2-4-4.5-4 0 2.5 2 4 4.5 4Z"/></svg>
+    </div>
+    <a href="#" class="active" aria-current="page"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span class="tip">لوحة التحكم</span></a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18.5 14.8c1.6.8 2.7 2.6 3 5.2"/></svg><span class="tip">الزبائن</span></a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24"><path d="M4 9h16l-1.5 10.5a2 2 0 0 1-2 1.5h-9a2 2 0 0 1-2-1.5Z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></svg><span class="tip">المبيعات</span></a>
+    <a href="#"><svg class="i" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/><path d="M12 7v5l3 2"/></svg><span class="tip">سجل المبيعات</span></a>
+    <a href="#" class="hide-m"><svg class="i" viewBox="0 0 24 24"><path d="M3 10 12 4l9 6"/><path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8"/><path d="M3 21h18"/></svg><span class="tip">البنوك والمحافظ</span></a>
+    <a href="#" class="hide-m"><svg class="i" viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 4.5 3.4 8 8 9 4.6-1 8-4.5 8-9V6Z"/></svg><span class="tip">المستخدمون</span></a>
+    <span class="spacer"></span>
+    <a href="#"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><span class="tip">الإعدادات</span></a>
+  </nav>
+
+  <main>
+    <header class="top">
+      <div>
+        <h1>لوحة التحكم</h1>
+        <div class="bakery">مخبز النور</div>
+      </div>
+      <div class="pills" role="group" aria-label="الفترة">
+        <button type="button" data-p="day" aria-pressed="true">يوم</button>
+        <button type="button" data-p="week" aria-pressed="false">أسبوع</button>
+        <button type="button" data-p="month" aria-pressed="false">شهر</button>
+        <button type="button" data-p="year" aria-pressed="false">سنة</button>
+      </div>
+      <div class="end">
+        <button class="icon-btn" type="button" id="theme" aria-label="تبديل الوضع الداكن">
+          <svg class="i" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></svg>
+        </button>
+        <div class="user">
+          <span class="avatar">ص</span>
+          <div><b style="font-weight:500">محمد</b><small>صاحب المخبز</small></div>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid">
+      <!-- بطاقة اليوم: العنصر البارز الوحيد -->
+      <article class="card today">
+        <div class="card-head" style="margin-bottom:4px">
+          <span class="label" id="today-label">خبز مباع اليوم</span>
+          <span class="chip" style="background:rgba(255,255,255,.08);color:#c9d2de" id="today-date">الجمعة 27/11</span>
+        </div>
+        <div class="big"><span class="num" id="kg">77</span><small>كغ</small></div>
+        <div class="split">
+          <span>بيع عادي <b class="num" id="kg-reg">60</b> كغ</span>
+          <span>مقابل طحين <b class="num" id="kg-flour">17</b> كغ</span>
+        </div>
+        <div class="actions">
+          <button class="btn white" type="button">
+            <svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            تسجيل عملية بيع
+          </button>
+          <button class="btn ghost" type="button">إيداع طحين</button>
+        </div>
+      </article>
+
+      <!-- آخر الحركات -->
+      <article class="card recent">
+        <div class="card-head">
+          <h2>آخر الحركات</h2>
+          <a href="#" style="color:var(--muted);font-size:14px;text-decoration:none">عرض الكل</a>
+        </div>
+        <ul class="rows">
+          <li><span class="ic sale"><svg class="i" viewBox="0 0 24 24"><path d="M4 9h16l-1.5 10.5a2 2 0 0 1-2 1.5h-9a2 2 0 0 1-2-1.5Z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></svg></span>
+            <span class="who"><b>مشترٍ عابر</b><span>بيع عادي، 22 كغ</span></span>
+            <span class="amt"><span class="num">132.00 ₪</span></span></li>
+          <li><span class="ic pay"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+            <span class="who"><b>مطعم الأصدقاء</b><span>دفعة، تحويل جوال باي</span></span>
+            <span class="amt in"><span class="num">+90.00 ₪</span></span></li>
+          <li><span class="ic flour"><svg class="i" viewBox="0 0 24 24"><path d="M12 22V10"/><path d="M12 10c0-3 2-5 5-5 0 3-2 5-5 5Z"/><path d="M12 10c0-3-2-5-5-5 0 3 2 5 5 5Z"/><path d="M12 15c0-2.5 2-4 4.5-4 0 2.5-2 4-4.5 4Z"/><path d="M12 15c0-2.5-2-4-4.5-4 0 2.5 2 4 4.5 4Z"/></svg></span>
+            <span class="who"><b>كافتيريا الجامعة</b><span>إيداع طحين</span></span>
+            <span class="amt">له 142 كغ</span></li>
+          <li><span class="ic sale"><svg class="i" viewBox="0 0 24 24"><path d="M4 9h16l-1.5 10.5a2 2 0 0 1-2 1.5h-9a2 2 0 0 1-2-1.5Z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></svg></span>
+            <span class="who"><b>أبو محمد الشريف</b><span>خبز مقابل طحين، 17 كغ</span></span>
+            <span class="amt"><span class="num">34.00 ₪</span></span></li>
+        </ul>
+      </article>
+
+      <!-- الحلقة -->
+      <article class="card ring-card">
+        <div class="card-head">
+          <h2>المقبوضات</h2>
+          <span class="chip dark" id="ring-chip">اليوم</span>
+        </div>
+        <div class="ring" role="img" aria-label="نسبة المدفوع من المبيعات">
+          <svg viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--muted-bg)" stroke-width="12"/>
+            <circle class="arc" id="arc" cx="60" cy="60" r="50" fill="none" stroke="var(--orange)" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 400"/>
+            <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#ffa04d"/><stop offset="1" stop-color="#ff4d0d"/></linearGradient></defs>
+          </svg>
+          <div class="center"><div class="pct num" id="pct">68%</div><div class="pct-l">من المبيعات مدفوع</div></div>
+        </div>
+        <div class="money"><b class="num" id="received">270.00 ₪</b><span>دخل فعلًا</span></div>
+        <div class="stack" aria-hidden="true">
+          <i style="background:var(--orange);flex:62" id="s-cash"></i>
+          <i style="background:var(--slate);flex:23" id="s-tr"></i>
+          <i style="background:var(--bar);flex:15" id="s-due"></i>
+        </div>
+        <ul class="legend">
+          <li><span class="dot" style="background:var(--orange)"></span>نقدًا<span class="v num" id="l-cash">180.00 ₪</span></li>
+          <li><span class="dot" style="background:var(--slate)"></span>تحويل<span class="v num" id="l-tr">90.00 ₪</span></li>
+          <li><span class="dot" style="background:var(--bar)"></span>غير مدفوع<span class="v num" id="l-due" style="color:var(--danger)">124.00 ₪</span></li>
+        </ul>
+        <div class="foot"><button class="btn outline" type="button">عرض العمليات غير المدفوعة</button></div>
+      </article>
+
+      <!-- النشاط -->
+      <article class="card activity">
+        <div class="card-head"><h2>الخبز المباع</h2><span class="chip" id="act-chip">آخر 7 أيام</span></div>
+        <svg class="chart" id="line" viewBox="0 0 420 190" preserveAspectRatio="none" aria-label="الخبز المباع"></svg>
+      </article>
+
+      <!-- المقبوضات بالأعمدة -->
+      <article class="card payments">
+        <div class="card-head"><h2>الدخل المالي</h2><span class="chip" id="bar-chip">آخر 7 أيام</span></div>
+        <svg class="chart" id="bars" viewBox="0 0 420 190" preserveAspectRatio="none" aria-label="الدخل المالي"></svg>
+      </article>
+    </section>
+  </main>
+</div>
+
+<script>
+  const data = {
+    day:   { label: 'خبز مباع اليوم', chip: 'اليوم', date: 'الجمعة 27/11', kg: 77, reg: 60, flour: 17, pct: 68, cash: 180, tr: 90, due: 124,
+             x: ['21/11','22/11','23/11','24/11','25/11','26/11','27/11'], line: [52,61,58,49,66,63,77], bars: [180,240,210,150,300,260,270], range: 'آخر 7 أيام' },
+    week:  { label: 'خبز مباع هذا الأسبوع', chip: 'الأسبوع', date: '21/11 – 27/11', kg: 426, reg: 330, flour: 96, pct: 74, cash: 1210, tr: 400, due: 560,
+             x: ['أ1','أ2','أ3','أ4','أ5','أ6','أ7'], line: [380,402,365,410,398,431,426], bars: [1400,1520,1380,1610,1490,1700,1610], range: 'آخر 7 أسابيع' },
+    month: { label: 'خبز مباع هذا الشهر', chip: 'الشهر', date: 'تشرين الثاني', kg: 1784, reg: 1390, flour: 394, pct: 71, cash: 5100, tr: 1800, due: 2810,
+             x: ['5','6','7','8','9','10','11'], line: [1610,1580,1720,1690,1760,1705,1784], bars: [6100,6400,6900,6600,7200,6800,6900], range: 'آخر 7 أشهر' },
+    year:  { label: 'خبز مباع هذه السنة', chip: 'السنة', date: '2026', kg: 19820, reg: 15400, flour: 4420, pct: 79, cash: 58900, tr: 21300, due: 21300,
+             x: ['2020','2021','2022','2023','2024','2025','2026'], line: [12100,13400,15200,16100,17800,18900,19820], bars: [52000,59000,64000,70000,74000,78000,80200], range: 'آخر 7 سنوات' },
+  };
+  const fmt = n => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₪';
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  // الرسوم من اليمين لليسار: أحدث نقطة على اليسار
+  function xs(n, w, pad) { return Array.from({ length: n }, (_, i) => w - pad - i * ((w - 2 * pad) / (n - 1))); }
+
+  function line(svg, d) {
+    const W = 420, H = 190, top = 26, bottom = 30, pad = 18;
+    const max = Math.max(...d.line) * 1.1, min = Math.min(...d.line) * 0.85;
+    const X = xs(d.line.length, W, pad), Y = d.line.map(v => top + (1 - (v - min) / (max - min)) * (H - top - bottom));
+    let p = `M${X[0]},${Y[0]}`;
+    for (let i = 0; i < X.length - 1; i++) { const cx = (X[i] + X[i + 1]) / 2; p += ` C${cx},${Y[i]} ${cx},${Y[i + 1]} ${X[i + 1]},${Y[i + 1]}`; }
+    const last = X.length - 1, o = css('--orange');
+    svg.innerHTML = `
+      <defs><linearGradient id="fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${o}" stop-opacity=".14"/><stop offset="1" stop-color="${o}" stop-opacity="0"/></linearGradient></defs>
+      <path d="${p} L${X[last]},${H - bottom} L${X[0]},${H - bottom} Z" fill="url(#fill)"/>
+      <path d="${p}" fill="none" stroke="${o}" stroke-width="3" stroke-linecap="round"/>
+      <line x1="${X[last]}" x2="${X[last]}" y1="${Y[last]}" y2="${H - bottom}" stroke="${o}" stroke-dasharray="3 4" opacity=".6"/>
+      <circle cx="${X[last]}" cy="${Y[last]}" r="6" fill="${css('--card')}" stroke="${o}" stroke-width="3"/>
+      <g><rect x="${X[last] - 4}" y="${Y[last] - 30}" width="56" height="22" rx="7" fill="${css('--ink')}"/>
+        <text class="tag" x="${X[last] + 24}" y="${Y[last] - 15}" text-anchor="middle" fill="${css('--frame')}">${d.line[last].toLocaleString('en-US')} كغ</text></g>
+      <g class="axis">${X.map((x, i) => `<text x="${x}" y="${H - 6}" text-anchor="middle">${d.x[i]}</text>`).join('')}</g>`;
+  }
+
+  function bars(svg, d) {
+    const W = 420, H = 190, top = 30, bottom = 30, pad = 30, bw = 30;
+    const max = Math.max(...d.bars) * 1.05, X = xs(d.bars.length, W, pad), last = d.bars.length - 1;
+    svg.innerHTML = X.map((x, i) => {
+      const h = (d.bars[i] / max) * (H - top - bottom), y = H - bottom - h, hot = i === last;
+      return `<rect x="${x - bw / 2}" y="${y}" width="${bw}" height="${h}" rx="9" fill="${hot ? css('--orange') : css('--bar')}"/>` +
+        (hot ? `<rect x="${x - 34}" y="${y - 28}" width="68" height="22" rx="7" fill="${css('--ink')}"/><text class="tag" x="${x}" y="${y - 13}" text-anchor="middle" fill="${css('--frame')}">${d.bars[i].toLocaleString('en-US')} ₪</text>` : '');
+    }).join('') + `<g class="axis">${X.map((x, i) => `<text x="${x}" y="${H - 6}" text-anchor="middle">${d.x[i]}</text>`).join('')}</g>`;
+  }
+
+  let current = 'day';
+  function render() {
+    const d = data[current], $ = id => document.getElementById(id);
+    $('today-label').textContent = d.label; $('today-date').textContent = d.date;
+    $('kg').textContent = d.kg.toLocaleString('en-US'); $('kg-reg').textContent = d.reg.toLocaleString('en-US'); $('kg-flour').textContent = d.flour.toLocaleString('en-US');
+    $('pct').textContent = d.pct + '%'; $('arc').setAttribute('stroke-dasharray', `${(d.pct / 100) * 314.16} 400`);
+    $('received').textContent = fmt(d.cash + d.tr); $('ring-chip').textContent = d.chip;
+    $('l-cash').textContent = fmt(d.cash); $('l-tr').textContent = fmt(d.tr); $('l-due').textContent = fmt(d.due);
+    $('s-cash').style.flex = d.cash; $('s-tr').style.flex = d.tr; $('s-due').style.flex = d.due;
+    $('act-chip').textContent = d.range; $('bar-chip').textContent = d.range;
+    line($('line'), d); bars($('bars'), d);
+  }
+  document.querySelectorAll('.pills button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.pills button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    current = b.dataset.p; render();
+  }));
+  document.getElementById('theme').addEventListener('click', () => {
+    const r = document.documentElement; r.dataset.theme = r.dataset.theme === 'dark' ? 'light' : 'dark'; render();
+  });
+  if (new URLSearchParams(location.search).get('theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+  render();
+</script>
+</body>
+</html>
