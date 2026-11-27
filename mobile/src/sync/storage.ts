@@ -1,12 +1,11 @@
 import * as SecureStore from 'expo-secure-store';
 import * as SQLite from 'expo-sqlite';
-import { Platform } from 'react-native';
 
 import { EMPTY, movementKey, type LocalData } from './engine';
 
 /**
- * Where the offline copy lives: SQLite on the phone (one table per kind, one JSON row per record, so a sale
- * rewrites a few rows, not the whole copy), localStorage on the web build. The token goes to the secure store.
+ * Where the offline copy lives on the phone: SQLite, one table per kind and one JSON row per record, so a sale
+ * rewrites a few rows, not the whole copy. The token goes to the secure store. The web build: storage.web.ts.
  */
 
 const TABLES = {
@@ -18,8 +17,6 @@ const TABLES = {
 type Table = keyof typeof TABLES;
 const META = ['me', 'cursor', 'lastSyncAt', 'cache'] as const;
 
-const web = Platform.OS === 'web';
-const WEB_KEY = 'bakery.local';
 const TOKEN_KEY = 'bakery.token';
 
 let db: SQLite.SQLiteDatabase | null = null;
@@ -36,14 +33,6 @@ async function open() {
 }
 
 export async function load(): Promise<LocalData> {
-  if (web) {
-    try {
-      const raw = globalThis.localStorage?.getItem(WEB_KEY);
-      return raw ? { ...EMPTY, ...JSON.parse(raw) } : EMPTY;
-    } catch {
-      return EMPTY;
-    }
-  }
   const d = await open();
   const out: LocalData = { ...EMPTY };
   for (const t of Object.keys(TABLES) as Table[]) {
@@ -58,20 +47,8 @@ export async function load(): Promise<LocalData> {
 }
 
 let seq = Date.now() * 1000;
-let webTimer: ReturnType<typeof setTimeout> | null = null;
-
 /** Writes what changed between two values: rows compared by identity (the engine never mutates a row). */
 export async function save(prev: LocalData, next: LocalData): Promise<void> {
-  if (web) {
-    // shortcut: the web build keeps one JSON snapshot (localStorage, ~5 MB); it is the demo and screenshot target.
-    if (webTimer) clearTimeout(webTimer);
-    webTimer = setTimeout(() => {
-      try {
-        globalThis.localStorage?.setItem(WEB_KEY, JSON.stringify(next));
-      } catch {}
-    }, 300);
-    return;
-  }
   const d = await open();
   await d.withExclusiveTransactionAsync(async (tx) => {
     for (const t of Object.keys(TABLES) as Table[]) {
@@ -96,16 +73,10 @@ export async function save(prev: LocalData, next: LocalData): Promise<void> {
 }
 
 export async function getToken(): Promise<string | null> {
-  if (web) return globalThis.localStorage?.getItem(TOKEN_KEY) ?? null;
   return SecureStore.getItemAsync(TOKEN_KEY);
 }
 
 export async function setToken(token: string | null): Promise<void> {
-  if (web) {
-    if (token) globalThis.localStorage?.setItem(TOKEN_KEY, token);
-    else globalThis.localStorage?.removeItem(TOKEN_KEY);
-    return;
-  }
   if (token) await SecureStore.setItemAsync(TOKEN_KEY, token);
   else await SecureStore.deleteItemAsync(TOKEN_KEY);
 }

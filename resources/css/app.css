@@ -81,12 +81,12 @@
     --secondary: #f3f5f8;
     --secondary-foreground: #18202b;
     --muted: #f3f5f8;
-    --muted-foreground: #6b7685;
+    --muted-foreground: #677180;
     --accent: #eaeef4;
     --accent-foreground: #18202b;
-    --destructive: #cf4a3c;
-    --success: #1f8f5f;
-    --warning: #b57a16;
+    --destructive: #bc3c2e;
+    --success: #1a764e;
+    --warning: #895d11;
     --wheat: #d9a84e;
     --slate: #7d8ca3;
     --border: #e5e9ef;

@@ -70,12 +70,12 @@ export function receiptHtml(r: Receipt, size: 'small' | 'a4'): string {
 @page { size: ${small ? '80mm auto' : 'A4'}; margin: ${small ? '4mm' : '18mm'}; }
 body { font-family: 'IBM Plex Sans Arabic', 'Noto Sans Arabic', 'Geeza Pro', sans-serif; color: #18202b; font-size: ${small ? '12px' : '15px'}; margin: 0; ${small ? 'width: 72mm;' : 'max-width: 150mm;'} }
 h1 { font-size: ${small ? '16px' : '22px'}; font-weight: 600; margin: 0 0 2px; text-align: center; }
-.meta { text-align: center; color: #4e5a6a; margin-bottom: 10px; }
+.meta { text-align: center; color: #677180; margin-bottom: 10px; }
 table { width: 100%; border-collapse: collapse; }
 td { padding: ${small ? '3px 0' : '6px 0'}; border-bottom: 1px solid #e5e9ef; vertical-align: top; }
 td.v { text-align: left; font-variant-numeric: tabular-nums; white-space: nowrap; padding-inline-start: 8px; }
 .sec { margin-top: 10px; font-weight: 600; }
-.foot { margin-top: 12px; text-align: center; color: #4e5a6a; }
+.foot { margin-top: 12px; text-align: center; color: #677180; }
 </style></head><body>
 <h1>${esc(r.bakery)}</h1>
 <div class="meta">${formatDate(localTime(r.at))} ${formatTime(r.at)}${r.numbers.length ? ` · حركة رقم ${r.numbers.join('، ')}` : ''}</div>

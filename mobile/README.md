@@ -2,7 +2,7 @@
 
 تطبيق React Native (Expo) لأصحاب المخابز وموظفيهم ومالك المنصة، بالعربية ومن اليمين لليسار دائمًا. القرارات والتصميم المعتمد في `CLAUDE.md` القسم 13.
 
-**الحالة (الجلسة 10):** كل الشاشات تعمل على **بيانات تجريبية محلية** (`src/mock`) دون اتصال بالخادم. ربطها بالـ API (`/api/v1`) والتخزين المحلي والمزامنة الحقيقية في الجلسة 11.
+**الحالة (الجلسة 11):** مربوط بالخادم الحقيقي (`/api/v1`، `docs/api.md`): الدخول بالتوكن، نسخة محلية في SQLite تعمل دون إنترنت، قائمة انتظار ومزامنة، وطباعة الإيصال. الاختبار على أجهزة وبناء EAS في الجلسة 12.
 
 ## التشغيل
 
@@ -11,6 +11,16 @@
 ```bash
 cd mobile
 npm install
+```
+
+### الخادم
+
+التطبيق يحتاج خادم Laravel (جذر المستودع). عنوانه من `EXPO_PUBLIC_API_URL` (الافتراضي `http://localhost:8000/api/v1`؛ على هاتف حقيقي استخدم عنوان الحاسوب في الشبكة، مثل `http://192.168.1.20:8000/api/v1` مع `php artisan serve --host=0.0.0.0`).
+
+```bash
+# في جذر المستودع
+php artisan migrate --seed      # حسابات التجربة: owner@bakery.test و admin@bakery.test بكلمة password
+php artisan serve
 ```
 
 ### على الهاتف (Expo Go أو dev build)
@@ -31,31 +41,17 @@ npx expo start --web            # تطوير
 npx expo export -p web          # بناء ثابت في dist/
 ```
 
-### أدوات التجربة
+### دون إنترنت (لقطات الشاشة)
 
-في وضع التطوير (أو عند البناء مع `EXPO_PUBLIC_DEV_MENU=1`) يظهر في «المزيد» قسم **أدوات التجربة**: تبديل المستخدم (صاحب المخبز، موظف بصلاحيات قليلة، موظف بلا صلاحيات، مالك المنصة) لرؤية نموذج الصلاحيات، وقلب الاتصال بالإنترنت، وانتهاء الاشتراك، و«جهاز جديد بلا بيانات»، والوضع الداكن.
-
-حسابات الدخول التجريبية (كلمة المرور `password`): `owner@bakery.test`، `samer@alnoor.ps`، `admin@bakery.test`.
-
-على الويب تفتح معاملات الرابط أي حالة مباشرة (تُستخدم للقطات الشاشة):
-
-| المعامل | المعنى |
-|---|---|
-| `user=owner\|staff\|noPermissions\|admin\|out` | المستخدم التجريبي (`out` = غير مسجّل) |
-| `net=off` | دون إنترنت |
-| `expired=1` | الاشتراك منتهٍ |
-| `empty=1` | جهاز جديد بلا بيانات |
-| `pending=1` | عمليتان تنتظران المزامنة |
-| `theme=dark\|light` | الوضع |
-| `sheet=sale\|payment\|deposit\|flour\|adjustment\|movement\|customer\|bank\|renew\|bakery` (مع `customer=` و `movement=` و `bakery=`) | فتح نافذة سفلية |
-| `toast=demo`، `confirm=demo` | الرسائل ونافذة تأكيد الحذف |
+على الويب يرسم `?net=off` حالة دون إنترنت، و`?theme=dark|light` الوضع، و`?sheet=sale|payment|deposit|flour|adjustment|movement|customer|bank|bakery` (مع `customer=` و `movement=` رقم الحركة) يفتح نافذة سفلية، و`?toast=demo` و`?confirm=demo` الرسائل ونافذة التأكيد.
 
 ## الفحوص
 
 ```bash
 npx tsc --noEmit     # الأنواع
 npx expo lint        # ESLint
-npm test             # قواعد العرض (formatMoney والطحين بالكلمات) بنفس حالات tests/Unit/MoneyFormatTest.php
+npm test             # قواعد العرض، الكشف، قائمة الانتظار والمزامنة (بخادم وهمي)، الإيصال
+npm run test:integration   # المزامنة ضد خادم Laravel حقيقي (يشغّل php artisan serve بقاعدة SQLite جديدة)
 ```
 
 ## بنية المجلد
@@ -81,10 +77,11 @@ mobile/
       nav-bar.tsx          الشريط العائم وزر البيع البارز
       ...                  الصفوف، الأزرار المتبادلة، الرسائل، لوحة الأرقام، الرسوم، التأكيد
     theme/                 palette.js (ألوان الموقع، المصدر الوحيد) و index.ts (الأسطح، الخط، المسافات)
-    lib/                   format.ts (نسخة قواعد الموقع)، period.ts (يوم/أسبوع/شهر/سنة)، access.ts
-    mock/                  types.ts (أشكال البيانات المتوقعة من الـ API) و data.ts (البيانات التجريبية)
-    state/                 app.tsx (الجلسة، العمليات، قائمة الانتظار)، selectors.ts، theme.tsx
-  tests/format.test.mjs
+    lib/                   format.ts (نسخة قواعد الموقع)، receipt.ts (الإيصال)، period.ts، access.ts، subscription.ts
+    api/                   client.ts (الطلبات والأخطاء) و types.ts (أشكال ردود /api/v1)
+    sync/                  engine.ts (النسخة المحلية والمزامنة، دوال نقية)، operations.ts (العمليات دون إنترنت)، storage.ts (SQLite) و storage.web.ts
+    state/                 app.tsx (الجلسة، العمليات، useRemote)، statement.ts (الكشف المحلي)، theme.tsx
+  tests/                   format، statement، sync (وحدة) و integration (خادم حقيقي)
 ```
 
 ## ما يحتاج جهازًا حقيقيًا

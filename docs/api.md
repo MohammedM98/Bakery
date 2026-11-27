@@ -90,6 +90,10 @@
 
 `role`: `super_admin` أو `bakery_owner` أو `bakery_staff`. مالك المنصة: `bakery` و `subscription` و `prices` قيمتها `null` و `permissions` فارغة. `permissions` مفاتيح جدول البند 7 من 9-ب (صاحب المخبز يملكها كلها مع `delete-customers` و `delete-banks` و `manage-users` و `manage-settings`). التطبيق يخفي بها الأزرار فقط؛ الفحص الحقيقي في الخادم.
 
+### `PUT /profile` و `PUT /password`
+
+لكل الأدوار، بقواعد صفحة الملف الشخصي في الموقع. `profile`: `name`، `email` (بأحرف صغيرة، فريد) ← نفس رد `GET /me`. `password`: `current_password`، `password`، `password_confirmation`، `device_name` ← `{ "token": "..." }`: تغيير كلمة المرور يلغي كل توكنات المستخدم (هذا الجهاز أيضًا)، فيأخذ الجهاز الذي غيّرها توكنًا جديدًا ويبقى داخلًا، وتخرج أجهزته الأخرى.
+
 ## الأدوار والصلاحيات
 
 - مسارات المخبز لـ `bakery_owner` و `bakery_staff`، ثم الاشتراك الفعّال، ثم صلاحية كل مسار (الجدول أدناه) — مثل `/panel` في الموقع. مسارات `/admin` لـ `super_admin` فقط.
@@ -104,7 +108,7 @@
 | `GET /customers?search=&page=` | `view-customers` | 30 في الصفحة، لكل زبون: `id`، `name`، `mobile_number`، `notes`، `money_balance(_text)`، `flour_balance(_text)` |
 | `GET /customers/{id}?from=&to=` | `view-customers` | صفحة الزبون: `customer`، `range`، `money_statement` و `flour_statement` (كلٌّ بصلاحية كشفه وإلا `null`)، `sales` (`view-sales`)، `unpaid_sales` و `banks` (`record-payment`)، `can_adjust`، `flour_exchange_fee`. الفترة كالموقع: الافتراضي هذا الشهر حتى اليوم، و `from=&to=` فارغان = الكل |
 | `GET /sales?type=cash\|flour_exchange&status=paid\|unpaid&date=&page=` | `view-sales` | `sales` (20 في الصفحة) و `filters` |
-| `GET /sales-log?period=&date=&type=&customer=&recorded_by=&page=` | `view-sales-log` | سجل المبيعات في الموقع: `summary` (مع `_text`)، `movements` (30 في الصفحة، مع `direction_label` و `amount_text`)، `range`، `previousDate` / `nextDate`، `options` |
+| `GET /sales-log?period=&date=&type=&customer=&recorded_by=&page=` | `view-sales-log` | سجل المبيعات في الموقع: `summary` (مع `_text`)، `movements` (30 في الصفحة، مع `direction_label` و `amount_text`)، `range`، `previousDate` / `nextDate`، `options`، و `chart` (7 فترات تنتهي بالفترة المعروضة: `label`، `kg`، `received` أرقامًا للرسم، كرسم اللوحة) |
 | `GET /banks` | `view-banks` | `banks` (`id`، `name`)، `can_manage`، `can_delete` |
 | `GET /users` | `manage-users` (صاحب المخبز) | `users` (`id`، `name`، `email`، `is_active`، `permissions`) و `groups` (مجموعات الصلاحيات بتسمياتها العربية) |
 | `GET /settings` | `manage-settings` (صاحب المخبز) | `prices` |

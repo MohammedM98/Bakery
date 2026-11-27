@@ -7,13 +7,13 @@
         h1 { font-size: 15pt; font-weight: bold; margin: 0 0 2mm; }
         .meta { width: 100%; margin-bottom: 5mm; border-collapse: collapse; }
         .meta td { padding: 0.6mm 0; vertical-align: top; }
-        .meta .label { color: #6b7685; width: 24mm; }
+        .meta .label { color: #677180; width: 24mm; }
         table.rows { width: 100%; border-collapse: collapse; }
         table.rows th { background: #f3f5f8; font-weight: bold; text-align: right; padding: 2mm 1.6mm; border-bottom: 0.3mm solid #dde3ea; }
         table.rows td { padding: 1.6mm; border-bottom: 0.2mm solid #e5e9ef; vertical-align: top; }
         table.rows tr.total td { background: #f3f5f8; font-weight: bold; }
         .num, table.rows th.num { text-align: left; white-space: nowrap; }
-        .muted { color: #6b7685; }
+        .muted { color: #677180; }
     </style>
 </head>
 <body>
