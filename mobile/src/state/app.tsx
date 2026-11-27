@@ -6,7 +6,7 @@ import { AppState as RNAppState, Platform } from 'react-native';
 import { API_URL, ApiError, createClient } from '@/api/client';
 import { localTime } from '@/lib/format';
 import type { ApiCustomer, Ledger, Me, OperationResult, Permission } from '@/api/types';
-import { afterLogin, balances as computeBalances, dismiss, EMPTY, enqueue, historyFloor, holdUnsent, retry, sync, type LocalData } from '@/sync/engine';
+import { afterLogin, balances as computeBalances, dismiss, EMPTY, enqueue, historyFloor, holdUnsent, retry, sync, withMe, type LocalData } from '@/sync/engine';
 import * as ops from '@/sync/operations';
 import { getToken, load, save, setToken } from '@/sync/storage';
 
@@ -20,8 +20,14 @@ export type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error:
 /** An offline-capable operation: queued (waits for the internet) or confirmed by the server with its answer. */
 export type OpResult = { ok: true; queued: boolean; result?: OperationResult } | { ok: false; error: string };
 
-/** The bakery's day in Palestine (the server's `local_date`, config app.local_timezone): sales and periods use it. */
-export const today = () => localTime(new Date().toISOString()).slice(0, 10);
+/** Server clock − phone clock, from the last session the server sent (LocalData.clockOffset). */
+let clockOffset = 0;
+
+/**
+ * The bakery's day in Palestine (the server's `local_date`) from the server's clock, not the phone's: the phone
+ * clock plus the offset measured at the last contact. client_created_at keeps the phone's own time.
+ */
+export const today = () => localTime(new Date(Date.now() + clockOffset).toISOString()).slice(0, 10);
 
 /** Web only: ?net=off draws the offline states (screenshots). */
 const forcedOffline = Platform.OS === 'web' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('net') === 'off';
@@ -52,6 +58,7 @@ function useAppModel() {
     const prev = ref.current;
     if (prev === next) return;
     ref.current = next;
+    clockOffset = next.clockOffset ?? 0;
     setData(next);
     // Writes run one after another so a slow one never lands after a newer one.
     writes.current = writes.current.then(() => save(prev, next)).catch(() => {});
@@ -76,7 +83,7 @@ function useAppModel() {
       if (err.code === 'unauthenticated' || err.code === 'account_disabled') await signOutLocally(err.code === 'account_disabled' ? err.message : 'انتهت الجلسة. ادخل من جديد', true);
       else if (err.code === 'subscription_expired') {
         const me = await request<Me>('GET', 'me').catch(() => null);
-        if (me) update((d) => ({ ...d, me }));
+        if (me) update((d) => withMe(d, me, new Date().toISOString()));
       }
       return err;
     },
@@ -107,13 +114,13 @@ function useAppModel() {
       // A token without its session (the app was closed during the login): fetch it, it tells the role.
       if (!ref.current.me) {
         const me = await request<Me>('GET', 'me').catch(() => null);
-        if (me) update((d) => ({ ...d, me }));
+        if (me) update((d) => withMe(d, me, new Date().toISOString()));
       }
       // The platform owner keeps nothing offline: refreshing the session is the whole sync.
       const out =
         ref.current.me?.user.role === 'super_admin'
           ? await request<Me>('GET', 'me').then(
-              (me) => (update((d) => ({ ...d, me, lastSyncAt: new Date().toISOString() })), { ok: true as const, sent: 0, rejected: 0 }),
+              (me) => (update((d) => ({ ...withMe(d, me, new Date().toISOString()), lastSyncAt: new Date().toISOString() })), { ok: true as const, sent: 0, rejected: 0 }),
               (e) => ({ ok: false as const, error: e instanceof ApiError ? e : new ApiError('server_error', String(e)) }),
             )
           : await sync(request, get, set, () => new Date().toISOString());
@@ -131,6 +138,7 @@ function useAppModel() {
       const [saved, t] = await Promise.all([load(), getToken()]);
       currentToken = t;
       ref.current = t || saved.heldFor ? saved : EMPTY;
+      clockOffset = ref.current.clockOffset ?? 0;
       // No token (signed out): nothing of the last user stays on the phone, except work held for their next login.
       if (!t && !saved.heldFor && saved !== EMPTY) writes.current = save(saved, EMPTY).catch(() => {});
       setData(ref.current);
@@ -225,7 +233,7 @@ function useAppModel() {
         currentToken = t;
         await setToken(t);
         setSignedOutReason(null);
-        set(afterLogin(ref.current, meData));
+        set(afterLogin(ref.current, meData, new Date().toISOString()));
         if (meData.user.role !== 'super_admin') runSync();
         return { ok: true };
       } catch (e) {

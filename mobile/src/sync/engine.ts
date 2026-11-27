@@ -27,9 +27,11 @@ export interface LocalData {
   cache: Record<string, { at: string; data: unknown }>;
   /** Signed out by the server with work not yet sent: whose it is, kept for that user's next login. */
   heldFor: { id: number; email: string } | null;
+  /** Server clock − phone clock (ms) when `me` last came: "today" and dates follow the server, not the phone. */
+  clockOffset: number;
 }
 
-export const EMPTY: LocalData = { me: null, cursor: null, lastSyncAt: null, customers: [], movements: [], banks: [], queue: [], cache: {}, heldFor: null };
+export const EMPTY: LocalData = { me: null, cursor: null, lastSyncAt: null, customers: [], movements: [], banks: [], queue: [], cache: {}, heldFor: null, clockOffset: 0 };
 
 /** Most operations in one push (SyncController::BATCH). */
 export const BATCH = 100;
@@ -120,11 +122,17 @@ export function retry(d: LocalData, uuid: string): LocalData {
 
 const waiting = (m: ApiMovement) => m.number == null;
 
+/** A fresh session (login, me, pull) with the server's clock against the phone's at that moment. */
+export function withMe(d: LocalData, me: Me, now: string): LocalData {
+  const offset = Date.parse(me.server_time) - Date.parse(now);
+  return { ...d, me, clockOffset: Number.isFinite(offset) ? offset : d.clockOffset };
+}
+
 /** Applies one sync/pull page. */
 export function applyPull(d: LocalData, r: PullResponse, now: string): LocalData {
   const { cursor, has_more: _more, full, customers, movements, banks, deleted, ...me } = r;
   // An expired bakery's answer echoes the cursor it got, "" on a first pull: that is still no copy.
-  let next: LocalData = { ...d, me, cursor: cursor || null, lastSyncAt: now };
+  let next: LocalData = { ...withMe(d, me, now), cursor: cursor || null, lastSyncAt: now };
   if (!me.subscription?.active) return next;
   if (full) {
     // Keep what waits for the server (and the customers it was recorded for); drop the rest of the copy.
@@ -164,8 +172,8 @@ export function holdUnsent(d: LocalData): LocalData {
 }
 
 /** A login keeps held work only when it is the same user's (the queue belongs to its user, docs/api.md). */
-export function afterLogin(d: LocalData, me: Me): LocalData {
-  return d.heldFor?.id === me.user.id ? { ...d, me, heldFor: null } : { ...EMPTY, me };
+export function afterLogin(d: LocalData, me: Me, now: string): LocalData {
+  return withMe(d.heldFor?.id === me.user.id ? { ...d, heldFor: null } : EMPTY, me, now);
 }
 
 /** The first day of movements kept on the phone ("Ymd" at the cursor's end), or null before the first sync. */

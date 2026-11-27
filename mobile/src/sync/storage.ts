@@ -15,7 +15,7 @@ const TABLES = {
   queue: (x: LocalData['queue'][number]) => x.client_uuid,
 } as const;
 type Table = keyof typeof TABLES;
-const META = ['me', 'cursor', 'lastSyncAt', 'cache', 'heldFor'] as const;
+const META = ['me', 'cursor', 'lastSyncAt', 'cache', 'heldFor', 'clockOffset'] as const;
 
 const TOKEN_KEY = 'bakery.token';
 
