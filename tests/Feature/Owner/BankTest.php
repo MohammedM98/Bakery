@@ -37,7 +37,7 @@ class BankTest extends TestCase
     private function pay(User $owner, Customer $customer, array $data)
     {
         return $this->actingAs($owner)->post(route('panel.customers.payments.store', $customer), [
-            'amount' => '40', 'payment_date' => now()->toDateString(), 'submission_id' => fake()->uuid(), ...$data,
+            'amount' => '40', 'payment_date' => local_today()->toDateString(), 'submission_id' => fake()->uuid(), ...$data,
         ]);
     }
 

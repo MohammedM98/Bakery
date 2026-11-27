@@ -58,7 +58,7 @@ class StaffPermissionsTest extends TestCase
     private function unpaidSale(): Sale
     {
         return app(RecordSale::class)->handle($this->owner->bakery, null, Sale::TYPE_CASH, [
-            'kg_amount' => '2', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->toDateString(),
+            'kg_amount' => '2', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => local_today()->toDateString(),
         ], $this->owner);
     }
 
@@ -66,7 +66,7 @@ class StaffPermissionsTest extends TestCase
     private function attempt(User $user, string $case): TestResponse
     {
         $c = $this->customer;
-        $today = now()->toDateString();
+        $today = local_today()->toDateString();
         $id = fn () => ['submission_id' => fake()->uuid()];
         $as = $this->actingAs($user);
 
@@ -195,12 +195,12 @@ class StaffPermissionsTest extends TestCase
         $otherOwner = $this->owner();
         $theirs = $otherOwner->bakery->customers()->create(['name' => 'زبون آخر', 'mobile_number' => '0593333333']);
         $theirBank = $otherOwner->bakery->banks()->create(['name' => 'بنكهم']);
-        $theirSale = app(RecordSale::class)->handle($otherOwner->bakery, null, Sale::TYPE_CASH, ['kg_amount' => '1', 'payment_status' => 'unpaid', 'sale_date' => now()->toDateString()], $otherOwner);
+        $theirSale = app(RecordSale::class)->handle($otherOwner->bakery, null, Sale::TYPE_CASH, ['kg_amount' => '1', 'payment_status' => 'unpaid', 'sale_date' => local_today()->toDateString()], $otherOwner);
 
         $this->actingAs($staff);
         $this->get(route('panel.customers.show', $theirs))->assertNotFound();
         $this->put(route('panel.customers.update', $theirs), ['name' => 'x', 'mobile_number' => '1'])->assertNotFound();
-        $this->post(route('panel.customers.payments.store', $theirs), ['amount' => '1', 'payment_date' => now()->toDateString(), 'submission_id' => fake()->uuid()])->assertNotFound();
+        $this->post(route('panel.customers.payments.store', $theirs), ['amount' => '1', 'payment_date' => local_today()->toDateString(), 'submission_id' => fake()->uuid()])->assertNotFound();
         $this->get(route('panel.customers.statement.export', [$theirs, 'money', 'pdf']))->assertNotFound();
         $this->post(route('panel.sales.mark-paid', $theirSale))->assertNotFound();
         $this->put(route('panel.banks.update', $theirBank), ['name' => 'x'])->assertNotFound();

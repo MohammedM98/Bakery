@@ -36,7 +36,7 @@ class CreateCustomer
                 'type' => Movement::TYPE_OPENING_BALANCE,
                 'amount_cents' => -Movement::cents($data['flour_balance_kg'] ?? 0),
                 'description' => 'رصيد افتتاحي',
-                'movement_date' => now()->toDateString(),
+                'movement_date' => local_today()->toDateString(),
             ]]);
 
             return $customer;

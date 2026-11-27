@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Http\Controllers\Owner\SalesLogController;
 use App\Models\Bakery;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -30,7 +29,8 @@ class MeResource extends JsonResource
             'prices' => $bakery ? self::prices($bakery) : null,
             'server_time' => now()->toIso8601String(),
             'timezone' => config('app.timezone'),
-            'local_timezone' => SalesLogController::LOCAL_TIMEZONE,
+            'local_timezone' => config('app.local_timezone'),
+            'local_date' => local_today()->toDateString(),
         ];
     }
 

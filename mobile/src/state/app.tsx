@@ -4,6 +4,7 @@ import * as React from 'react';
 import { AppState as RNAppState, Platform } from 'react-native';
 
 import { API_URL, ApiError, createClient } from '@/api/client';
+import { localTime } from '@/lib/format';
 import type { ApiCustomer, Ledger, Me, OperationResult, Permission } from '@/api/types';
 import { afterLogin, balances as computeBalances, dismiss, EMPTY, enqueue, historyFloor, holdUnsent, retry, sync, type LocalData } from '@/sync/engine';
 import * as ops from '@/sync/operations';
@@ -19,8 +20,8 @@ export type Result<T = undefined> = { ok: true; data?: T } | { ok: false; error:
 /** An offline-capable operation: queued (waits for the internet) or confirmed by the server with its answer. */
 export type OpResult = { ok: true; queued: boolean; result?: OperationResult } | { ok: false; error: string };
 
-/** The server's date (its timezone is UTC, docs/api.md): the website and the API validate against it. */
-export const today = () => new Date().toISOString().slice(0, 10);
+/** The bakery's day in Palestine (the server's `local_date`, config app.local_timezone): sales and periods use it. */
+export const today = () => localTime(new Date().toISOString()).slice(0, 10);
 
 /** Web only: ?net=off draws the offline states (screenshots). */
 const forcedOffline = Platform.OS === 'web' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('net') === 'off';

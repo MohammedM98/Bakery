@@ -37,7 +37,7 @@ class SalePagesTest extends TestCase
             'total_amount' => 25,
             'paid_amount' => 0,
             'payment_status' => Sale::STATUS_UNPAID,
-            'sale_date' => now()->toDateString(),
+            'sale_date' => local_today()->toDateString(),
             ...$attributes,
         ]);
     }
@@ -47,7 +47,7 @@ class SalePagesTest extends TestCase
         return [
             'kg_amount' => '4',
             'payment_status' => Sale::STATUS_PAID,
-            'sale_date' => now()->toDateString(),
+            'sale_date' => local_today()->toDateString(),
             'submission_id' => fake()->uuid(),
             ...$overrides,
         ];
@@ -70,7 +70,7 @@ class SalePagesTest extends TestCase
                 ->where('sales.total', 1)
                 ->where('sales.data.0', [
                     'id' => $sale->id,
-                    'sale_date' => now()->toDateString(),
+                    'sale_date' => local_today()->toDateString(),
                     'sale_type' => 'cash',
                     'customer_id' => null,
                     'buyer' => 'خالد',
@@ -107,7 +107,7 @@ class SalePagesTest extends TestCase
         $this->sale($owner, ['sale_date' => now()->subDays(3)->toDateString()]);
 
         $this->actingAs($owner)
-            ->get(route('panel.sales.index', ['status' => 'unpaid', 'date' => now()->toDateString()]))
+            ->get(route('panel.sales.index', ['status' => 'unpaid', 'date' => local_today()->toDateString()]))
             ->assertInertia(fn (Assert $page) => $page->has('sales.data', 1)->where('sales.data.0.id', $unpaid->id));
 
         $this->actingAs($owner)

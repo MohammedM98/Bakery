@@ -14,7 +14,7 @@
 **عند التشغيل** (`docker-entrypoint.sh`):
 
 1. `php artisan migrate --force` (المهاجرات الجديدة فقط).
-2. حسابات تجريبية عبر `DatabaseSeeder` إن لم يوجد مالك منصة بعد، ما لم يكن `SEED_DEMO_DATA=false`.
+2. حساب مالك المنصة الأول من `ADMIN_EMAIL` و `ADMIN_PASSWORD` (`php artisan app:create-admin`) إن لم يوجد مالك منصة بعد؛ والحسابات التجريبية عبر `DatabaseSeeder` فقط مع `SEED_DEMO_DATA=true`.
 3. `config:cache` و `route:cache` و `view:cache`.
 4. الخادم المدمج في PHP على المنفذ `PORT` (افتراضيًا 8080) بأربعة عمّال (`PHP_CLI_SERVER_WORKERS`).
 
@@ -26,14 +26,18 @@
 | `APP_ENV` / `APP_DEBUG` | `production` / `false` (صفحات الأخطاء العربية 500 و 503 تظهر فقط مع `APP_DEBUG=false`) |
 | `DB_CONNECTION` و `DB_HOST` و `DB_PORT` و `DB_DATABASE` و `DB_USERNAME` و `DB_PASSWORD` | `pgsql` أو `mysql` |
 | `SESSION_DRIVER` / `CACHE_STORE` / `QUEUE_CONNECTION` | `database` |
-| `SEED_DEMO_DATA` | `true` لإنشاء الحسابات التجريبية في أول تشغيل، `false` لتركيب حقيقي |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | بريد مالك المنصة الأول وكلمة مروره (10 أحرف على الأقل). يُنشأ في أول تشغيل فقط، ولا يُغيّر حسابًا موجودًا؛ بريد غير صالح أو كلمة مرور أقصر يوقفان التشغيل برسالة في السجل حتى تُصحَّح القيمة؛ يمكن حذف المتغيرين بعد الدخول وتغيير كلمة المرور من الملف الشخصي |
+| `SEED_DEMO_DATA` | `false` افتراضيًا. `true` لإنشاء حسابات تجريبية (`admin@bakery.test` و `owner@bakery.test` بكلمة `password`) في قاعدة فارغة، للتجربة فقط |
+| `APP_LOCAL_TIMEZONE` | يوم المخبز (افتراضيًا `Asia/Hebron`): «اليوم» وتواريخ العمليات والفترات. الأوقات تُخزَّن بـ UTC |
 
 ## Render (الخطة المجانية)
 
 1. من [render.com](https://render.com): **New +** ← **Blueprint**، واربط مستودع GitHub واختر الفرع.
-2. يعرض Render خدمة **bakery-app** وقاعدة **bakery-db**. قبل **Apply** يطلب قيمة `APP_KEY` (لا تُحفظ في `render.yaml`): ولّدها محليًا بـ `php artisan key:generate --show` والصقها.
+2. يعرض Render خدمة **bakery-app** وقاعدة **bakery-db**. قبل **Apply** يطلب ثلاث قيم لا تُحفظ في `render.yaml`: `APP_KEY` (ولّدها محليًا بـ `php artisan key:generate --show`)، و `ADMIN_EMAIL` و `ADMIN_PASSWORD` لحساب مالك المنصة.
 3. البناء الأول يستغرق 3–5 دقائق، ثم افتح الرابط الذي يعطيه Render.
-4. الحسابات التجريبية (عند `SEED_DEMO_DATA=true`): `admin@bakery.test` و `owner@bakery.test` بكلمة المرور `password`. **غيّر كلمتي المرور فورًا** من صفحة الملف الشخصي، لأن الرابط عام.
+4. ادخل بـ `ADMIN_EMAIL` و `ADMIN_PASSWORD`، وأضف المخابز من لوحة مالك المنصة. الحسابات التجريبية لا تُنشأ في الإنتاج ما لم يُضبط `SEED_DEMO_DATA=true`.
+
+> **نشر قائم من قبل:** إن كانت قاعدته أُنشئت بالحسابات التجريبية فهي باقية. احذف `owner@bakery.test` ومخبزه التجريبي إن لم تكن تستخدمهما، وغيّر كلمة مرور `admin@bakery.test` وبريده من الملف الشخصي.
 
 ملاحظات الخطة المجانية: الخدمة تتوقف بعد ~15 دقيقة بلا زيارات وتستيقظ في 30–60 ثانية، وقاعدة Postgres المجانية تنتهي بعد 90 يومًا.
 
@@ -48,7 +52,8 @@ docker build -t bakery .
 docker run -d -p 8080:8080 \
   -e APP_KEY=base64:... -e APP_ENV=production -e APP_DEBUG=false \
   -e DB_CONNECTION=mysql -e DB_HOST=... -e DB_DATABASE=bakery -e DB_USERNAME=... -e DB_PASSWORD=... \
-  -e SESSION_DRIVER=database -e CACHE_STORE=database -e SEED_DEMO_DATA=false \
+  -e SESSION_DRIVER=database -e CACHE_STORE=database \
+  -e ADMIN_EMAIL=you@example.com -e ADMIN_PASSWORD='...' \
   bakery
 ```
 

@@ -9,6 +9,7 @@ use App\Models\Movement;
 use App\Models\Sale;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -35,7 +36,7 @@ class DashboardPageTest extends TestCase
             'sale_type' => Sale::TYPE_CASH,
             'price_per_kg' => 6,
             'paid_amount' => 0,
-            'sale_date' => now()->toDateString(),
+            'sale_date' => local_today()->toDateString(),
             ...$attributes,
         ]);
 
@@ -133,7 +134,7 @@ class DashboardPageTest extends TestCase
         $owner = $this->owner();
         $other = $this->owner();
         $this->sale($other, ['kg_amount' => 50, 'total_amount' => 300, 'payment_status' => Sale::STATUS_UNPAID]);
-        $this->payment($other, 80, now()->toDateString());
+        $this->payment($other, 80, local_today()->toDateString());
 
         foreach (['day', 'year'] as $period) {
             $this->actingAs($owner)
@@ -154,7 +155,7 @@ class DashboardPageTest extends TestCase
         $customer = $owner->bakery->customers()->create(['name' => 'زبون', 'mobile_number' => '0590000000']);
         app(RecordCustomerPayment::class)->handle($customer, ['amount' => '200', 'payment_date' => now()->subDay()->toDateString()], $owner);
         app(RecordSale::class)->handle($owner->bakery, $customer, Sale::TYPE_CASH, [
-            'kg_amount' => '10', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => now()->toDateString(),
+            'kg_amount' => '10', 'payment_status' => Sale::STATUS_UNPAID, 'sale_date' => local_today()->toDateString(),
         ], $owner);
 
         $this->actingAs($owner)
@@ -188,13 +189,28 @@ class DashboardPageTest extends TestCase
         $this->actingAs($staff)->get(route('panel.dashboard'))->assertForbidden();
     }
 
-    public function test_the_servers_date_is_shared_for_date_field_defaults(): void
+    public function test_the_date_follows_the_bakerys_day_in_palestine_not_utc(): void
     {
-        $this->travelTo('2026-11-26 23:30:00');
+        $this->travelTo('2026-11-26 23:30:00'); // 01:30 on the 27th in Palestine
+        $owner = $this->owner();
 
-        $this->actingAs($this->owner())
+        $this->actingAs($owner)
             ->get(route('panel.dashboard'))
-            ->assertInertia(fn (Assert $page) => $page->where('currentDate', '2026-11-26'));
+            ->assertInertia(fn (Assert $page) => $page->where('currentDate', '2026-11-27'));
+
+        $this->actingAs($owner)->post(route('panel.sales.store'), [
+            'kg_amount' => '2',
+            'payment_status' => Sale::STATUS_PAID,
+            'sale_date' => '2026-11-27',
+            'submission_id' => (string) Str::uuid(),
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAs($owner)->post(route('panel.sales.store'), [
+            'kg_amount' => '2',
+            'payment_status' => Sale::STATUS_PAID,
+            'sale_date' => '2026-11-28',
+            'submission_id' => (string) Str::uuid(),
+        ])->assertSessionHasErrors('sale_date');
     }
 
     public function test_admin_cannot_open_the_owner_dashboard(): void

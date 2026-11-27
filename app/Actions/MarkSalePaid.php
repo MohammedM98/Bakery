@@ -40,7 +40,7 @@ class MarkSalePaid
                 'type' => Movement::TYPE_PAYMENT,
                 'amount_cents' => -$remaining,
                 'description' => 'دفعة عن بيع '.$sale->sale_date->format('d/m/Y'),
-                'movement_date' => now()->toDateString(),
+                'movement_date' => local_today()->toDateString(),
             ]]);
 
             return Movement::decimal($remaining);

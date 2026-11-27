@@ -4,7 +4,7 @@
 
 - **العنوان:** `https://<الخادم>/api/v1` (محليًا `http://localhost:8000/api/v1`).
 - **الرؤوس:** `Accept: application/json`، و `Content-Type: application/json` للكتابة، و `Authorization: Bearer <token>` لكل ما بعد الدخول.
-- **الوقت:** تواريخ الأيام `Y-m-d`، والأوقات ISO 8601. الخادم بتوقيت `UTC` (`timezone`)، ويعرض الموقع الأوقات بتوقيت `Asia/Hebron` (`local_timezone`).
+- **الوقت:** تواريخ الأيام `Y-m-d`، والأوقات ISO 8601. الأوقات تُخزَّن بتوقيت `UTC` (`timezone`)، و«اليوم» وتواريخ العمليات بيوم المخبز في `Asia/Hebron` (`local_timezone`، و `local_date` هو تاريخ اليوم هناك). التطبيق يأخذ «اليوم» من الخادم (`local_date` و `server_time` مع فرق ساعة الهاتف) لا من ساعة الهاتف، وتاريخ بعد `local_date` يُرفض.
 
 ## قواعد عامة
 
@@ -84,7 +84,8 @@
   "prices": { "regular_price_per_kg": "5.00", "regular_price_text": "5.00 شيكل", "flour_exchange_fee_per_kg": "1.50", "flour_exchange_fee_text": "1.50 شيكل" },
   "server_time": "2026-11-27T09:00:00+00:00",
   "timezone": "UTC",
-  "local_timezone": "Asia/Hebron"
+  "local_timezone": "Asia/Hebron",
+  "local_date": "2026-11-27"
 }
 ```
 

@@ -26,7 +26,7 @@ class StoreAdjustmentRequest extends FormRequest
             'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:1000000'],
             'reason' => ['required', 'string', 'max:200'],
             // No future dates: a statement ending today must close on the current balance.
-            'movement_date' => ['required', 'date', 'before_or_equal:today'],
+            'movement_date' => ['required', 'date', 'before_or_equal:'.local_today()->toDateString()],
             // Checked against this customer's movements in the action .
             'corrects_number' => ['nullable', 'integer', 'min:1'],
             ...$this->submissionRules(),

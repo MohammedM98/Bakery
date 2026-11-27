@@ -20,7 +20,7 @@ class CreateBakeryWithOwner
                 'phone' => $data['phone'] ?? null,
                 'address' => $data['address'] ?? null,
                 'subscription_status' => Bakery::STATUS_ACTIVE,
-                'subscription_expires_at' => now()->addMonths((int) $data['subscription_months'])->toDateString(),
+                'subscription_expires_at' => local_today()->addMonths((int) $data['subscription_months'])->toDateString(),
                 'regular_price_per_kg' => 0,
                 'flour_exchange_fee_per_kg' => 0,
                 'created_by' => $admin->id,

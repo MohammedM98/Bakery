@@ -188,12 +188,12 @@ class CustomerPagesTest extends TestCase
         $sale = fn (Customer $c) => Sale::create([
             'bakery_id' => $owner->bakery_id, 'customer_id' => $c->id, 'sale_type' => Sale::TYPE_CASH,
             'kg_amount' => 2, 'price_per_kg' => 5, 'total_amount' => 10, 'payment_status' => Sale::STATUS_UNPAID,
-            'sale_date' => now()->toDateString(),
+            'sale_date' => local_today()->toDateString(),
         ]);
         $sale($customer);
         $keptSale = $sale($keep);
-        DB::table('flour_deposits')->insert(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'kg_amount' => 10, 'deposit_date' => now()->toDateString()]);
-        DB::table('payments')->insert(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'amount' => 5, 'payment_date' => now()->toDateString()]);
+        DB::table('flour_deposits')->insert(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'kg_amount' => 10, 'deposit_date' => local_today()->toDateString()]);
+        DB::table('payments')->insert(['bakery_id' => $owner->bakery_id, 'customer_id' => $customer->id, 'amount' => 5, 'payment_date' => local_today()->toDateString()]);
 
         $this->actingAs($owner)
             ->delete(route('panel.customers.destroy', $customer))

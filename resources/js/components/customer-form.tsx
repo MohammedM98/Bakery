@@ -9,13 +9,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCan } from '@/lib/can';
-import { newSubmissionId } from '@/lib/format';
+import { formatFlourBalance, formatMoney, newSubmissionId } from '@/lib/format';
 
 export interface CustomerFields {
     id: number;
     name: string;
     mobile_number: string;
     notes: string | null;
+    /** Shown in the delete warning when not zero. */
+    flour_balance_kg?: string;
+    money_balance?: string;
 }
 
 /** Create when `customer` is absent (with an optional opening flour balance), edit otherwise. */
@@ -133,6 +136,11 @@ export function CustomerDialog({ customer, open, onOpenChange }: { customer?: Cu
             onFinish: () => setDeleting(false),
         });
 
+    const balances = [
+        Number(customer?.money_balance) ? `رصيده المالي ${formatMoney(customer?.money_balance)} (${Number(customer?.money_balance) > 0 ? 'عليه' : 'له'})` : null,
+        Number(customer?.flour_balance_kg) ? `رصيد الطحين ${formatFlourBalance(customer?.flour_balance_kg)}` : null,
+    ].filter(Boolean);
+
     return (
         <DialogShell open={open} onOpenChange={onOpenChange} title={customer ? `تعديل ${customer.name}` : 'إضافة عميل'}>
             <CustomerForm customer={customer} onDone={() => onOpenChange(false)} />
@@ -146,7 +154,7 @@ export function CustomerDialog({ customer, open, onOpenChange }: { customer?: Cu
                             </Button>
                         }
                         title={`حذف «${customer.name}» نهائيًا؟`}
-                        description="تُحذف كل مبيعات العميل وكل حركات كشفيه المالي والطحين. لا يمكن التراجع عن هذا الإجراء."
+                        description={`تُحذف كل مبيعات العميل وكل حركات كشفيه المالي والطحين، ولا يمكن التراجع عن هذا الإجراء.${balances.length ? ` تنبيه: ${balances.join(' و')}، ويضيع هذا الرصيد بالحذف.` : ''}`}
                         confirmLabel="حذف نهائيًا"
                         processing={deleting}
                         onConfirm={destroy}

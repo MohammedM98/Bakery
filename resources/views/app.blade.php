@@ -17,7 +17,7 @@
             })();
         </script>
 
-        @routes
+        @routes(\App\Http\Middleware\HandleInertiaRequests::routeGroup())
         @viteReactRefresh
         @vite(['resources/css/app.css', 'resources/js/app.tsx'])
         @inertiaHead

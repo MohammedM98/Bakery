@@ -32,7 +32,7 @@ class SaleManagementTest extends TestCase
         $this->actingAs($owner)->post(route('panel.sales.store'), [
             'kg_amount' => '3',
             'payment_status' => Sale::STATUS_PAID,
-            'sale_date' => now()->toDateString(),
+            'sale_date' => local_today()->toDateString(),
             'sale_type' => Sale::TYPE_FLOUR_EXCHANGE,
             'customer_id' => $customer->id,
             'price_per_kg' => '1',

@@ -227,14 +227,6 @@ class UserManagementTest extends TestCase
         $this->assertSame(['view-customers'], $staff->permissions);
     }
 
-    public function test_staff_cannot_delete_their_own_account(): void
-    {
-        $staff = $this->staff($this->owner());
-
-        $this->actingAs($staff)->delete(route('profile.destroy'), ['password' => 'password'])->assertForbidden();
-        $this->assertModelExists($staff);
-    }
-
     public function test_deleting_a_bakery_removes_its_staff_and_the_admin_sees_only_owners(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
